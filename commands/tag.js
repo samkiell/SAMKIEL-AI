@@ -1,6 +1,7 @@
 const isAdmin = require("../lib/isAdmin");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 
+const { isPremium } = require("../lib/premium");
 const fs = require("fs");
 const path = require("path");
 
@@ -45,8 +46,16 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
 
   let mentionedJidList;
 
-  // Absolute tag system - Tags everyone (since command is admin-only)
-  mentionedJidList = participants.map((p) => p.id);
+  // Checks if user is Premium for absolute tagging
+  if (isPremium(senderId)) {
+    // Absolute tag system - Tags everyone
+    mentionedJidList = participants.map((p) => p.id);
+  } else {
+    // Non-premium admins don't get absolute tag (no hidden mentions)
+    // Use explicitly mentioned users if any, otherwise empty
+    mentionedJidList =
+      replyMessage?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+  }
 
   let content = {};
 

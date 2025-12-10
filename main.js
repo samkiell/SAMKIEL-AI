@@ -154,6 +154,8 @@ const { addXp } = require("./lib/leveling");
 const rankCommand = require("./commands/rank");
 const leaderboardCommand = require("./commands/leaderboard");
 const panelCommand = require("./commands/admin");
+const addPremCommand = require("./commands/addprem");
+const delPremCommand = require("./commands/delprem");
 
 // Global settings
 global.packname = settings.packname;
@@ -1406,6 +1408,12 @@ You can explore all available commands below 👇`,
           text: `✅ Removed @${userToDel.split("@")[0]} from premium list`,
           mentions: [userToDel],
         });
+        break;
+      case command.startsWith("addprem"):
+        await addPremCommand(sock, chatId, senderId, message);
+        break;
+      case command.startsWith("delprem"):
+        await delPremCommand(sock, chatId, senderId, message);
         break;
       case command.startsWith("setprefix"):
         // Parse raw text to preserve case sensitivity of the new prefix
