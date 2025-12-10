@@ -156,6 +156,8 @@ const leaderboardCommand = require("./commands/leaderboard");
 const panelCommand = require("./commands/admin");
 const addPremCommand = require("./commands/addprem");
 const delPremCommand = require("./commands/delprem");
+const rankToggleCommand = require("./commands/ranktoggle");
+const { isRankEnabled } = require("./lib/rankConfig");
 
 // Global settings
 global.packname = settings.packname;
@@ -380,26 +382,29 @@ You can explore all available commands below 👇`,
 
     if (!message.key.fromMe) {
       incrementMessageCount(chatId, senderId);
-      // Add XP and check for level up
-      const { levelUp, level } = addXp(senderId);
-      if (levelUp && !isGroup) {
-        // Only notify level up in private to reduce spam, or maybe public if configured. Let's do private notification if in a group? No, usually public is fun.
-        // Let's stick to simple "private" logic or just send it:
-        await sock.sendMessage(chatId, {
-          text: `🎉 *Level Up!* 🎉\n\nCongratulations @${
-            senderId.split("@")[0]
-          }! You've reached *Level ${level}*! 🛡️`,
-          mentions: [senderId],
-          ...channelInfo,
-        });
-      } else if (levelUp && isGroup) {
-        await sock.sendMessage(chatId, {
-          text: `🎉 *Level Up!* 🎉\n\nCongratulations @${
-            senderId.split("@")[0]
-          }! You've reached *Level ${level}*! 🛡️`,
-          mentions: [senderId],
-          ...channelInfo,
-        });
+
+      // Add XP and check for level up (if enabled)
+      if (isRankEnabled(chatId)) {
+        const { levelUp, level } = addXp(senderId);
+        if (levelUp && !isGroup) {
+          // Only notify level up in private to reduce spam, or maybe public if configured. Let's do private notification if in a group? No, usually public is fun.
+          // Let's stick to simple "private" logic or just send it:
+          await sock.sendMessage(chatId, {
+            text: `🎉 *Level Up!* 🎉\n\nCongratulations @${
+              senderId.split("@")[0]
+            }! You've reached *Level ${level}*! 🛡️`,
+            mentions: [senderId],
+            ...channelInfo,
+          });
+        } else if (levelUp && isGroup) {
+          await sock.sendMessage(chatId, {
+            text: `🎉 *Level Up!* 🎉\n\nCongratulations @${
+              senderId.split("@")[0]
+            }! You've reached *Level ${level}*! 🛡️`,
+            mentions: [senderId],
+            ...channelInfo,
+          });
+        }
       }
     }
 
@@ -728,6 +733,17 @@ You can explore all available commands below 👇`,
             ...channelInfo,
           });
         }
+        break;
+      case command === "rankon" || command === "rankoff":
+        // Use await isOwner(senderId) since isOwner is async and used elsewhere like that
+        await rankToggleCommand(
+          sock,
+          chatId,
+          isGroup,
+          command,
+          isSenderAdmin,
+          await isOwner(senderId)
+        );
         break;
       case command === "owner":
         await ownerCommand(sock, chatId);
