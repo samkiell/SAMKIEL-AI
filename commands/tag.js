@@ -1,14 +1,17 @@
 const isAdmin = require("../lib/isAdmin");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
+const { isPremium } = require("../lib/premium");
 const fs = require("fs");
 const path = require("path");
 
 async function downloadMediaMessage(message, mediaType) {
   const stream = await downloadContentFromMessage(message, mediaType);
   let buffer = Buffer.from([]);
+
   for await (const chunk of stream) {
     buffer = Buffer.concat([buffer, chunk]);
   }
+
   const filePath = path.join(
     __dirname,
     "../temp/",
@@ -29,7 +32,7 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
   }
 
   if (!isSenderAdmin) {
-    const stickerPath = "./assets/sticktag.webp"; // Path to your sticker
+    const stickerPath = "./assets/sticktag.webp";
     if (fs.existsSync(stickerPath)) {
       const stickerBuffer = fs.readFileSync(stickerPath);
       await sock.sendMessage(chatId, { sticker: stickerBuffer });
@@ -39,50 +42,66 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
 
   const groupMetadata = await sock.groupMetadata(chatId);
   const participants = groupMetadata.participants;
-  const mentionedJidList = participants.map((p) => p.id);
+
+  let mentionedJidList;
+
+  // PREMIUM LOGIC
+  // PREMIUM LOGIC
+  if (isPremium(senderId)) {
+    // Absolute tag system (Premium users) - Tags everyone
+    mentionedJidList = participants.map((p) => p.id);
+  } else {
+    // Normal tag system - Tags only explicitly mentioned users or none
+    // If you want normal users to NOT tag everyone, return empty or parsed mentions
+    // Here we will default to empty list so it doesn't hidden-tag everyone
+    mentionedJidList = [];
+
+    // Optional: Allow normal users to tag explicitly mentioned users if they provided any
+    // (This part depends on what 'normal tagging' implies, assuming it means NO hidden tags)
+    const explicitlyMentioned =
+      replyMessage?.extendedTextMessage?.contextInfo?.mentionedJid ||
+      (replyMessage?.conversation ? [] : []) || // fallback
+      [];
+
+    // If specific logic is needed to preserve explicit mentions:
+    // mentionedJidList = explicitlyMentioned;
+  }
+
+  let content = {};
 
   if (replyMessage) {
-    let messageContent = {};
-
-    // Handle image messages
     if (replyMessage.imageMessage) {
       const filePath = await downloadMediaMessage(
         replyMessage.imageMessage,
         "image"
       );
-      messageContent = {
+      content = {
         image: { url: filePath },
         caption: messageText || replyMessage.imageMessage.caption || "",
         mentions: mentionedJidList,
       };
-    }
-    // Handle video messages
-    else if (replyMessage.videoMessage) {
+    } else if (replyMessage.videoMessage) {
       const filePath = await downloadMediaMessage(
         replyMessage.videoMessage,
         "video"
       );
-      messageContent = {
+      content = {
         video: { url: filePath },
         caption: messageText || replyMessage.videoMessage.caption || "",
         mentions: mentionedJidList,
       };
-    }
-    // Handle text messages
-    else if (replyMessage.conversation || replyMessage.extendedTextMessage) {
-      messageContent = {
+    } else if (replyMessage.conversation || replyMessage.extendedTextMessage) {
+      content = {
         text:
           replyMessage.conversation || replyMessage.extendedTextMessage.text,
         mentions: mentionedJidList,
       };
-    }
-    // Handle document messages
-    else if (replyMessage.documentMessage) {
+    } else if (replyMessage.documentMessage) {
       const filePath = await downloadMediaMessage(
         replyMessage.documentMessage,
         "document"
       );
-      messageContent = {
+      content = {
         document: { url: filePath },
         fileName: replyMessage.documentMessage.fileName,
         caption: messageText || "",
@@ -90,15 +109,14 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
       };
     }
 
-    if (Object.keys(messageContent).length > 0) {
-      await sock.sendMessage(chatId, messageContent);
-    }
-  } else {
-    await sock.sendMessage(chatId, {
-      text: messageText || "Stop drinking Garri, e dey spoil the eye😹",
-      mentions: mentionedJidList,
-    });
+    await sock.sendMessage(chatId, content);
+    return;
   }
+
+  await sock.sendMessage(chatId, {
+    text: messageText || "Stop drinking Garri, e dey spoil your eye 😹",
+    mentions: mentionedJidList,
+  });
 }
 
 module.exports = tagCommand;

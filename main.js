@@ -1,5 +1,6 @@
-// Global reply function is now defined in index.js before requiring main.js
-// No need to redefine it here
+// Main logic of the bot
+
+const { addPremium, removePremium } = require("./lib/premium");
 
 const videoCommand = require("./commands/video");
 const settings = require("./settings");
@@ -371,6 +372,70 @@ You can explore all available commands below 👇`,
         );
       }
       return;
+    }
+    // Admin prem cmds
+
+    // Premium Management Commands
+    if (command === "addprem" || command === "addpremium") {
+      const isOwnerCheck = await isOwner(senderId);
+      if (!isOwnerCheck) {
+        await sock.sendMessage(chatId, {
+          text: "❌ Only the bot owner can add premium users.",
+        });
+        return;
+      }
+
+      const mentionedJid =
+        message.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0] ||
+        message.message?.extendedTextMessage?.contextInfo?.quotedMessage
+          ?.participant;
+
+      if (!mentionedJid) {
+        await sock.sendMessage(chatId, {
+          text: "Please mention a user or reply to their message to add them to premium.",
+        });
+        return;
+      }
+
+      const number = mentionedJid.split("@")[0];
+      addPremium(mentionedJid, number);
+      await sock.sendMessage(chatId, {
+        text: `✅ User @${number} added to premium list.`,
+        mentions: [mentionedJid],
+      });
+    }
+
+    if (
+      command === "delprem" ||
+      command === "removepremium" ||
+      command === "delpremium"
+    ) {
+      const isOwnerCheck = await isOwner(senderId);
+      if (!isOwnerCheck) {
+        await sock.sendMessage(chatId, {
+          text: "❌ Only the bot owner can remove premium users.",
+        });
+        return;
+      }
+
+      const mentionedJid =
+        message.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0] ||
+        message.message?.extendedTextMessage?.contextInfo?.quotedMessage
+          ?.participant;
+
+      if (!mentionedJid) {
+        await sock.sendMessage(chatId, {
+          text: "Please mention a user or reply to their message to remove them from premium.",
+        });
+        return;
+      }
+
+      removePremium(mentionedJid);
+      const number = mentionedJid.split("@")[0];
+      await sock.sendMessage(chatId, {
+        text: `✅ User @${number} removed from premium list.`,
+        mentions: [mentionedJid],
+      });
     }
 
     // Add delay for commands except specified ones
