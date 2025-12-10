@@ -2,6 +2,7 @@ const settings = require("../settings");
 const fs = require("fs");
 const path = require("path");
 const { isPremium } = require("../lib/premium");
+const { VALID_COMMANDS } = require("../lib/prefix");
 
 function formatUptime(s) {
   const h = Math.floor(s / 3600);
@@ -16,7 +17,7 @@ async function helpCommand(sock, chatId, senderId) {
 
   const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
 │ ⏱️ *Uptime:* ${uptime}
-│ ⚙️ *Commands:* 100+
+│ ⚙️ *Commands:* ${VALID_COMMANDS.length}
 │ 🌟 *Version:* ${settings.version || "3.2"}
 │ 🛠️ *Developer:* ${settings.botOwner || "ѕαмкιєℓ.∂єν"}
 │ 🌐 *Website:* https://samkiel.dev
@@ -173,7 +174,9 @@ ${
     ? "⭐ You are enjoying all premium features."
     : "🔓 Unlock Premium to access advanced features. Use: upgrade"
 }
-`;
+
+✉️ Join our community for updates:
+https://chat.whatsapp.com/GwVMsm7rRRE7cEIIsvojdd`;
 
   try {
     const imagePath = path.join(__dirname, "../assets/bot_image.jpg");
