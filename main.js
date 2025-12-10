@@ -272,6 +272,37 @@ async function handleMessages(sock, messageUpdate, printLog) {
       return;
     }
 
+    // Check Mode (Public/Private)
+    let modeData;
+    try {
+      if (!fs.existsSync("./data/mode.json")) {
+        fs.writeFileSync(
+          "./data/mode.json",
+          JSON.stringify({ isPublic: true })
+        );
+      }
+      modeData = JSON.parse(fs.readFileSync("./data/mode.json"));
+    } catch {
+      modeData = { isPublic: true };
+    }
+
+    // Enforce Private Mode
+    if (
+      !modeData.isPublic &&
+      !message.key.fromMe &&
+      !(await isOwner(senderId))
+    ) {
+      // Only reply if it's a command attempt, or maybe just ignore.
+      // User asked for "private mode", implying restriction.
+      if (isCommand(userMessage)) {
+        await sock.sendMessage(chatId, {
+          text: "🔒 *Bot is currently in Private Mode.*\nOnly the owner can use commands right now.",
+          ...channelInfo,
+        });
+      }
+      return;
+    }
+
     // First check if it's a game move
     if (
       /^[1-9]$/.test(userMessage) ||
@@ -560,9 +591,15 @@ You can explore all available commands below 👇`,
       case command.startsWith("mode"):
         // The owner check is already done above in the ownerOnlyCommands block
         // Read current data first
-        let data;
+        let modeData;
         try {
-          data = JSON.parse(fs.readFileSync("./data/messageCount.json"));
+          if (!fs.existsSync("./data/mode.json")) {
+            fs.writeFileSync(
+              "./data/mode.json",
+              JSON.stringify({ isPublic: true })
+            );
+          }
+          modeData = JSON.parse(fs.readFileSync("./data/mode.json"));
         } catch (error) {
           console.error("Error reading access mode:", error);
           await sock.sendMessage(chatId, {
@@ -575,7 +612,7 @@ You can explore all available commands below 👇`,
         const action = command.split(" ")[1]?.toLowerCase();
         // If no argument provided, show current status
         if (!action) {
-          const currentMode = data.isPublic ? "public" : "private";
+          const currentMode = modeData.isPublic ? "public" : "private";
           await sock.sendMessage(chatId, {
             text: `Current bot mode: *${currentMode}*\n\nUsage: .mode public/private\n\nExample:\n.mode public - Allow everyone to use bot\n.mode private - Restrict to owner only`,
             ...channelInfo,
@@ -593,12 +630,12 @@ You can explore all available commands below 👇`,
 
         try {
           // Update access mode
-          data.isPublic = action === "public";
+          modeData.isPublic = action === "public";
 
           // Save updated data
           fs.writeFileSync(
-            "./data/messageCount.json",
-            JSON.stringify(data, null, 2)
+            "./data/mode.json",
+            JSON.stringify(modeData, null, 2)
           );
 
           await sock.sendMessage(chatId, {
