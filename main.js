@@ -145,6 +145,9 @@ const { vcfCommand } = require("./commands/vcf");
 const soraCommand = require("./commands/sora");
 const sudoCommand = require("./commands/sudo");
 const lidCommand = require("./commands/lid");
+const { addXp } = require("./lib/leveling");
+const rankCommand = require("./commands/rank");
+const leaderboardCommand = require("./commands/leaderboard");
 
 // Global settings
 global.packname = settings.packname;
@@ -367,7 +370,30 @@ You can explore all available commands below 👇`,
       return;
     }
 
-    if (!message.key.fromMe) incrementMessageCount(chatId, senderId);
+    if (!message.key.fromMe) {
+      incrementMessageCount(chatId, senderId);
+      // Add XP and check for level up
+      const { levelUp, level } = addXp(senderId);
+      if (levelUp && !isGroup) {
+        // Only notify level up in private to reduce spam, or maybe public if configured. Let's do private notification if in a group? No, usually public is fun.
+        // Let's stick to simple "private" logic or just send it:
+        await sock.sendMessage(chatId, {
+          text: `🎉 *Level Up!* 🎉\n\nCongratulations @${
+            senderId.split("@")[0]
+          }! You've reached *Level ${level}*! 🛡️`,
+          mentions: [senderId],
+          ...channelInfo,
+        });
+      } else if (levelUp && isGroup) {
+        await sock.sendMessage(chatId, {
+          text: `🎉 *Level Up!* 🎉\n\nCongratulations @${
+            senderId.split("@")[0]
+          }! You've reached *Level ${level}*! 🛡️`,
+          mentions: [senderId],
+          ...channelInfo,
+        });
+      }
+    }
 
     // Check for bad words FIRST, before ANY other processing
     if (isGroup && userMessage) {
@@ -798,6 +824,12 @@ You can explore all available commands below 👇`,
         break;
       case command.startsWith("insult"):
         await insultCommand(sock, chatId, message);
+        break;
+      case command === "rank":
+        await rankCommand(sock, chatId, message);
+        break;
+      case command === "leaderboard" || command === "top":
+        await leaderboardCommand(sock, chatId);
         break;
       case command.startsWith("8ball"):
         const question = command.split(" ").slice(1).join(" ");
