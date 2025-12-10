@@ -256,10 +256,10 @@ async function restartProcess(sock, chatId, message) {
   } catch {}
   // Panels usually auto-restart when the process exits.
   // Exit after a short delay to allow the above message to flush.
-      { quoted: message }
-    );
-    return;
-  }
+  setTimeout(() => process.exit(0), 1000);
+}
+
+async function updateCommand(sock, chatId, message, zipOverride) {
   try {
     // Check if update is possible
     const hasGit = await hasGitRepo();
