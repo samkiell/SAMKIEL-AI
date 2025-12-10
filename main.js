@@ -1279,7 +1279,8 @@ You can explore all available commands below 👇`,
 
         // Notify the user in DM
         await sock.sendMessage(userToAdd, {
-          text: `🎉 *CONGRATULATIONS!* 🎉\n\nYou are now a *PREMIUM USER*! 🌟\n\nEnjoy exclusive features and enhanced access. 🚀\nhearts from samkiel! 💎`,
+          text: `🎉 *CONGRATULATIONS!* 🎉\n\nYou are now a *PREMIUM USER*! 🌟\n\nEnjoy exclusive features and enhanced access.
+           🚀\nhearts from samkiel! 💎`,
         });
         break;
       case command.startsWith("delprem") ||
