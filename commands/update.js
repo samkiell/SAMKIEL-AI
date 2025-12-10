@@ -68,33 +68,39 @@ function fetchLatestCommit(owner, repo) {
   return new Promise((resolve) => {
     const url = `https://api.github.com/repos/${owner}/${repo}/commits/main`;
     const client = require("https");
-    client
-      .get(
-        url,
-        {
-          headers: {
-            "User-Agent": "SAMKIEL-BOT",
-            Accept: "application/vnd.github.v3+json",
-          },
+    const req = client.get(
+      url,
+      {
+        headers: {
+          "User-Agent": "SAMKIEL-BOT",
+          Accept: "application/vnd.github.v3+json",
         },
-        (res) => {
-          let data = "";
-          res.on("data", (chunk) => (data += chunk));
-          res.on("end", () => {
-            try {
-              if (res.statusCode === 200) {
-                const json = JSON.parse(data);
-                resolve(json);
-              } else {
-                resolve(null);
-              }
-            } catch {
+      },
+      (res) => {
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () => {
+          try {
+            if (res.statusCode === 200) {
+              const json = JSON.parse(data);
+              resolve(json);
+            } else {
               resolve(null);
             }
-          });
-        }
-      )
-      .on("error", () => resolve(null));
+          } catch {
+            resolve(null);
+          }
+        });
+      }
+    );
+
+    req.on("error", () => resolve(null));
+
+    // Add timeout to prevent hanging
+    req.setTimeout(5000, () => {
+      req.destroy();
+      resolve(null);
+    });
   });
 }
 
@@ -147,8 +153,15 @@ function downloadFile(url, dest, visited = new Set()) {
           });
         }
       );
+
       req.on("error", (err) => {
         fs.unlink(dest, () => reject(err));
+      });
+
+      // Add timeout for download
+      req.setTimeout(20000, () => {
+        req.destroy();
+        fs.unlink(dest, () => reject(new Error("Download timed out")));
       });
     } catch (e) {
       reject(e);
