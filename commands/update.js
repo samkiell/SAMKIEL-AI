@@ -54,6 +54,50 @@ async function updateViaGit() {
   return { oldRev, newRev, alreadyUpToDate, commits, files };
 }
 
+function getGithubParams(zipUrl) {
+  // Extract owner and repo from: https://github.com/OWNER/REPO/archive/...
+  const regex = /github\.com\/([^/]+)\/([^/]+)/;
+  const match = zipUrl.match(regex);
+  if (match) {
+    return { owner: match[1], repo: match[2] };
+  }
+  return null;
+}
+
+function fetchLatestCommit(owner, repo) {
+  return new Promise((resolve) => {
+    const url = `https://api.github.com/repos/${owner}/${repo}/commits/main`;
+    const client = require("https");
+    client
+      .get(
+        url,
+        {
+          headers: {
+            "User-Agent": "SAMKIEL-BOT",
+            Accept: "application/vnd.github.v3+json",
+          },
+        },
+        (res) => {
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => {
+            try {
+              if (res.statusCode === 200) {
+                const json = JSON.parse(data);
+                resolve(json);
+              } else {
+                resolve(null);
+              }
+            } catch {
+              resolve(null);
+            }
+          });
+        }
+      )
+      .on("error", () => resolve(null));
+  });
+}
+
 function downloadFile(url, dest, visited = new Set()) {
   return new Promise((resolve, reject) => {
     try {
@@ -346,17 +390,37 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         zipOverride
       );
 
-      // Format Zip Report
-      updateReport += `✅ *Update Installed (Zip Mode)*\n\n`;
-      updateReport += `📂 *Total Files Updated:* ${copiedFiles.length}\n`;
-
-      if (copiedFiles.length > 0) {
-        const showFiles = copiedFiles.slice(0, 8);
-        updateReport += `\n*Updated Files:*\n`;
-        updateReport += showFiles.map((f) => `• ${f}`).join("\n");
-        if (copiedFiles.length > 8)
-          updateReport += `\n...and ${copiedFiles.length - 8} others`;
+      // Try to fetch latest commit info if it's a GitHub URL
+      let commitMsg = null;
+      let commitAuthor = null;
+      try {
+        const repoParams = getGithubParams(hasZipUrl);
+        if (repoParams) {
+          const commitData = await fetchLatestCommit(
+            repoParams.owner,
+            repoParams.repo
+          );
+          if (commitData) {
+            commitMsg = commitData.commit.message;
+            commitAuthor = commitData.commit.author.name;
+          }
+        }
+      } catch (err) {
+        // Ignore API errors, fallback to file count
+        console.log("Failed to fetch commit info:", err.message);
       }
+
+      // Format Zip Report
+      updateReport += `✅ *Update Installed Successfully* \n\n`; // Simplified title
+
+      if (commitMsg) {
+        updateReport += `📝 *Latest Commit:*\n${commitMsg}\n`;
+        if (commitAuthor) updateReport += `_by ${commitAuthor}_\n`;
+        updateReport += `\n`;
+      }
+
+      updateReport += `📂 *Files Updated:* ${copiedFiles.length}\n`;
+      // Removed the detailed file list to reduce spam as requested
     }
 
     // Send the detailed report
