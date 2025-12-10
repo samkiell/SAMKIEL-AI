@@ -1,6 +1,6 @@
 const isAdmin = require("../lib/isAdmin");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
-const { isPremium } = require("../lib/premium");
+
 const fs = require("fs");
 const path = require("path");
 
@@ -45,27 +45,8 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
 
   let mentionedJidList;
 
-  // PREMIUM LOGIC
-  // PREMIUM LOGIC
-  if (isPremium(senderId)) {
-    // Absolute tag system (Premium users) - Tags everyone
-    mentionedJidList = participants.map((p) => p.id);
-  } else {
-    // Normal tag system - Tags only explicitly mentioned users or none
-    // If you want normal users to NOT tag everyone, return empty or parsed mentions
-    // Here we will default to empty list so it doesn't hidden-tag everyone
-    mentionedJidList = [];
-
-    // Optional: Allow normal users to tag explicitly mentioned users if they provided any
-    // (This part depends on what 'normal tagging' implies, assuming it means NO hidden tags)
-    const explicitlyMentioned =
-      replyMessage?.extendedTextMessage?.contextInfo?.mentionedJid ||
-      (replyMessage?.conversation ? [] : []) || // fallback
-      [];
-
-    // If specific logic is needed to preserve explicit mentions:
-    // mentionedJidList = explicitlyMentioned;
-  }
+  // Absolute tag system - Tags everyone (since command is admin-only)
+  mentionedJidList = participants.map((p) => p.id);
 
   let content = {};
 
