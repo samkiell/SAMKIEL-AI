@@ -148,6 +148,7 @@ const lidCommand = require("./commands/lid");
 const { addXp } = require("./lib/leveling");
 const rankCommand = require("./commands/rank");
 const leaderboardCommand = require("./commands/leaderboard");
+const panelCommand = require("./commands/admin");
 
 // Global settings
 global.packname = settings.packname;
@@ -1177,6 +1178,9 @@ You can explore all available commands below 👇`,
           command.slice(commandLength)
         );
         return;
+      case command === "admin" || command === "panel" || command === "cms":
+        await panelCommand(sock, chatId, message);
+        break;
       case command.startsWith("ss") ||
         command.startsWith("ssweb") ||
         command.startsWith("screenshot"):
