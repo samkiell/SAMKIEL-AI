@@ -1,6 +1,6 @@
-const settings = require('../settings');
-const fs = require('fs');
-const path = require('path');
+const settings = require("../settings");
+const fs = require("fs");
+const path = require("path");
 
 function formatUptime(s) {
   const h = Math.floor(s / 3600);
@@ -12,12 +12,11 @@ function formatUptime(s) {
 async function helpCommand(sock, chatId) {
   const uptime = formatUptime(process.uptime());
 
-  const helpMessage =
-`╭──〔 🤖 *${settings.botName || '𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋'}* 〕──╮
+  const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
 │ ⏱️ *Uptime:* ${uptime}
 │ ⚙️ *Commands:* 96
-│ 🌟 *Version:* ${settings.version || '3.2'}
-│ 🛠️ *Developer:* ${settings.botOwner || 'ѕαмкιєℓ.∂єν'}
+│ 🌟 *Version:* ${settings.version || "3.2"}
+│ 🛠️ *Developer:* ${settings.botOwner || "ѕαмкιєℓ.∂єν"}
 │ 🌐 *Website:* https://samkiel.dev
 │ 
 │ 📣 *Follow Channel:*
@@ -30,146 +29,146 @@ async function helpCommand(sock, chatId) {
 
 ╔═══════════════════╗
 🌐 *General Commands*:
-║ ✧ 🛎️ .help 
-║ ✧ 🏓 .ping
-║ ✧ 🟢 .alive
-║ ✧ 🗣️ .tts <text>
-║ ✧ 👤 .owner
-║ ✧ 😂 .joke
-║ ✧ 💭 .quote
-║ ✧ 🤔 .fact
-║ ✧ 🌦️ .weather <city>
-║ ✧ 📰 .news
-║ ✧ 🎨 .attp <text>
-║ ✧ 🎵 .lyrics <song_title>
-║ ✧ 🎱 .8ball <question>
-║ ✧ 🏷️ .groupinfo
-║ ✧ 👥 .staff or .admins 
-║ ✧ 🆚 .vv
-║ ✧ 💌 .pair or .rent
-║ ✧ 🌍 .trt <text> <lang>
-║ ✧ 📸 .ss <link>
+║ ✧ 🛎️ help 
+║ ✧ 🏓 ping
+║ ✧ 🟢 alive
+║ ✧ 🗣️ tts <text>
+║ ✧ 👤 owner
+║ ✧ 😂 joke
+║ ✧ 💭 quote
+║ ✧ 🤔 fact
+║ ✧ 🌦️ weather <city>
+║ ✧ 📰 news
+║ ✧ 🎨 attp <text>
+║ ✧ 🎵 lyrics <song_title>
+║ ✧ 🎱 8ball <question>
+║ ✧ 🏷️ groupinfo
+║ ✧ 👥 staff or admins 
+║ ✧ 🆚 vv
+║ ✧ 💌 pair or rent
+║ ✧ 🌍 trt <text> <lang>
+║ ✧ 📸 ss <link>
 ╚═══════════════════╝ 
 
 ╔═══════════════════╗
 👮‍♂️ *Admin Commands*:
-║ ✧ 🔨 .ban @user
-║ ✧ ⬆️ .promote @user
-║ ✧ ⬇️ .demote @user
-║ ✧ ⏱️ .mute <minutes>
-║ ✧ 🔊 .unmute
-║ ✧ ❌ .delete or .del
-║ ✧ 🚫 .kick @user
-║ ✧ 📊 .warnings @user
-║ ✧ ⚠️ .warn @user
-║ ✧ 🔗 .antilink
-║ ✧ 🛡️ .antibadword
-║ ✧ 🧹 .clear
-║ ✧ 📣 .tag <message>
-║ ✧ 📢 .tagall
-║ ✧ 🤖 .chatbot
-║ ✧ 🔄 .resetlink
+║ ✧ 🔨 ban @user
+║ ✧ ⬆️ promote @user
+║ ✧ ⬇️ demote @user
+║ ✧ ⏱️ mute <minutes>
+║ ✧ 🔊 unmute
+║ ✧ ❌ delete or del
+║ ✧ 🚫 kick @user
+║ ✧ 📊 warnings @user
+║ ✧ ⚠️ warn @user
+║ ✧ 🔗 antilink
+║ ✧ 🛡️ antibadword
+║ ✧ 🧹 clear
+║ ✧ 📣 tag <message>
+║ ✧ 📢 tagall
+║ ✧ 🤖 chatbot
+║ ✧ 🔄 resetlink
 ╚═══════════════════╝
 
 ╔═══════════════════╗
 🔒 *Owner Commands*:
-║ ✧ 🛠️ .mode
-║ ✧ 📤 .autostatus
-║ ✧ 🗑️ .clearsession
-║ ✧ 🔍 .antidelete
-║ ✧ 🧽 .cleartmp
-║ ✧ 🖼️ .setpp <reply to image>
-║ ✧ 🤖 .autoreact
+║ ✧ 🛠️ mode
+║ ✧ 📤 autostatus
+║ ✧ 🗑️ clearsession
+║ ✧ 🔍 antidelete
+║ ✧ 🧽 cleartmp
+║ ✧ 🖼️ setpp <reply to image>
+║ ✧ 🤖 autoreact
 ╚═══════════════════╝
 
 ╔═══════════════════╗
 🎨 *Image/Sticker Commands*:
-║ ✧ 🌀 .blur <image>
-║ ✧ 🌅 .simage <reply to sticker>
-║ ✧ 🖼️ .sticker <reply to image>
-║ ✧ 🎴 .tgsticker <Link>
-║ ✧ 🤣 .meme
-║ ✧ ✍️ .take <packname>
-║ ✧ 🔀 .emojimix <emj1>+<emj2>
+║ ✧ 🌀 blur <image>
+║ ✧ 🌅 simage <reply to sticker>
+║ ✧ 🖼️ sticker <reply to image>
+║ ✧ 🎴 tgsticker <Link>
+║ ✧ 🤣 meme
+║ ✧ ✍️ take <packname>
+║ ✧ 🔀 emojimix <emj1>+<emj2>
 ╚═══════════════════╝  
 
 ╔═══════════════════╗
 🎮 *Game Commands*:
-║ ✧ 🎮 .tictactoe @user
-║ ✧ 🧩 .hangman
-║ ✧ 🔡 .guess <letter>
-║ ✧ 🧠 .trivia
-║ ✧ ❓ .answer <answer>
-║ ✧ 💬 .truth
-║ ✧ 🎯 .dare
+║ ✧ 🎮 tictactoe @user
+║ ✧ 🧩 hangman
+║ ✧ 🔡 guess <letter>
+║ ✧ 🧠 trivia
+║ ✧ ❓ answer <answer>
+║ ✧ 💬 truth
+║ ✧ 🎯 dare
 ╚═══════════════════╝
 
 ╔═══════════════════╗
 🤖 *AI Commands*:
-║ ✧ 💡 .gpt <question>
-║ ✧ 🧠 .gemini <question>
+║ ✧ 💡 gpt <question>
+║ ✧ 🧠 gemini <question>
 ╚═══════════════════╝
 
 ╔═══════════════════╗
 🎯 *Fun Commands*:
-║ ✧ 🌟 .compliment @user
-║ ✧ 😡 .insult @user
-║ ✧ 💌 .flirt 
-║ ✧ 🎤 .shayari
-║ ✧ 🌙 .goodnight
-║ ✧ 🌹 .roseday
-║ ✧ 🧙‍♂️ .character @user
-║ ✧ ☠️ .wasted @user
-║ ✧ ❤️‍🔥 .ship @user
-║ ✧ 😘 .simp @user
-║ ✧ 🤦‍♂️ .stupid @user [text]
+║ ✧ 🌟 compliment @user
+║ ✧ 😡 insult @user
+║ ✧ 💌 flirt 
+║ ✧ 🎤 shayari
+║ ✧ 🌙 goodnight
+║ ✧ 🌹 roseday
+║ ✧ 🧙‍♂️ character @user
+║ ✧ ☠️ wasted @user
+║ ✧ ❤️‍🔥 ship @user
+║ ✧ 😘 simp @user
+║ ✧ 🤦‍♂️ stupid @user [text]
 ╚═══════════════════╝
 
 ╔═══════════════════╗
 🔤 *Textmaker*:
-║ ✧ ✨ .metallic <text>
-║ ✧ ❄️ .ice <text>
-║ ✧ ⛄ .snow <text>
-║ ✧ 🌟 .impressive <text>
-║ ✧ 🖥️ .matrix <text>
-║ ✧ 💡 .light <text>
-║ ✧ 🌈 .neon <text>
-║ ✧ 😈 .devil <text>
-║ ✧ 💜 .purple <text>
-║ ✧ ⚡ .thunder <text>
-║ ✧ 🍃 .leaves <text>
-║ ✧ 🎞️ .1917 <text>
-║ ✧ 🛡️ .arena <text>
-║ ✧ 🖥️ .hacker <text>
-║ ✧ 🏖️ .sand <text>
-║ ✧ 🎤 .blackpink <text>
-║ ✧ 🖥️ .glitch <text>
-║ ✧ 🔥 .fire <text>
+║ ✧ ✨ metallic <text>
+║ ✧ ❄️ ice <text>
+║ ✧ ⛄ snow <text>
+║ ✧ 🌟 impressive <text>
+║ ✧ 🖥️ matrix <text>
+║ ✧ 💡 light <text>
+║ ✧ 🌈 neon <text>
+║ ✧ 😈 devil <text>
+║ ✧ 💜 purple <text>
+║ ✧ ⚡ thunder <text>
+║ ✧ 🍃 leaves <text>
+║ ✧ 🎞️ 1917 <text>
+║ ✧ 🛡️ arena <text>
+║ ✧ 🖥️ hacker <text>
+║ ✧ 🏖️ sand <text>
+║ ✧ 🎤 blackpink <text>
+║ ✧ 🖥️ glitch <text>
+║ ✧ 🔥 fire <text>
 ╚═══════════════════╝
 
 ╔═══════════════════╗
 📥 *Downloader*:
-║ ✧ 🎵 .play <song_name>
-║ ✧ 🎧 .song <song_name>
-║ ✧ 📸 .instagram <link>
-║ ✧ 📘 .facebook <link>
-║ ✧ 🎬 .tiktok <link>
+║ ✧ 🎵 play <song_name>
+║ ✧ 🎧 song <song_name>
+║ ✧ 📸 instagram <link>
+║ ✧ 📘 facebook <link>
+║ ✧ 🎬 tiktok <link>
 ╚═══════════════════╝
 
 ╔═══════════════════╗
 💻 *Github Commands*:
-║ ✧ 🧩 .git
-║ ✧ 🛠️ .github
-║ ✧ ⚙️ .sc
-║ ✧ 📂 .script
-║ ✧ 📁 .repo
+║ ✧ 🧩 git
+║ ✧ 🛠️ github
+║ ✧ ⚙️ sc
+║ ✧ 📂 script
+║ ✧ 📁 repo
 ╚═══════════════════╝
 
 ✉️ Join our channel for updates:
 https://whatsapp.com/channel/0029VbAhWo3C6Zvf2t4Rne0h`;
 
   try {
-    const imagePath = path.join(__dirname, '../assets/bot_image.jpg');
+    const imagePath = path.join(__dirname, "../assets/bot_image.jpg");
     if (fs.existsSync(imagePath)) {
       await sock.sendMessage(chatId, {
         image: fs.readFileSync(imagePath),
@@ -178,17 +177,17 @@ https://whatsapp.com/channel/0029VbAhWo3C6Zvf2t4Rne0h`;
           forwardingScore: 1,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363400862271383@newsletter',
-            newsletterName: 'Made with 🤍 by Ԇ・SAMKIEL',
-            serverMessageId: -1
-          }
-        }
+            newsletterJid: "120363400862271383@newsletter",
+            newsletterName: "Made with 🤍 by Ԇ・SAMKIEL",
+            serverMessageId: -1,
+          },
+        },
       });
     } else {
       await sock.sendMessage(chatId, { text: helpMessage });
     }
   } catch (e) {
-    console.error('Help error:', e);
+    console.error("Help error:", e);
     await sock.sendMessage(chatId, { text: helpMessage });
   }
 }

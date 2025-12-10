@@ -1,6 +1,6 @@
 // Main logic of the bot
 
-const { addPremium, removePremium } = require("./lib/premium");
+const { addPremium, removePremium, loadPremium } = require("./lib/premium");
 
 const videoCommand = require("./commands/video");
 const settings = require("./settings");
@@ -240,12 +240,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
         ?.trim()
         .toLowerCase() ||
       "";
-    userMessage = userMessage.replace(/\.\s+/g, ".").trim();
 
     // Get command without prefix
     const command = getCommand(userMessage);
 
-    // Preserve raw message for commands like .tag that need original casing
     const rawText =
       message.message?.conversation?.trim() ||
       message.message?.extendedTextMessage?.text?.trim() ||
@@ -435,6 +433,56 @@ You can explore all available commands below 👇`,
       await sock.sendMessage(chatId, {
         text: `✅ User @${number} removed from premium list.`,
         mentions: [mentionedJid],
+      });
+    }
+
+    if (command === "listprem" || command === "premlist") {
+      const premData = loadPremium();
+      const users = premData.users || [];
+
+      if (users.length === 0) {
+        await sock.sendMessage(chatId, { text: "📜 No premium users found." });
+        return;
+      }
+
+      let text = "📜 *Premium User List:*\n\n";
+      users.forEach((u, i) => {
+        text += `${i + 1}. @${u.number}\n`;
+      });
+
+      await sock.sendMessage(chatId, {
+        text,
+        mentions: users.map((u) => u.jid),
+      });
+    }
+
+    if (command === "setprefix") {
+      const isOwnerCheck = await isOwner(senderId);
+      if (!isOwnerCheck) {
+        await sock.sendMessage(chatId, {
+          text: "❌ Only the bot owner can change the prefix.",
+        });
+        return;
+      }
+
+      const newPrefix = userMessage.split(" ")[1];
+      if (!newPrefix) {
+        await sock.sendMessage(chatId, {
+          text: "Please provide a new prefix. Example: .setprefix !",
+        });
+        return;
+      }
+
+      if (newPrefix.length > 1) {
+        await sock.sendMessage(chatId, {
+          text: "Prefix must be a single character.",
+        });
+        return;
+      }
+
+      savePrefix(newPrefix);
+      await sock.sendMessage(chatId, {
+        text: `✅ Bot prefix changed to: ${newPrefix}`,
       });
     }
 
