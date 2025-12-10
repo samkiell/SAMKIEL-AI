@@ -1,4 +1,4 @@
-const { setRankEnabled } = require("../lib/rankConfig");
+const { setRankEnabled, setGlobalRankEnabled } = require("../lib/rankConfig");
 const { channelInfo } = require("../lib/messageConfig");
 
 async function rankToggleCommand(
@@ -9,6 +9,25 @@ async function rankToggleCommand(
   isSenderAdmin,
   isOwner
 ) {
+  // If Owner runs the command, applies globally
+  if (isOwner) {
+    if (command === "rankon") {
+      setGlobalRankEnabled(true);
+      await sock.sendMessage(chatId, {
+        text: "✅ *Global Ranking Enabled*\nLevel-up messages and XP gain are now enabled for all groups (unless individually disabled).",
+        ...channelInfo,
+      });
+    } else if (command === "rankoff") {
+      setGlobalRankEnabled(false);
+      await sock.sendMessage(chatId, {
+        text: "❌ *Global Ranking Disabled*\nLevel-up messages and XP gain are now disabled for ALL groups.",
+        ...channelInfo,
+      });
+    }
+    return;
+  }
+
+  // Group Admin Helper (Local Scope)
   if (!isGroup) {
     await sock.sendMessage(chatId, {
       text: "⚠️ This command can only be used in groups.",
@@ -17,8 +36,7 @@ async function rankToggleCommand(
     return;
   }
 
-  // Check permissions
-  if (!isSenderAdmin && !isOwner) {
+  if (!isSenderAdmin) {
     await sock.sendMessage(chatId, {
       text: "⚠️ Only group admins or the bot owner can toggle ranking.",
       ...channelInfo,
@@ -29,7 +47,7 @@ async function rankToggleCommand(
   if (command === "rankon") {
     setRankEnabled(chatId, true);
     await sock.sendMessage(chatId, {
-      text: "✅ *Ranking Enabled*\nLevel-up messages will now appear in this group.",
+      text: "✅ *Ranking Enabled*\nLevel-up messages will now appear in this group (if enabled globally).",
       ...channelInfo,
     });
   } else if (command === "rankoff") {
