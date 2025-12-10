@@ -556,8 +556,24 @@ You can explore all available commands below 👇`,
 
     const isPremiumCmd = premiumCommands.includes(command);
     if (isPremiumCmd) {
-      const isPrem = isPremium(senderId);
+      let isPrem = isPremium(senderId);
       const isCreator = await isOwner(senderId);
+
+      // If not premium (by direct ID match) and not creator, but is an LID in a group:
+      // Try to resolve the LID to a Phone JID using group metadata
+      if (!isPrem && !isCreator && senderId.endsWith("@lid") && isGroup) {
+        try {
+          const groupMetadata = await sock.groupMetadata(chatId);
+          const participant = groupMetadata.participants.find(
+            (p) => p.lid === senderId
+          );
+          if (participant && participant.id) {
+            isPrem = isPremium(participant.id);
+          }
+        } catch (e) {
+          console.error("Failed to resolve LID for premium check:", e);
+        }
+      }
 
       if (!isPrem && !isCreator) {
         const vcard =
@@ -749,7 +765,7 @@ You can explore all available commands below 👇`,
         await ownerCommand(sock, chatId);
         break;
 
-      case command === "vcf":
+      case command === "vcf": {
         if (!isGroup) {
           await sock.sendMessage(chatId, {
             text: "This command can only be used in groups!",
@@ -767,6 +783,7 @@ You can explore all available commands below 👇`,
         }
         await vcfCommand(sock, chatId);
         break;
+      }
 
       case command === "tagall":
         if (isGroup) {
