@@ -1279,7 +1279,8 @@ You can explore all available commands below 👇`,
 
         // Notify the user in DM
         await sock.sendMessage(userToAdd, {
-          text: `🎉 *CONGRATULATIONS!* 🎉\n\nYou are now a *PREMIUM USER*! 🌟\n\nEnjoy exclusive features and enhanced access. 🚀\nhearts from samkiel! 💎`,
+          text: `🎉 *CONGRATULATIONS!* 🎉\n\nYou are now a *PREMIUM USER*! 🌟\n\nEnjoy exclusive features and enhanced access.
+           🚀\nhearts from samkiel! 💎`,
         });
         break;
       case command.startsWith("delprem") ||
@@ -1321,7 +1322,10 @@ You can explore all available commands below 👇`,
         });
         break;
       case command.startsWith("setprefix"):
-        const newPrefix = command.split(" ")[1]?.trim();
+        // Parse raw text to preserve case sensitivity of the new prefix
+        const rawCmd = getCommand(rawText, false);
+        const newPrefix = rawCmd.split(/\s+/)[1]; // Split by any whitespace
+
         if (!newPrefix) {
           await sock.sendMessage(chatId, {
             text: "Usage: .setprefix <prefix> or .setprefix off\n\nExamples:\n.setprefix !\n.setprefix off (no prefix required)\n.setprefix . (default)",
