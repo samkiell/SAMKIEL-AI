@@ -544,9 +544,7 @@ You can explore all available commands below 👇`,
       "remini",
       "sora",
       "removebg",
-      "ptag",
       "upgrade",
-      "premlist",
     ];
 
     const isPremiumCmd = premiumCommands.includes(command);
@@ -584,31 +582,6 @@ You can explore all available commands below 👇`,
           text: "You are already a premium user.",
           ...channelInfo,
         });
-        break;
-      case command === "premlist":
-        const premData = loadPremium();
-        const premUsers = premData.users
-          .map((u, i) => `${i + 1}. @${u.jid.split("@")[0]}`)
-          .join("\n");
-        await sock.sendMessage(chatId, {
-          text: `*💎 Premium Users 💎*\n\n${
-            premUsers || "No premium users yet."
-          }`,
-          mentions: premData.users.map((u) => u.jid),
-          ...channelInfo,
-        });
-        break;
-      case command === "ptag":
-        if (isGroup) {
-          const { isSenderAdmin } = await isAdmin(sock, chatId, senderId);
-          if (isSenderAdmin || (await isOwner(senderId))) {
-            await tagAllCommand(sock, chatId, senderId);
-          } else {
-            await sock.sendMessage(chatId, { text: "Admin only." });
-          }
-        } else {
-          await sock.sendMessage(chatId, { text: "Group only." });
-        }
         break;
       case command === "simage": {
         const quotedMessage =

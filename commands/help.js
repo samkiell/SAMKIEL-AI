@@ -25,9 +25,7 @@ async function helpCommand(sock, chatId, senderId) {
 
 💎 *PREMIUM COMMANDS*
 ╔═══════════════════╗
-║ ✧ 💎 ptag
 ║ ✧ 💎 upgrade
-║ ✧ 💎 premlist
 ║ ✧ 💎 gpt
 ║ ✧ 💎 gemini
 ║ ✧ 💎 imagine
