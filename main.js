@@ -369,51 +369,6 @@ You can explore all available commands below 👇`,
           senderId
         );
       }
-
-      if (users.length === 0) {
-        await sock.sendMessage(chatId, { text: "📜 No premium users found." });
-        return;
-      }
-
-      let text = "📜 *Premium User List:*\n\n";
-      users.forEach((u, i) => {
-        text += `${i + 1}. @${u.number}\n`;
-      });
-
-      await sock.sendMessage(chatId, {
-        text,
-        mentions: users.map((u) => u.jid),
-      });
-    }
-
-    if (command === "setprefix") {
-      const isOwnerCheck = await isOwner(senderId);
-      if (!isOwnerCheck) {
-        await sock.sendMessage(chatId, {
-          text: "❌ Only the bot owner can change the prefix.",
-        });
-        return;
-      }
-
-      const newPrefix = userMessage.split(" ")[1];
-      if (!newPrefix) {
-        await sock.sendMessage(chatId, {
-          text: "Please provide a new prefix. Example: .setprefix !",
-        });
-        return;
-      }
-
-      if (newPrefix.length > 1) {
-        await sock.sendMessage(chatId, {
-          text: "Prefix must be a single character.",
-        });
-        return;
-      }
-
-      savePrefix(newPrefix);
-      await sock.sendMessage(chatId, {
-        text: `✅ Bot prefix changed to: ${newPrefix}`,
-      });
     }
 
     // Add delay for commands except specified ones
@@ -1228,6 +1183,100 @@ You can explore all available commands below 👇`,
         break;
       case command === "lid":
         await lidCommand(sock, chatId, senderId, message);
+        break;
+      case command === "listprem" || command === "premlist": {
+        const { users } = loadPremium();
+        if (users.length === 0) {
+          await sock.sendMessage(chatId, {
+            text: "📜 No premium users found.",
+          });
+          return;
+        }
+
+        let text = "📜 *Premium User List:*\n\n";
+        users.forEach((u, i) => {
+          text += `${i + 1}. @${u.number}\n`;
+        });
+
+        await sock.sendMessage(chatId, {
+          text,
+          mentions: users.map((u) => u.jid),
+        });
+        break;
+      }
+      case command.startsWith("addprem") || command.startsWith("addpremium"):
+        if (!(await isOwner(senderId))) {
+          await sock.sendMessage(chatId, {
+            text: "❌ Only owner can add premium users.",
+          });
+          return;
+        }
+        let userToAdd =
+          message.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+        if (
+          !userToAdd &&
+          message.message?.extendedTextMessage?.contextInfo?.participant
+        ) {
+          userToAdd =
+            message.message.extendedTextMessage.contextInfo.participant;
+        }
+        if (!userToAdd) {
+          const args = command.split(" ");
+          if (args.length > 1) {
+            userToAdd = args[1].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+          }
+        }
+
+        if (!userToAdd) {
+          await sock.sendMessage(chatId, {
+            text: "Please mention a user or provide a number to add to premium.",
+          });
+          return;
+        }
+
+        addPremium(userToAdd, userToAdd.split("@")[0]);
+        await sock.sendMessage(chatId, {
+          text: `✅ Added @${userToAdd.split("@")[0]} to premium list`,
+          mentions: [userToAdd],
+        });
+        break;
+      case command.startsWith("delprem") ||
+        command.startsWith("delpremium") ||
+        command.startsWith("removepremium"):
+        if (!(await isOwner(senderId))) {
+          await sock.sendMessage(chatId, {
+            text: "❌ Only owner can remove premium users.",
+          });
+          return;
+        }
+        let userToDel =
+          message.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+        if (
+          !userToDel &&
+          message.message?.extendedTextMessage?.contextInfo?.participant
+        ) {
+          userToDel =
+            message.message.extendedTextMessage.contextInfo.participant;
+        }
+        if (!userToDel) {
+          const args = command.split(" ");
+          if (args.length > 1) {
+            userToDel = args[1].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+          }
+        }
+
+        if (!userToDel) {
+          await sock.sendMessage(chatId, {
+            text: "Please mention a user or provide a number to remove from premium.",
+          });
+          return;
+        }
+
+        removePremium(userToDel);
+        await sock.sendMessage(chatId, {
+          text: `✅ Removed @${userToDel.split("@")[0]} from premium list`,
+          mentions: [userToDel],
+        });
         break;
       case command.startsWith("setprefix"):
         const newPrefix = command.split(" ")[1]?.trim();
