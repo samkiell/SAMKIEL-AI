@@ -281,71 +281,100 @@ async function updateCommand(sock, chatId, message, zipOverride) {
       return;
     }
 
-        // Minimal UX
-        await sock.sendMessage(chatId, { text: '🔄 Updating the bot, please wait…' }, { quoted: message });
-        
-        let updateReport = "";
+    // Minimal UX
+    await sock.sendMessage(
+      chatId,
+      { text: "🔄 Updating the bot, please wait…" },
+      { quoted: message }
+    );
 
-        if (hasGit) {
-            const { oldRev, newRev, alreadyUpToDate, commits, files } = await updateViaGit();
-            
-            if (alreadyUpToDate) {
-                 await sock.sendMessage(chatId, { text: `✅ *Already up to date* \nCurrent Version: \`${newRev.substring(0, 7)}\`` }, { quoted: message });
-                 return;
-            }
+    let updateReport = "";
 
-            // Format Git Report
-            updateReport += `✅ *Update Completed Successfully!* \n\n`;
-            updateReport += `🚀 *Version:* \`${oldRev.substring(0, 7)}\` ➔ \`${newRev.substring(0, 7)}\`\n\n`;
-            
-            if (commits) {
-                const commitList = commits.split('\n').filter(Boolean);
-                const recentCommits = commitList.slice(0, 5); // Show max 5
-                updateReport += `📝 *Recent Changes:*\n`;
-                updateReport += recentCommits.map(c => `• ${c}`).join('\n');
-                if (commitList.length > 5) updateReport += `\n...and ${commitList.length - 5} more commits`;
-                updateReport += `\n\n`;
-            }
+    if (hasGit) {
+      const { oldRev, newRev, alreadyUpToDate, commits, files } =
+        await updateViaGit();
 
-            if (files) {
-                const fileList = files.split('\n').filter(Boolean);
-                const changedFiles = fileList.slice(0, 5); // Show max 5
-                updateReport += `📂 *Modified Files:*\n`;
-                updateReport += changedFiles.map(f => `• ${f}`).join('\n');
-                if (fileList.length > 5) updateReport += `\n...and ${fileList.length - 5} more files`;
-            }
+      if (alreadyUpToDate) {
+        await sock.sendMessage(
+          chatId,
+          {
+            text: `✅ *Already up to date* \nCurrent Version: \`${newRev.substring(
+              0,
+              7
+            )}\``,
+          },
+          { quoted: message }
+        );
+        return;
+      }
 
-            // Silent install
-            await run('npm install --no-audit --no-fund');
+      // Format Git Report
+      updateReport += `✅ *Update Completed Successfully!* \n\n`;
+      updateReport += `🚀 *Version:* \`${oldRev.substring(
+        0,
+        7
+      )}\` ➔ \`${newRev.substring(0, 7)}\`\n\n`;
 
-        } else {
-            const { copiedFiles } = await updateViaZip(sock, chatId, message, zipOverride);
-            
-            // Format Zip Report
-            updateReport += `✅ *Update Installed (Zip Mode)*\n\n`;
-            updateReport += `📂 *Total Files Updated:* ${copiedFiles.length}\n`;
-            
-            if (copiedFiles.length > 0) {
-                 const showFiles = copiedFiles.slice(0, 8);
-                 updateReport += `\n*Updated Files:*\n`;
-                 updateReport += showFiles.map(f => `• ${f}`).join('\n');
-                 if (copiedFiles.length > 8) updateReport += `\n...and ${copiedFiles.length - 8} others`;
-            }
-        }
+      if (commits) {
+        const commitList = commits.split("\n").filter(Boolean);
+        const recentCommits = commitList.slice(0, 5); // Show max 5
+        updateReport += `📝 *Recent Changes:*\n`;
+        updateReport += recentCommits.map((c) => `• ${c}`).join("\n");
+        if (commitList.length > 5)
+          updateReport += `\n...and ${commitList.length - 5} more commits`;
+        updateReport += `\n\n`;
+      }
 
-        // Send the detailed report
-        await sock.sendMessage(chatId, { text: updateReport }, { quoted: message });
+      if (files) {
+        const fileList = files.split("\n").filter(Boolean);
+        const changedFiles = fileList.slice(0, 5); // Show max 5
+        updateReport += `📂 *Modified Files:*\n`;
+        updateReport += changedFiles.map((f) => `• ${f}`).join("\n");
+        if (fileList.length > 5)
+          updateReport += `\n...and ${fileList.length - 5} more files`;
+      }
 
-        try {
-            await sock.sendMessage(chatId, { text: `🔄 Restarting to apply changes...` });
-        } catch {}
-        
-        await restartProcess(sock, chatId, message);
-    } catch (err) {
-        console.error('Update failed:', err);
-        await sock.sendMessage(chatId, { text: `❌ Update failed:\n${String(err.message || err)}` }, { quoted: message });
+      // Silent install
+      await run("npm install --no-audit --no-fund");
+    } else {
+      const { copiedFiles } = await updateViaZip(
+        sock,
+        chatId,
+        message,
+        zipOverride
+      );
+
+      // Format Zip Report
+      updateReport += `✅ *Update Installed (Zip Mode)*\n\n`;
+      updateReport += `📂 *Total Files Updated:* ${copiedFiles.length}\n`;
+
+      if (copiedFiles.length > 0) {
+        const showFiles = copiedFiles.slice(0, 8);
+        updateReport += `\n*Updated Files:*\n`;
+        updateReport += showFiles.map((f) => `• ${f}`).join("\n");
+        if (copiedFiles.length > 8)
+          updateReport += `\n...and ${copiedFiles.length - 8} others`;
+      }
     }
+
+    // Send the detailed report
+    await sock.sendMessage(chatId, { text: updateReport }, { quoted: message });
+
+    try {
+      await sock.sendMessage(chatId, {
+        text: `🔄 Restarting to apply changes...`,
+      });
+    } catch {}
+
+    await restartProcess(sock, chatId, message);
+  } catch (err) {
+    console.error("Update failed:", err);
+    await sock.sendMessage(
+      chatId,
+      { text: `❌ Update failed:\n${String(err.message || err)}` },
+      { quoted: message }
+    );
+  }
 }
 
 module.exports = updateCommand;
-```
