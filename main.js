@@ -1,6 +1,11 @@
 // Main logic of the bot
 
-const { addPremium, removePremium, loadPremium } = require("./lib/premium");
+const {
+  addPremium,
+  removePremium,
+  loadPremium,
+  isPremium,
+} = require("./lib/premium");
 
 const videoCommand = require("./commands/video");
 const settings = require("./settings");
@@ -531,8 +536,80 @@ You can explore all available commands below 👇`,
       }
     }
 
+    // Premium Command enforcement
+    const premiumCommands = [
+      "gpt",
+      "gemini",
+      "imagine",
+      "remini",
+      "sora",
+      "removebg",
+      "ptag",
+      "upgrade",
+      "premlist",
+    ];
+
+    const isPremiumCmd = premiumCommands.includes(command);
+    if (isPremiumCmd) {
+      const isPrem = isPremium(senderId);
+      const isCreator = await isOwner(senderId);
+
+      if (!isPrem && !isCreator) {
+        const vcard =
+          "BEGIN:VCARD\n" +
+          "VERSION:3.0\n" +
+          "FN:Samkiel\n" +
+          "TEL;type=CELL;type=VOICE;waid=2348087357158:2348087357158\n" +
+          "END:VCARD";
+
+        await sock.sendMessage(chatId, {
+          text: "This command is available only for Premium users.\nTo upgrade, contact Samkiel using the contact card below.",
+          ...channelInfo,
+        });
+
+        await sock.sendMessage(chatId, {
+          contacts: {
+            displayName: "Samkiel",
+            contacts: [{ vcard }],
+          },
+        });
+        return;
+      }
+    }
+
     // Command handlers
     switch (true) {
+      case command === "upgrade":
+        await sock.sendMessage(chatId, {
+          text: "You are already a premium user.",
+          ...channelInfo,
+        });
+        break;
+      case command === "premlist":
+        const premData = loadPremium();
+        const premUsers = premData.users
+          .map((u, i) => `${i + 1}. @${u.jid.split("@")[0]}`)
+          .join("\n");
+        await sock.sendMessage(chatId, {
+          text: `*💎 Premium Users 💎*\n\n${
+            premUsers || "No premium users yet."
+          }`,
+          mentions: premData.users.map((u) => u.jid),
+          ...channelInfo,
+        });
+        break;
+      case command === "ptag":
+        if (isGroup) {
+          const { isSenderAdmin } = await isAdmin(sock, chatId, senderId);
+          if (isSenderAdmin || (await isOwner(senderId))) {
+            await tagAllCommand(sock, chatId, senderId);
+          } else {
+            await sock.sendMessage(chatId, { text: "Admin only." });
+          }
+        } else {
+          await sock.sendMessage(chatId, { text: "Group only." });
+        }
+        break;
       case command === "simage": {
         const quotedMessage =
           message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
@@ -584,7 +661,7 @@ You can explore all available commands below 👇`,
         command === "menu" ||
         command === "bot" ||
         command === "list":
-        await helpCommand(sock, chatId, global.channelLink);
+        await helpCommand(sock, chatId, senderId);
         break;
       case command === "sticker" || command === "s":
         await stickerCommand(sock, chatId, message);

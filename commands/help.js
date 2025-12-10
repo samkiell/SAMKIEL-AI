@@ -1,6 +1,7 @@
 const settings = require("../settings");
 const fs = require("fs");
 const path = require("path");
+const { isPremium } = require("../lib/premium");
 
 function formatUptime(s) {
   const h = Math.floor(s / 3600);
@@ -9,23 +10,32 @@ function formatUptime(s) {
   return `${h}h ${m}m ${s2}s`;
 }
 
-async function helpCommand(sock, chatId) {
+async function helpCommand(sock, chatId, senderId) {
   const uptime = formatUptime(process.uptime());
+  const isPrem = isPremium(senderId);
 
   const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
 │ ⏱️ *Uptime:* ${uptime}
-│ ⚙️ *Commands:* 96
+│ ⚙️ *Commands:* 100+
 │ 🌟 *Version:* ${settings.version || "3.2"}
 │ 🛠️ *Developer:* ${settings.botOwner || "ѕαмкιєℓ.∂єν"}
 │ 🌐 *Website:* https://samkiel.dev
-│ 
-│ 📣 *Follow Channel:*
-│ https://whatsapp.com/channel/0029VbAhWo3C6Zvf2t4Rne0h
 ╰──────────────────╯
 
+💎 *PREMIUM COMMANDS*
+╔═══════════════════╗
+║ ✧ 💎 ptag
+║ ✧ 💎 upgrade
+║ ✧ 💎 premlist
+║ ✧ 💎 gpt
+║ ✧ 💎 gemini
+║ ✧ 💎 imagine
+║ ✧ 💎 remini
+║ ✧ 💎 sora
+║ ✧ 💎 removebg
+╚═══════════════════╝
 
-
-*Available Commands:*
+🆓 *FREE COMMANDS*
 
 ╔═══════════════════╗
 🌐 *General Commands*:
@@ -104,12 +114,6 @@ async function helpCommand(sock, chatId) {
 ╚═══════════════════╝
 
 ╔═══════════════════╗
-🤖 *AI Commands*:
-║ ✧ 💡 gpt <question>
-║ ✧ 🧠 gemini <question>
-╚═══════════════════╝
-
-╔═══════════════════╗
 🎯 *Fun Commands*:
 ║ ✧ 🌟 compliment @user
 ║ ✧ 😡 insult @user
@@ -164,8 +168,12 @@ async function helpCommand(sock, chatId) {
 ║ ✧ 📁 repo
 ╚═══════════════════╝
 
-✉️ Join our channel for updates:
-https://whatsapp.com/channel/0029VbAhWo3C6Zvf2t4Rne0h`;
+${
+  isPrem
+    ? "⭐ You are enjoying all premium features."
+    : "🔓 Unlock Premium to access advanced features. Use: upgrade"
+}
+`;
 
   try {
     const imagePath = path.join(__dirname, "../assets/bot_image.jpg");
