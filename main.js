@@ -551,7 +551,7 @@ You can explore all available commands below 👇`,
         await unbanCommand(sock, chatId, message);
         break;
       case command === "update":
-        await updateCommand(sock, chatId, message, ownerList);
+        await updateCommand(sock, chatId, message);
         break;
       case command === "help" ||
         command === "menu" ||

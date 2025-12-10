@@ -160,8 +160,9 @@ function copyRecursive(src, dest, ignore = [], relative = "", outList = []) {
 }
 
 async function updateViaZip(sock, chatId, message, zipOverride) {
+  const zipOverrideStr = typeof zipOverride === "string" ? zipOverride : "";
   const zipUrl = (
-    zipOverride ||
+    zipOverrideStr ||
     settings.updateZipUrl ||
     process.env.UPDATE_ZIP_URL ||
     ""
@@ -263,8 +264,9 @@ async function updateCommand(sock, chatId, message, zipOverride) {
   try {
     // Check if update is possible
     const hasGit = await hasGitRepo();
+    const zipOverrideStr = typeof zipOverride === "string" ? zipOverride : "";
     const hasZipUrl = (
-      zipOverride ||
+      zipOverrideStr ||
       settings.updateZipUrl ||
       process.env.UPDATE_ZIP_URL ||
       ""
