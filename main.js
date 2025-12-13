@@ -479,7 +479,6 @@ You can explore all available commands below 👇`,
       "areact",
       "autoreact",
       "setprefix",
-      "owner",
     ];
     const hybridCommands = ["welcome", "goodbye", "chatbot"];
 
