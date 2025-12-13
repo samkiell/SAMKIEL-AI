@@ -1,7 +1,7 @@
 const isAdmin = require("../lib/isAdmin");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 
-const { isPremium } = require("../lib/premium");
+const isOwner = require("../lib/isOwner");
 const fs = require("fs");
 const path = require("path");
 
@@ -32,7 +32,9 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
     return;
   }
 
-  if (!isSenderAdmin) {
+  const isCreator = await isOwner(senderId);
+
+  if (!isSenderAdmin && !isCreator) {
     const stickerPath = "./assets/sticktag.webp";
     if (fs.existsSync(stickerPath)) {
       const stickerBuffer = fs.readFileSync(stickerPath);
@@ -46,16 +48,8 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
 
   let mentionedJidList;
 
-  // Checks if user is Premium for absolute tagging
-  if (isPremium(senderId)) {
-    // Absolute tag system - Tags everyone
-    mentionedJidList = participants.map((p) => p.id);
-  } else {
-    // Non-premium admins don't get absolute tag (no hidden mentions)
-    // Use explicitly mentioned users if any, otherwise empty
-    mentionedJidList =
-      replyMessage?.extendedTextMessage?.contextInfo?.mentionedJid || [];
-  }
+  // Absolute tag system - Tags everyone
+  mentionedJidList = participants.map((p) => p.id);
 
   let content = {};
 
