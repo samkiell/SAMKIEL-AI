@@ -1,4 +1,4 @@
-const { jidNormalizedUser } = require("@whiskeysockets/baileys");
+import { jidNormalizedUser } from "@whiskeysockets/baileys";
 
 const settings = {
   packname: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
