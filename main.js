@@ -132,7 +132,11 @@ const songCommand = require("./commands/song");
 const aiCommand = require("./commands/ai");
 const { handleTranslateCommand } = require("./commands/translate");
 const { handleSsCommand } = require("./commands/ss");
-const { addCommandReaction, handleAreactCommand } = require("./lib/reactions");
+const {
+  addCommandReaction,
+  handleAreactCommand,
+  autoReactToNonCommand,
+} = require("./lib/reactions");
 const { goodnightCommand } = require("./commands/goodnight");
 const { shayariCommand } = require("./commands/shayari");
 const { rosedayCommand } = require("./commands/roseday");
@@ -438,6 +442,8 @@ You can explore all available commands below 👇`,
           userMessage,
           senderId
         );
+        // Auto-react to non-command messages if enabled
+        await autoReactToNonCommand(sock, message);
       }
     }
 
