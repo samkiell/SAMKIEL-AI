@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
+const { loadPrefix } = require("../lib/prefix");
 
 async function ensureGroupAndAdmin(sock, chatId, senderId) {
   const isGroup = chatId.endsWith("@g.us");
@@ -33,9 +34,11 @@ async function setGroupDescription(sock, chatId, senderId, text, message) {
   if (!check.ok) return;
   const desc = (text || "").trim();
   if (!desc) {
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
     await sock.sendMessage(
       chatId,
-      { text: "Usage: .setgdesc <description>" },
+      { text: `Usage: ${p}setgdesc <description>` },
       { quoted: message }
     );
     return;
@@ -61,9 +64,11 @@ async function setGroupName(sock, chatId, senderId, text, message) {
   if (!check.ok) return;
   const name = (text || "").trim();
   if (!name) {
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
     await sock.sendMessage(
       chatId,
-      { text: "Usage: .setgname <new name>" },
+      { text: `Usage: ${p}setgname <new name>` },
       { quoted: message }
     );
     return;
@@ -92,9 +97,11 @@ async function setGroupPhoto(sock, chatId, senderId, message) {
     message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
   const imageMessage = quoted?.imageMessage || quoted?.stickerMessage;
   if (!imageMessage) {
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
     await sock.sendMessage(
       chatId,
-      { text: "Reply to an image/sticker with .setgpp" },
+      { text: `Reply to an image/sticker with ${p}setgpp` },
       { quoted: message }
     );
     return;
