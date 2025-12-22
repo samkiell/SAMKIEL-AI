@@ -64,6 +64,7 @@ async function helpCommand(sock, chatId, senderId) {
   ║ ✧ 💌 ${p}pair or ${p}rent
   ║ ✧ 🌍 ${p}trt <text> <lang>
   ║ ✧ 📸 ${p}ss <link>
+  ║ ✧ 👁️ ${p}viewonce
   ╚═══════════════════╝ 
 
   ╔═══════════════════╗
@@ -151,12 +152,13 @@ async function helpCommand(sock, chatId, senderId) {
   ║ ✧ ⚡ ${p}thunder <text>
   ║ ✧ 🍃 ${p}leaves <text>
   ║ ✧ 🎞️ ${p}1917 <text>
-  ║ ✧ 🛡️ arena <text>
-  ║ ✧ 🖥️ hacker <text>
-  ║ ✧ 🏖️ sand <text>
-  ║ ✧ 🎤 blackpink <text>
-  ║ ✧ 🖥️ glitch <text>
-  ║ ✧ 🔥 fire <text>
+  ║ ✧ 🎞️ ${p}1917 <text>
+  ║ ✧ 🛡️ ${p}arena <text>
+  ║ ✧ 🖥️ ${p}hacker <text>
+  ║ ✧ 🏖️ ${p}sand <text>
+  ║ ✧ 🎤 ${p}blackpink <text>
+  ║ ✧ 🖥️ ${p}glitch <text>
+  ║ ✧ 🔥 ${p}fire <text>
   ╚═══════════════════╝
 
   ╔═══════════════════╗
