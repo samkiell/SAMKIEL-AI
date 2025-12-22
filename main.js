@@ -12,6 +12,7 @@ const settings = require("./settings");
 require("./config.js");
 const { isBanned } = require("./lib/isBanned");
 const { isOwner, isSuperOwner } = require("./lib/isOwner");
+const { isBotDisabled } = require("./lib/botState");
 const {
   loadPrefix,
   savePrefix,
@@ -162,6 +163,7 @@ const addPremCommand = require("./commands/addprem");
 const delPremCommand = require("./commands/delprem");
 const rankToggleCommand = require("./commands/ranktoggle");
 const { isRankEnabled } = require("./lib/rankConfig");
+const handleBotControl = require("./commands/botControl");
 
 // Global settings
 global.packname = settings.packname;
@@ -277,7 +279,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
       } catch (e) {}
     }
 
-    // Check if user is banned (skip ban check for unban command)
+    // Check if bot is disabled in this chat
+    const isOwnerCheck = (await isOwner(senderId)) || message.key.fromMe;
+    if (isBotDisabled(chatId) && command !== "enablebot" && !isOwnerCheck) {
+      return;
+    }
     if (isBanned(senderId) && command !== "unban") {
       // Only respond occasionally to avoid spam
       if (Math.random() < 0.1) {
@@ -772,6 +778,16 @@ You can explore all available commands below 👇`,
         await ownerCommand(sock, chatId);
         break;
 
+      case command === "disablebot" || command === "enablebot":
+        await handleBotControl(
+          sock,
+          chatId,
+          senderId,
+          command,
+          message,
+          channelInfo
+        );
+        break;
       case command === "vcf": {
         if (!isGroup) {
           await sock.sendMessage(chatId, {
