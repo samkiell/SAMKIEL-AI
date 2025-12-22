@@ -903,8 +903,10 @@ You can explore all available commands below 👇`,
         if (guessedLetter) {
           guessLetter(sock, chatId, guessedLetter);
         } else {
+          const currentPrefix = loadPrefix();
+          const p = currentPrefix === "off" ? "" : currentPrefix;
           sock.sendMessage(chatId, {
-            text: "Please guess a letter using .guess <letter>",
+            text: `Please guess a letter using ${p}guess <letter>`,
             ...channelInfo,
           });
         }
@@ -917,8 +919,10 @@ You can explore all available commands below 👇`,
         if (answer) {
           answerTrivia(sock, chatId, answer);
         } else {
+          const currentPrefix = loadPrefix();
+          const p = currentPrefix === "off" ? "" : currentPrefix;
           sock.sendMessage(chatId, {
-            text: "Please provide an answer using .answer <answer>",
+            text: `Please provide an answer using ${p}answer <answer>`,
             ...channelInfo,
           });
         }
