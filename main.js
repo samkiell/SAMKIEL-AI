@@ -291,8 +291,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
     }
 
     // Check if bot is disabled in this chat
-    const isOwnerCheck = (await isOwner(senderId)) || message.key.fromMe;
-    if (isBotDisabled(chatId) && command !== "enablebot" && !isOwnerCheck) {
+    if (isBotDisabled(chatId) && command !== "enablebot") {
       return;
     }
     if (isBanned(senderId) && command !== "unban") {
