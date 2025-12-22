@@ -46,7 +46,8 @@ async function helpCommand(sock, chatId, senderId) {
   ║ ✧ 🏓 ${p}ping
   ║ ✧ 🟢 ${p}alive
   ║ ✧ 🗣️ ${p}tts <text>
-  ║ ✧  ${p}owner
+  ║ ✧ 📌 ${p}prefix
+  ║ ✧ 👤 ${p}owner
   ║ ✧ 😂 ${p}joke
   ║ ✧ 💭 ${p}quote
   ║ ✧ 🤔 ${p}fact

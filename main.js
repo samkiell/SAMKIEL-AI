@@ -164,6 +164,7 @@ const delPremCommand = require("./commands/delprem");
 const rankToggleCommand = require("./commands/ranktoggle");
 const { isRankEnabled } = require("./lib/rankConfig");
 const handleBotControl = require("./commands/botControl");
+const prefixCommand = require("./commands/prefix");
 
 // Global settings
 global.packname = settings.packname;
@@ -1465,6 +1466,9 @@ You can explore all available commands below 👇`,
         break;
       case command.startsWith("delprem"):
         await delPremCommand(sock, chatId, senderId, message);
+        break;
+      case command === "prefix":
+        await prefixCommand(sock, chatId, message, channelInfo);
         break;
       case command.startsWith("setprefix"):
         // Parse raw text to preserve case sensitivity of the new prefix
