@@ -9,7 +9,7 @@ const channelInfo = {
     isForwarded: true,
     forwardedNewsletterMessageInfo: {
       newsletterJid: "120363400862271383@newsletter",
-      newsletterName: "samkiel-ai ",
+      newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 ",
       serverMessageId: -1,
     },
   },
