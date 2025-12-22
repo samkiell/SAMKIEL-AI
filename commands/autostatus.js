@@ -25,7 +25,7 @@ if (!fs.existsSync(configPath)) {
     JSON.stringify({
       enabled: false,
       reactOn: false,
-      emoji: "💚",
+      emoji: "👀",
       msgEnabled: false,
       msgContent: "Viewed by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
     })
@@ -36,7 +36,7 @@ if (!fs.existsSync(configPath)) {
     const current = JSON.parse(fs.readFileSync(configPath));
     let updated = false;
     if (current.emoji === undefined) {
-      current.emoji = "💚";
+      current.emoji = "👀";
       updated = true;
     }
     if (current.msgEnabled === undefined) {
@@ -72,7 +72,7 @@ async function autoStatusCommand(sock, chatId, msg, args) {
       const status = config.enabled ? "enabled" : "disabled";
       const reactStatus = config.reactOn ? "enabled" : "disabled";
       const msgStatus = config.msgEnabled ? "enabled" : "disabled";
-      const currentEmoji = config.emoji || "💚";
+      const currentEmoji = config.emoji || "👀";
       const currentMsg = config.msgContent || "Viewed by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
 
       const currentPrefix = loadPrefix();
@@ -313,7 +313,7 @@ async function reactToStatus(sock, statusKey) {
             participant: statusKey.participant || statusKey.remoteJid,
             fromMe: false,
           },
-          text: "💚",
+          text: "👀",
         },
       },
       {
