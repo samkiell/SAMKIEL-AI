@@ -165,25 +165,15 @@ async function helpCommand(sock, chatId, senderId) {
   📥 *Downloader*:
   ║ ✧ 🎵 ${p}play <song_name>
   ║ ✧ 🎧 ${p}song <song_name>
+  ║ ✧ 📹 ${p}video <query/url>
   ║ ✧ 📸 ${p}instagram <link>
   ║ ✧ 📘 ${p}facebook <link>
   ║ ✧ 🎬 ${p}tiktok <link>
   ╚═══════════════════╝
 
-  ╔═══════════════════╗
-  💻 *Github Commands*:
-  ║ ✧ 🧩 ${p}git
-  ║ ✧ 🛠️ ${p}github
-  ║ ✧ ⚙️ ${p}sc
-  ║ ✧ 📂 ${p}script
-  ║ ✧ 📁 ${p}repo
-  ╚═══════════════════╝
 
-${
-  isPrem
-    ? "⭐ You are enjoying all premium features."
-    : "🔓 Unlock Premium to access advanced features. Use: upgrade"
-}
+
+
 
 ✉️ Join our community for updates:
 https://chat.whatsapp.com/GwVMsm7rRRE7cEIIsvojdd`;

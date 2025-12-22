@@ -13,25 +13,36 @@ async function lyricsCommand(sock, chatId, songTitle, message) {
   }
 
   try {
-    // Use AI to generate/fetch lyrics as it is more reliable than scraping APIs
-    // Primary: Widipe OpenAI
-    let apiUrl = `https://widipe.com/openai?text=${encodeURIComponent(
-      `lyrics for ${songTitle} by song name/artist`
-    )}`;
-    let res = await fetch(apiUrl);
-    let data = await res.json();
+    // List of AI providers to try for lyrics
+    const providers = [
+        `https://bk9.fun/ai/gpt4?q=${encodeURIComponent(`lyrics for ${songTitle}`)}`,
+        `https://widipe.com/openai?text=${encodeURIComponent(`lyrics for ${songTitle} by song name/artist`)}`,
+        `https://api.dark-yasiya-api.vercel.app/chat/gpt?query=${encodeURIComponent(`lyrics for ${songTitle}`)}`
+    ];
 
-    // Validation: Check if response looks like lyrics (length > 50, contains newlines)
-    let lyrics = data.result || data.message || data.answer;
+    let lyrics = null;
 
-    if (!lyrics || lyrics.length < 50) {
-      // Fallback: BK9 GPT4
-      apiUrl = `https://bk9.fun/ai/gpt4?q=${encodeURIComponent(
-        `lyrics for ${songTitle}`
-      )}`;
-      res = await fetch(apiUrl);
-      data = await res.json();
-      lyrics = data.BK9 || data.result || data.message;
+    for (const apiUrl of providers) {
+        try {
+            const res = await fetch(apiUrl);
+            if (!res.ok) { // Try next if status not 200
+                console.warn(`Lyrics provider ${apiUrl} returned non-OK status: ${res.status}`);
+                continue;
+            }
+            
+            const data = await res.json();
+            // Check potential response fields
+            const content = data.BK9 || data.result || data.message || data.answer || data.reply;
+            
+            // Validate content looks like lyrics
+            if (content && typeof content === 'string' && content.length > 50) {
+                lyrics = content;
+                break; // Found valid lyrics, stop looping
+            }
+        } catch (e) {
+            console.warn(`Lyrics provider failed: ${apiUrl}`, e.message);
+            continue; // Try next provider on error
+        }
     }
 
     if (!lyrics) {
@@ -69,3 +80,4 @@ async function lyricsCommand(sock, chatId, songTitle, message) {
 }
 
 module.exports = { lyricsCommand };
+```
