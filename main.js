@@ -1487,7 +1487,7 @@ You can explore all available commands below 👇`,
         }
 
         // Parse raw text to preserve case sensitivity of the new prefix
-        const rawCmd = getCommand(rawText, false);
+        const rawCmd = getCommand(userMessage, false);
         const parts = rawCmd.trim().split(/\s+/);
         const newPrefix = parts.length > 1 ? parts[1] : null;
 
