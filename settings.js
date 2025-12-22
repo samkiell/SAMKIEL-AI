@@ -1,8 +1,10 @@
+const botName = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
+
 const settings = {
   // Core Foundation
-  botName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
+  botName: botName,
   prefix: ".",
-  botNumber: "2348050694825",
+  botNumber: "",
   ownerNumber: "2348087357158",
   ownerName: "SAMKIEL",
 
@@ -10,7 +12,7 @@ const settings = {
   featureToggles: {
     AUTO_STATUS_VIEW: true,
     STATUS_VIEW_EMOJI: "👀",
-    STATUS_VIEW_MSG: "Viewed by SAMKIEL BOT",
+    STATUS_VIEW_MSG: `Viewed by ${botName}`,
     ANTI_DELETE: true,
     SEND_READ: false,
     ALWAYS_ONLINE: true,
@@ -18,13 +20,13 @@ const settings = {
     PERSONAL_MESSAGE: false,
     DISABLE_START_MESSAGE: false,
     ANTI_DELETE_TYPE: "chat", // Options: "chat" or "system"
+    COMMAND_MODE: "public",
+    PACKNAME: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
   },
 
   // Metadata & Other Configs
-  packname: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
   author: "‎",
   giphyApiKey: "qnl7ssQChTdPjsKta2Ax2LMaGXz303tq",
-  commandMode: "public",
   description:
     "This is a bot for managing group commands and automating tasks.",
   version: "3",
