@@ -57,7 +57,6 @@ async function panelCommand(sock, chatId, message) {
       if (typeof value === "object") {
         for (const [participant, count] of Object.entries(value)) {
           if (typeof count === "number") {
-            totalMessages += count;
             // Add participant to unique users if it looks like a user JID
             if (
               participant.endsWith("@s.whatsapp.net") ||
@@ -93,7 +92,7 @@ async function panelCommand(sock, chatId, message) {
     const dashboard = `
 *📊 SAMKIEL AI ADMIN PANEL*
 ━━━━━━━━━━━━━━━━━━━━
-*👤 Owner:* ${settings.botOwner}
+*👤 Owner:* ${settings.ownerName}
 *🤖 Bot Name:* ${settings.botName}
 *🏷️ Version:* v${settings.version}
 ━━━━━━━━━━━━━━━━━━━━
@@ -124,7 +123,7 @@ async function panelCommand(sock, chatId, message) {
             title: "System Dashboard",
             body: "Real-time Monitoring",
             thumbnailUrl: "https://i.imgur.com/3g7b4w0.jpeg", // Placeholder or bot logo
-            sourceUrl: "",
+            sourceUrl: settings.website || "",
             mediaType: 1,
             renderLargerThumbnail: true,
           },

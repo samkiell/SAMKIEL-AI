@@ -7,6 +7,9 @@ const settings = {
   botNumber: "",
   ownerNumber: "2348087357158",
   ownerName: "SAMKIEL",
+  developer: "ѕαмкιєℓ.∂єν",
+  portfolio: "https://samkiel.dev",
+  website: "https://bot.samkiel.dev",
 
   // Feature Toggles
   featureToggles: {

@@ -22,8 +22,9 @@ async function helpCommand(sock, chatId, senderId) {
 │ ⏱️ *Uptime:* ${uptime}
 │ ⚙️ *Commands:* ${VALID_COMMANDS.length}
 │ 🌟 *Version:* ${settings.version || "3"}
-│ 🛠️ *Developer:* ${settings.botOwner || "ѕαмкιєℓ.∂єν"}
-│ 🌐 *Website:* https://samkiel.dev
+│ 🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
+│ 🌐 *Website:* ${settings.website || "https://bot.samkiel.dev"}
+│ 📂 *Portfolio:* ${settings.portfolio || "https://samkiel.dev"}
 │ 📌 *Prefix:* ${currentPrefix === "off" ? "None" : currentPrefix}
 ╰──────────────────╯
 

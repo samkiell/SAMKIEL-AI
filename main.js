@@ -199,12 +199,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
     const message = messages[0];
     if (!message?.message) return;
 
-    // Handle Auto Status viewing/downloading
-    if (message.key.remoteJid === "status@broadcast") {
-      await handleAutoStatus(sock, message);
-      return;
-    }
-
     // ===== BEGIN: Automatic reply wrapper =====
     const incomingMessage = message; // keep local reference to quote
 
@@ -1655,7 +1649,10 @@ async function handleGroupParticipantUpdate(sock, update) {
 module.exports = {
   handleMessages,
   handleGroupParticipantUpdate,
-  handleStatus: async (sock, status) => {
-    await handleStatusUpdate(sock, status);
+  handleStatus: async (sock, chatUpdate) => {
+    const message = chatUpdate.messages[0];
+    if (message) {
+      await handleAutoStatus(sock, message);
+    }
   },
 };

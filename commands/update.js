@@ -265,8 +265,8 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
         ? String(currentSettings.ownerNumber)
         : null;
     preservedBotOwner =
-      currentSettings && currentSettings.botOwner
-        ? String(currentSettings.botOwner)
+      currentSettings && currentSettings.ownerName
+        ? String(currentSettings.ownerName)
         : null;
   } catch {}
   copyRecursive(srcRoot, process.cwd(), ignore, "", copied);
@@ -281,8 +281,8 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
         );
         if (preservedBotOwner) {
           text = text.replace(
-            /botOwner:\s*'[^']*'/,
-            `botOwner: '${preservedBotOwner}'`
+            /ownerName:\s*'[^']*'/,
+            `ownerName: '${preservedBotOwner}'`
           );
         }
         fs.writeFileSync(settingsPath, text);
