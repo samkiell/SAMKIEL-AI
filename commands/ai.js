@@ -51,6 +51,14 @@ async function aiCommand(sock, chatId, message) {
       if (commandPart === "gpt") {
         // Array of GPT API endpoints
         const gptApis = [
+          `https://widipe.com/openai?text=${encodeURIComponent(query)}`,
+          `https://bk9.fun/ai/gpt4?q=${encodeURIComponent(query)}`,
+          `https://api.dark-yasiya-api.vercel.app/chat/gpt?query=${encodeURIComponent(
+            query
+          )}`,
+          `https://api.popcat.xyz/chatbot?owner=Samkiel&botname=SamkielAI&msg=${encodeURIComponent(
+            query
+          )}`,
           `https://api.giftedtech.web.id/api/ai/ai?apikey=gifted&q=${encodeURIComponent(
             query
           )}`,
@@ -60,30 +68,32 @@ async function aiCommand(sock, chatId, message) {
           `https://api.giftedtech.web.id/api/ai/gpt4o?apikey=gifted&q=${encodeURIComponent(
             query
           )}`,
-          `https://api.giftedtech.web.id/api/ai/openai?apikey=gifted&q=${encodeURIComponent(
-            query
-          )}`,
-          `https://api.giftedtech.web.id/api/ai/gpt4?apikey=gifted&q=${encodeURIComponent(
-            query
-          )}`,
         ];
 
         for (const api of gptApis) {
           try {
             const response = await axios.get(api);
+            const data = response.data;
 
             if (
-              response.data &&
-              (response.data.message ||
-                response.data.result ||
-                response.data.answer ||
-                response.data.prompt)
+              data &&
+              (data.message ||
+                data.result ||
+                data.answer ||
+                data.prompt ||
+                data.response ||
+                data.reply ||
+                data.BK9)
             ) {
               const answer =
-                response.data.message ||
-                response.data.result ||
-                response.data.answer ||
-                response.data.prompt;
+                data.message ||
+                data.result ||
+                data.answer ||
+                data.prompt ||
+                data.response ||
+                data.reply ||
+                data.BK9;
+
               appendMessage(userId, "assistant", answer);
               await global.reply(sock, message, {
                 text: answer,
@@ -91,7 +101,7 @@ async function aiCommand(sock, chatId, message) {
               return;
             }
           } catch (e) {
-            console.warn(`GPT API failed: ${api}`, e);
+            console.warn(`GPT API failed: ${api}`, e.message);
             continue; // Try the next API if this one fails
           }
         }
@@ -102,10 +112,12 @@ async function aiCommand(sock, chatId, message) {
         return;
       } else if (commandPart === "gemini") {
         const geminiApis = [
+          `https://widipe.com/gemini?text=${encodeURIComponent(query)}`,
+          `https://api.nyxs.pw/ai/gemini-pro?text=${encodeURIComponent(query)}`,
+          `https://bk9.fun/ai/gemini?q=${encodeURIComponent(query)}`,
           `https://api.giftedtech.my.id/api/ai/geminiai?apikey=gifted&q=${encodeURIComponent(
             query
           )}`,
-
           `https://bk9.fun/ai/deepseek-r1?q=${encodeURIComponent(query)}`,
         ];
 
@@ -114,9 +126,22 @@ async function aiCommand(sock, chatId, message) {
             const response = await fetch(api);
             const data = await response.json();
 
-            if (data.message || data.data || data.answer || data.result) {
+            if (
+              data.message ||
+              data.data ||
+              data.answer ||
+              data.result ||
+              data.BK9 ||
+              data.response
+            ) {
               const answer =
-                data.message || data.data || data.answer || data.result;
+                data.message ||
+                data.data ||
+                data.answer ||
+                data.result ||
+                data.BK9 ||
+                data.response;
+
               appendMessage(userId, "assistant", answer);
               await global.reply(sock, message, {
                 text: answer,
@@ -124,7 +149,7 @@ async function aiCommand(sock, chatId, message) {
               return;
             }
           } catch (e) {
-            console.warn(`Gemini API failed: ${api}`, e);
+            console.warn(`Gemini API failed: ${api}`, e.message);
             continue; // Try the next API if this one fails
           }
         }
