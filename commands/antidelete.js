@@ -8,6 +8,7 @@ const {
 } = require("@whiskeysockets/baileys");
 const { writeFile } = require("fs/promises");
 const settings = require("../settings");
+const { loadPrefix } = require("../lib/prefix");
 
 // In-memory message store for caching
 const messageStore = new Map();
@@ -196,8 +197,10 @@ async function handleAntideleteCommand(sock, chatId, message, args) {
   } else {
     const status = settings.featureToggles.ANTI_DELETE ? "ON" : "OFF";
     const type = settings.featureToggles.ANTI_DELETE_TYPE;
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
     await sock.sendMessage(chatId, {
-      text: `*ANTIDELETE SETTINGS*\n\nStatus: ${status}\nType: ${type}\n\nUse: .antidelete on/off`,
+      text: `*ANTIDELETE SETTINGS*\n\nStatus: ${status}\nType: ${type}\n\nUse: ${p}antidelete on/off`,
     });
   }
 }

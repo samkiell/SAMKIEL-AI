@@ -19,6 +19,7 @@ const {
   savePrefix,
   isCommand,
   getCommand,
+  VALID_COMMANDS,
 } = require("./lib/prefix");
 const yts = require("yt-search");
 const { fetchBuffer } = require("./lib/myfunc");
@@ -267,23 +268,26 @@ async function handleMessages(sock, messageUpdate, printLog) {
       message.message?.buttonsResponseMessage?.selectedButtonId?.trim() ||
       "";
 
+    // Initialize dynamic prefix helper
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
+
     // Get command without prefix
     const command = getCommand(userMessage);
 
-    const rawText =
-      message.message?.conversation?.trim() ||
-      message.message?.extendedTextMessage?.text?.trim() ||
-      "";
-
     // Only log command usage
     if (isCommand(userMessage)) {
-      console.log(
-        `📝 Command used in ${isGroup ? "group" : "private"}: ${userMessage}`
-      );
-      // Set recording state for commands
-      try {
-        await sock.sendPresenceUpdate("recording", chatId);
-      } catch (e) {}
+      if (VALID_COMMANDS.includes(command)) {
+        console.log(
+          `📝 Command used in ${isGroup ? "group" : "private"}: ${userMessage}`
+        );
+        // Set recording state for commands
+        try {
+          await sock.sendPresenceUpdate("recording", chatId);
+          // Global command reaction
+          await addCommandReaction(sock, message, command);
+        } catch (e) {}
+      }
     }
 
     // Check if bot is disabled in this chat
@@ -322,14 +326,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
       !message.key.fromMe &&
       !(await isOwner(senderId))
     ) {
-      // Only reply if it's a command attempt, or maybe just ignore.
-      // User asked for "private mode", implying restriction.
-      if (isCommand(userMessage)) {
-        await sock.sendMessage(chatId, {
-          text: "🔒 *Bot is currently in Private Mode.*\nOnly the owner can use commands right now.",
-          ...channelInfo,
-        });
-      }
       return;
     }
 
@@ -448,13 +444,6 @@ You can explore all available commands below 👇`,
           senderId
         );
         await Antilink(message, sock);
-        await handleBadwordDetection(
-          sock,
-          chatId,
-          message,
-          userMessage,
-          senderId
-        );
         // Auto-react to non-command messages if enabled
         await autoReactToNonCommand(sock, message);
       }
@@ -744,7 +733,7 @@ You can explore all available commands below 👇`,
 
         if (action !== "public" && action !== "private") {
           await sock.sendMessage(chatId, {
-            text: "Usage: .mode public/private\n\nExample:\n.mode public - Allow everyone to use bot\n.mode private - Restrict to owner only",
+            text: `Usage: ${p}mode public/private\n\nExample:\n${p}mode public - Allow everyone to use bot\n${p}mode private - Restrict to owner only`,
             ...channelInfo,
           });
           return;
@@ -1490,7 +1479,7 @@ You can explore all available commands below 👇`,
 
         if (!newPrefix) {
           await sock.sendMessage(chatId, {
-            text: "Usage: .setprefix <prefix> or .setprefix off\n\nExamples:\n.setprefix !\n.setprefix off (no prefix required)\n.setprefix . (default)",
+            text: `Usage: ${p}setprefix <prefix> or ${p}setprefix off\n\nExamples:\n${p}setprefix !\n${p}setprefix off (no prefix required)\n${p}setprefix . (default)`,
             ...channelInfo,
           });
           return;
