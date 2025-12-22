@@ -1,5 +1,6 @@
 const { removePremium } = require("../lib/premium");
 const { isOwner } = require("../lib/isOwner");
+const { loadPrefix } = require("../lib/prefix");
 
 async function delPremCommand(sock, chatId, senderId, message) {
   const isOwnerCheck = await isOwner(senderId);
@@ -37,8 +38,10 @@ async function delPremCommand(sock, chatId, senderId, message) {
   }
 
   if (!userToRem) {
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
     await sock.sendMessage(chatId, {
-      text: "Please mention a user, reply to a user, or provide a number to remove from premium.\nExample: .delprem @user",
+      text: `Please mention a user, reply to a user, or provide a number to remove from premium.\nExample: ${p}delprem @user`,
     });
     return;
   }
