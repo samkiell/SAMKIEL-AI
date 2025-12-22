@@ -33,29 +33,53 @@ async function viewOnceCommand(sock, chatId, message) {
     }
 
     // Enhanced view once detection
-    const isViewOnceImage =
-      quotedMessage.imageMessage?.viewOnce === true ||
-      quotedMessage.viewOnceMessage?.message?.imageMessage ||
-      message.message?.viewOnceMessage?.message?.imageMessage;
-
-    const isViewOnceVideo =
-      quotedMessage.videoMessage?.viewOnce === true ||
-      quotedMessage.viewOnceMessage?.message?.videoMessage ||
-      message.message?.viewOnceMessage?.message?.videoMessage;
+    // Check for ViewOnce in quoted message
+    if (quotedMessage.viewOnceMessageV2) {
+      if (quotedMessage.viewOnceMessageV2.message.imageMessage) {
+        isViewOnceImage = true;
+        mediaMessage = quotedMessage.viewOnceMessageV2.message.imageMessage;
+      } else if (quotedMessage.viewOnceMessageV2.message.videoMessage) {
+        isViewOnceVideo = true;
+        mediaMessage = quotedMessage.viewOnceMessageV2.message.videoMessage;
+      }
+    } else if (quotedMessage.viewOnceMessageV2Extension) {
+      if (quotedMessage.viewOnceMessageV2Extension.message.imageMessage) {
+        isViewOnceImage = true;
+        mediaMessage =
+          quotedMessage.viewOnceMessageV2Extension.message.imageMessage;
+      } else if (
+        quotedMessage.viewOnceMessageV2Extension.message.videoMessage
+      ) {
+        isViewOnceVideo = true;
+        mediaMessage =
+          quotedMessage.viewOnceMessageV2Extension.message.videoMessage;
+      }
+    } else if (quotedMessage.viewOnceMessage) {
+      if (quotedMessage.viewOnceMessage.message.imageMessage) {
+        isViewOnceImage = true;
+        mediaMessage = quotedMessage.viewOnceMessage.message.imageMessage;
+      } else if (quotedMessage.viewOnceMessage.message.videoMessage) {
+        isViewOnceVideo = true;
+        mediaMessage = quotedMessage.viewOnceMessage.message.videoMessage;
+      }
+    } else {
+      // Direct ViewOnce check
+      if (quotedMessage.imageMessage && quotedMessage.imageMessage.viewOnce) {
+        isViewOnceImage = true;
+        mediaMessage = quotedMessage.imageMessage;
+      } else if (
+        quotedMessage.videoMessage &&
+        quotedMessage.videoMessage.viewOnce
+      ) {
+        isViewOnceVideo = true;
+        mediaMessage = quotedMessage.videoMessage;
+      }
+    }
 
     // Get the actual message content
-    let mediaMessage;
-    if (isViewOnceImage) {
-      mediaMessage =
-        quotedMessage.imageMessage ||
-        quotedMessage.viewOnceMessage?.message?.imageMessage ||
-        message.message?.viewOnceMessage?.message?.imageMessage;
-    } else if (isViewOnceVideo) {
-      mediaMessage =
-        quotedMessage.videoMessage ||
-        quotedMessage.viewOnceMessage?.message?.videoMessage ||
-        message.message?.viewOnceMessage?.message?.videoMessage;
-    }
+    // Initialize flags if not already set by the block above
+    if (typeof isViewOnceImage === "undefined") isViewOnceImage = false;
+    if (typeof isViewOnceVideo === "undefined") isViewOnceVideo = false;
 
     if (!mediaMessage) {
       console.log("Message structure:", JSON.stringify(message, null, 2));
