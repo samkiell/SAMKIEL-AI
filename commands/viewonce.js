@@ -32,47 +32,49 @@ async function viewOnceCommand(sock, chatId, message) {
       return;
     }
 
+    // Unwrap ephemeral message if present
+    let msgContent = quotedMessage;
+    if (msgContent.ephemeralMessage) {
+      msgContent = msgContent.ephemeralMessage.message;
+    }
+
     // Enhanced view once detection
     // Check for ViewOnce in quoted message
-    if (quotedMessage.viewOnceMessageV2) {
-      if (quotedMessage.viewOnceMessageV2.message.imageMessage) {
+    if (msgContent.viewOnceMessageV2) {
+      const content = msgContent.viewOnceMessageV2.message;
+      if (content?.imageMessage) {
         isViewOnceImage = true;
-        mediaMessage = quotedMessage.viewOnceMessageV2.message.imageMessage;
-      } else if (quotedMessage.viewOnceMessageV2.message.videoMessage) {
+        mediaMessage = content.imageMessage;
+      } else if (content?.videoMessage) {
         isViewOnceVideo = true;
-        mediaMessage = quotedMessage.viewOnceMessageV2.message.videoMessage;
+        mediaMessage = content.videoMessage;
       }
-    } else if (quotedMessage.viewOnceMessageV2Extension) {
-      if (quotedMessage.viewOnceMessageV2Extension.message.imageMessage) {
+    } else if (msgContent.viewOnceMessageV2Extension) {
+      const content = msgContent.viewOnceMessageV2Extension.message;
+      if (content?.imageMessage) {
         isViewOnceImage = true;
-        mediaMessage =
-          quotedMessage.viewOnceMessageV2Extension.message.imageMessage;
-      } else if (
-        quotedMessage.viewOnceMessageV2Extension.message.videoMessage
-      ) {
+        mediaMessage = content.imageMessage;
+      } else if (content?.videoMessage) {
         isViewOnceVideo = true;
-        mediaMessage =
-          quotedMessage.viewOnceMessageV2Extension.message.videoMessage;
+        mediaMessage = content.videoMessage;
       }
-    } else if (quotedMessage.viewOnceMessage) {
-      if (quotedMessage.viewOnceMessage.message.imageMessage) {
+    } else if (msgContent.viewOnceMessage) {
+      const content = msgContent.viewOnceMessage.message;
+      if (content?.imageMessage) {
         isViewOnceImage = true;
-        mediaMessage = quotedMessage.viewOnceMessage.message.imageMessage;
-      } else if (quotedMessage.viewOnceMessage.message.videoMessage) {
+        mediaMessage = content.imageMessage;
+      } else if (content?.videoMessage) {
         isViewOnceVideo = true;
-        mediaMessage = quotedMessage.viewOnceMessage.message.videoMessage;
+        mediaMessage = content.videoMessage;
       }
     } else {
       // Direct ViewOnce check
-      if (quotedMessage.imageMessage && quotedMessage.imageMessage.viewOnce) {
+      if (msgContent.imageMessage && msgContent.imageMessage.viewOnce) {
         isViewOnceImage = true;
-        mediaMessage = quotedMessage.imageMessage;
-      } else if (
-        quotedMessage.videoMessage &&
-        quotedMessage.videoMessage.viewOnce
-      ) {
+        mediaMessage = msgContent.imageMessage;
+      } else if (msgContent.videoMessage && msgContent.videoMessage.viewOnce) {
         isViewOnceVideo = true;
-        mediaMessage = quotedMessage.videoMessage;
+        mediaMessage = msgContent.videoMessage;
       }
     }
 
