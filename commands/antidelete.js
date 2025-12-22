@@ -13,6 +13,15 @@ const { loadPrefix } = require("../lib/prefix");
 // In-memory message store for caching
 const messageStore = new Map();
 const MAX_CACHE_SIZE = 5000;
+const configPath = path.join(__dirname, "../data/antiDelete.json");
+
+// Ensure config exists
+if (!fs.existsSync(configPath)) {
+  fs.writeFileSync(
+    configPath,
+    JSON.stringify({ enabled: false, mode: "group", allowedGroups: [] })
+  );
+}
 
 /**
  * Periodically clean up old cache entries
@@ -77,8 +86,16 @@ async function copyNForward(
  */
 async function storeMessage(message) {
   try {
+    // Check local config first
+    let config = { enabled: false };
+    try {
+      if (fs.existsSync(configPath)) {
+        config = JSON.parse(fs.readFileSync(configPath));
+      }
+    } catch (e) {}
+
     // Only store if anti-delete is enabled globally
-    if (!settings.featureToggles.ANTI_DELETE) return;
+    if (!config.enabled && !settings.featureToggles.ANTI_DELETE) return;
 
     if (!message?.key?.id || !message?.message) return;
 
@@ -120,8 +137,13 @@ async function storeMessage(message) {
  */
 async function handleMessageRevocation(sock, revocationMessage) {
   try {
-    // 1. Core toggle check
-    if (!settings.featureToggles.ANTI_DELETE) return;
+    // 1. Load config
+    let config = { enabled: false, mode: "group", allowedGroups: [] };
+    if (fs.existsSync(configPath)) {
+      config = JSON.parse(fs.readFileSync(configPath));
+    }
+
+    if (!config.enabled) return;
 
     const protocolMsg = revocationMessage.message?.protocolMessage;
     if (protocolMsg?.type !== 0) return; // 0 is REVOKE
@@ -134,42 +156,56 @@ async function handleMessageRevocation(sock, revocationMessage) {
     const remoteJid = original.remoteJid;
     const isGroup = remoteJid.endsWith("@g.us");
 
-    // 2. Type filter check
-    const filterType = (
-      settings.featureToggles.ANTI_DELETE_TYPE || "all"
-    ).toLowerCase();
+    // 2. Group Whitelist Check
+    if (isGroup) {
+      if (!config.allowedGroups.includes(remoteJid)) return;
+    } else {
+      // For private chats, maybe strict enable? Or just allow all?
+      // User focused on groups. Let's allow private by default if enabled globally?
+      // Or maybe strictly follow "specific to a certain group".
+      // Let's assume private chats are always allowed if globally enabled,
+      // UNLESS user logic was purely group focused.
+      // Usually "anti-delete" on private chat is default behavior for many bots.
+      // Let's keep private chat working if enabled globally.
+    }
 
-    // Normalize user input (handle "group only" etc)
-    if (filterType.includes("group") && !isGroup) return;
-    if (filterType.includes("private") && isGroup) return;
-
-    // 3. Sender check: don't track our own deletions
+    // 3. Sender check
     if (original.key.fromMe) return;
 
-    const sender = original.participant;
     const deleter =
       revocationMessage.key.participant || revocationMessage.key.remoteJid;
+    const sender = original.participant;
 
     console.log(`♻️ Anti-delete triggered for ${targetId} in ${remoteJid}`);
 
-    // 4. Construct report header
-    const botName = settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
+    // 4. Determine destination
+    let destJid = remoteJid;
+    let contextHeader = isGroup ? "Group Chat" : "Private Chat";
+
+    // Mode: "dm" -> send to owner
+    if (config.mode === "dm") {
+      destJid = settings.ownerNumber + "@s.whatsapp.net";
+      contextHeader += ` (Forwarded from ${remoteJid})`;
+    }
+
+    // 5. Construct Report
     const header =
       `*🔰 ANTI-DELETE SYSTEM 🔰*\n\n` +
       `*👤 Deleted by:* @${deleter.split("@")[0]}\n` +
-      `*🕒 Context:* ${isGroup ? "Group Chat" : "Private Chat"}\n` +
+      `*👤 Sent by:* @${sender.split("@")[0]}\n` +
+      `*🕒 Context:* ${contextHeader}\n` +
       `━━━━━━━━━━━━━━━━━━━`;
 
-    // 5. Send header
-    await sock.sendMessage(remoteJid, {
+    // 6. Send Header
+    await sock.sendMessage(destJid, {
       text: header,
       mentions: [deleter, sender],
     });
 
-    // 6. Resend the original message
-    await copyNForward(sock, remoteJid, original, true);
+    // 7. Resend Content
+    await copyNForward(sock, destJid, original, true);
 
-    // 7. Remove from cache to prevent double recovery
+    // 8. Cleanup
     messageStore.delete(targetId);
   } catch (err) {
     console.error("Error in handleMessageRevocation:", err);
@@ -180,27 +216,97 @@ async function handleMessageRevocation(sock, revocationMessage) {
  * Command to toggle state
  */
 async function handleAntideleteCommand(sock, chatId, message, args) {
-  const { isOwner } = require("../lib/isOwner");
   const senderId = message.key.participant || message.key.remoteJid;
 
   if (!(await isOwner(senderId))) {
     return sock.sendMessage(chatId, { text: "❌ Owner only command." });
   }
 
-  const mode = args?.toLowerCase() || "";
-  if (mode === "on") {
-    settings.featureToggles.ANTI_DELETE = true;
-    await sock.sendMessage(chatId, { text: "✅ Anti-delete system enabled." });
-  } else if (mode === "off") {
-    settings.featureToggles.ANTI_DELETE = false;
-    await sock.sendMessage(chatId, { text: "❌ Anti-delete system disabled." });
+  // Load config
+  let config = { enabled: false, mode: "group", allowedGroups: [] };
+  if (fs.existsSync(configPath)) {
+    config = JSON.parse(fs.readFileSync(configPath));
+  }
+
+  // Parse args
+  const subCmd = args[0] ? args[0].toLowerCase() : "";
+  const param = args[1] ? args[1].toLowerCase() : "";
+
+  if (subCmd === "on") {
+    config.enabled = true;
+    fs.writeFileSync(configPath, JSON.stringify(config));
+    await sock.sendMessage(chatId, {
+      text: "✅ Anti-delete system enabled globally.",
+    });
+  } else if (subCmd === "off") {
+    config.enabled = false;
+    fs.writeFileSync(configPath, JSON.stringify(config));
+    await sock.sendMessage(chatId, {
+      text: "❌ Anti-delete system disabled globally.",
+    });
+  } else if (subCmd === "type") {
+    if (param === "group") {
+      config.mode = "group";
+      fs.writeFileSync(configPath, JSON.stringify(config));
+      await sock.sendMessage(chatId, {
+        text: "✅ Mode set to GROUP: Deleted messages will be sent to the group chat.",
+      });
+    } else if (param === "dm") {
+      config.mode = "dm";
+      fs.writeFileSync(configPath, JSON.stringify(config));
+      await sock.sendMessage(chatId, {
+        text: "✅ Mode set to DM: Deleted messages will be forwarded to your DM.",
+      });
+    } else {
+      await sock.sendMessage(chatId, {
+        text: "❌ Invalid type! Use 'group' or 'dm'.",
+      });
+    }
+  } else if (subCmd === "gc") {
+    if (!message.key.remoteJid.endsWith("@g.us")) {
+      await sock.sendMessage(chatId, {
+        text: "❌ This command is for groups only.",
+      });
+      return;
+    }
+
+    if (param === "on") {
+      if (!config.allowedGroups.includes(chatId)) {
+        config.allowedGroups.push(chatId);
+        fs.writeFileSync(configPath, JSON.stringify(config));
+      }
+      await sock.sendMessage(chatId, {
+        text: "✅ Anti-delete active for this group.",
+      });
+    } else if (param === "off") {
+      config.allowedGroups = config.allowedGroups.filter((id) => id !== chatId);
+      fs.writeFileSync(configPath, JSON.stringify(config));
+      await sock.sendMessage(chatId, {
+        text: "❌ Anti-delete disabled for this group.",
+      });
+    } else {
+      await sock.sendMessage(chatId, { text: "❌ Use 'gc on' or 'gc off'." });
+    }
   } else {
-    const status = settings.featureToggles.ANTI_DELETE ? "ON" : "OFF";
-    const type = settings.featureToggles.ANTI_DELETE_TYPE;
+    // Status Display
+    const status = config.enabled ? "ON" : "OFF";
+    const mode = config.mode.toUpperCase();
+    const isAllowed = config.allowedGroups.includes(chatId) ? "YES" : "NO";
     const currentPrefix = loadPrefix();
     const p = currentPrefix === "off" ? "" : currentPrefix;
+
     await sock.sendMessage(chatId, {
-      text: `*ANTIDELETE SETTINGS*\n\nStatus: ${status}\nType: ${type}\n\nUse: ${p}antidelete on/off`,
+      text: `🔰 *Antidelete Configuration*
+      
+📊 *Global Status:* ${status}
+🔄 *Mode:* ${mode}
+🏘️ *Active in this Group:* ${isAllowed}
+
+*Commands:*
+${p}antidelete on/off (Global Switch)
+${p}antidelete type group (Send to Group)
+${p}antidelete type dm (Send to Owner DM)
+${p}antidelete gc on/off (Enable/Disable for current group)`,
     });
   }
 }
