@@ -1478,6 +1478,14 @@ You can explore all available commands below 👇`,
         await deployCommand(sock, chatId, message);
         break;
       case command.startsWith("setprefix"):
+        if (!(await isOwner(senderId))) {
+          await sock.sendMessage(chatId, {
+            text: "❌ This command can only be used by the owner!",
+            ...channelInfo,
+          });
+          return;
+        }
+
         // Parse raw text to preserve case sensitivity of the new prefix
         const rawCmd = getCommand(rawText, false);
         const parts = rawCmd.trim().split(/\s+/);
