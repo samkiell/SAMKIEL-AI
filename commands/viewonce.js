@@ -106,7 +106,7 @@ async function viewOnceCommand(sock, chatId, message) {
 
         await sock.sendMessage(chatId, {
           image: buffer,
-          caption: `* Nothing is hidden*\n\n*Type:* Image 📸\n${
+          caption: `* *Nothing is hidden*\n\n*Type:* Image 📸\n${
             caption ? `*Caption:* ${caption}` : ""
           }`,
           ...channelInfo,

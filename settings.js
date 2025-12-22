@@ -31,7 +31,7 @@ const settings = {
   },
 
   // Metadata & Other Configs
-  author: "‎",
+  author: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
   giphyApiKey: "qnl7ssQChTdPjsKta2Ax2LMaGXz303tq",
   description:
     "This is a bot for managing group commands and automating tasks.",
