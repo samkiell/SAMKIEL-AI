@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const isOwner = require("../lib/isOwner");
+const { isOwner } = require("../lib/isOwner");
 
 const channelInfo = {
   contextInfo: {

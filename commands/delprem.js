@@ -1,5 +1,5 @@
 const { removePremium } = require("../lib/premium");
-const isOwner = require("../lib/isOwner");
+const { isOwner } = require("../lib/isOwner");
 
 async function delPremCommand(sock, chatId, senderId, message) {
   const isOwnerCheck = await isOwner(senderId);

@@ -74,7 +74,7 @@ function saveAntideleteConfig(config) {
 
 // Command Handler
 async function handleAntideleteCommand(sock, chatId, message, match) {
-  const isOwner = require("../lib/isOwner");
+  const { isOwner } = require("../lib/isOwner");
   const senderId = message.key.participant || message.key.remoteJid;
   const isOwnerCheck = await isOwner(senderId);
   if (!isOwnerCheck) {

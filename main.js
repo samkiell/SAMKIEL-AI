@@ -11,7 +11,7 @@ const videoCommand = require("./commands/video");
 const settings = require("./settings");
 require("./config.js");
 const { isBanned } = require("./lib/isBanned");
-const isOwner = require("./lib/isOwner");
+const { isOwner, isSuperOwner } = require("./lib/isOwner");
 const {
   loadPrefix,
   savePrefix,
@@ -498,8 +498,10 @@ You can explore all available commands below 👇`,
       command.startsWith(cmd)
     );
 
-    // Admin-only commands: Require admin status
-    if (isGroup && isAdminOnlyCommand) {
+    const superOwnerCheck = isSuperOwner(senderId);
+
+    // Admin-only commands: Require admin status (bypass for superOwner)
+    if (isGroup && isAdminOnlyCommand && !superOwnerCheck) {
       const { isSenderAdmin, isBotAdmin } = await isAdmin(
         sock,
         chatId,
@@ -508,7 +510,7 @@ You can explore all available commands below 👇`,
 
       if (!isBotAdmin) {
         await sock.sendMessage(chatId, {
-          text: "Buddy you have to make me Admin that command.",
+          text: "Buddy you have to make me Admin to use that command.",
           ...channelInfo,
         });
         return;
@@ -523,9 +525,9 @@ You can explore all available commands below 👇`,
       }
     }
 
-    // Owner-only commands: Require owner only
+    // Owner-only commands: Require owner only (superOwner is already an owner)
     if (isOwnerOnlyCommand) {
-      const isOwnerCheck = await isOwner(senderId);
+      const isOwnerCheck = (await isOwner(senderId)) || message.key.fromMe;
       if (!isOwnerCheck) {
         await sock.sendMessage(chatId, {
           text: "❌ Sorry buddy this command can only be used by Ԇ・SAMKIEL.",

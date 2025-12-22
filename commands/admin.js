@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const isOwner = require("../lib/isOwner");
+const { isOwner } = require("../lib/isOwner");
 const settings = require("../settings");
 
 async function panelCommand(sock, chatId, message) {

@@ -1,7 +1,7 @@
 const isAdmin = require("../lib/isAdmin");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 
-const isOwner = require("../lib/isOwner");
+const { isOwner } = require("../lib/isOwner");
 const fs = require("fs");
 const path = require("path");
 
