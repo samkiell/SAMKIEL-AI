@@ -1175,7 +1175,7 @@ You can explore all available commands below 👇`,
         await clearSessionCommand(sock, chatId, message);
         break;
       case command.startsWith("autostatus"):
-        const autoStatusArgs = command.split(" ").slice(1);
+        const autoStatusArgs = command.trim().split(/\s+/).slice(1);
         await autoStatusCommand(sock, chatId, message, autoStatusArgs);
         break;
       case command.startsWith("pair") || command.startsWith("rent"): {
@@ -1480,7 +1480,8 @@ You can explore all available commands below 👇`,
       case command.startsWith("setprefix"):
         // Parse raw text to preserve case sensitivity of the new prefix
         const rawCmd = getCommand(rawText, false);
-        const newPrefix = rawCmd.split(/\s+/)[1]; // Split by any whitespace
+        const parts = rawCmd.trim().split(/\s+/);
+        const newPrefix = parts.length > 1 ? parts[1] : null;
 
         if (!newPrefix) {
           await sock.sendMessage(chatId, {
