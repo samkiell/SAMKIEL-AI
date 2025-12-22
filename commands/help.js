@@ -58,7 +58,7 @@ async function helpCommand(sock, chatId, senderId) {
   ║ ✧ 🎱 ${p}8ball <question>
   ║ ✧ 🏷️ ${p}groupinfo
   ║ ✧ 👥 ${p}staff or ${p}admins 
-  ║ ✧ 🆚 ${p}vv
+  ║ ✧ 🆚 ${p}deyplay
   ║ ✧ 💌 ${p}pair or ${p}rent
   ║ ✧ 🌍 ${p}trt <text> <lang>
   ║ ✧ 📸 ${p}ss <link>

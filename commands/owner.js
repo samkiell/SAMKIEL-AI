@@ -1,17 +1,20 @@
-const settings = require('../settings');
+const settings = require("../settings");
 
 async function ownerCommand(sock, chatId) {
-    const vcard = `
+  const ownerName = settings.ownerName || "SAMKIEL";
+  const ownerNo = settings.ownerNumber || "2348087357158";
+
+  const vcard = `
 BEGIN:VCARD
 VERSION:3.0
-FN:${settings.botOwner}
-TEL;waid=${settings.ownerNumber}:${settings.ownerNumber}
+FN:${ownerName}
+TEL;waid=${ownerNo}:${ownerNo}
 END:VCARD
 `;
 
-    await sock.sendMessage(chatId, {
-        contacts: { displayName: settings.botOwner, contacts: [{ vcard }] },
-    });
+  await sock.sendMessage(chatId, {
+    contacts: { displayName: ownerName, contacts: [{ vcard }] },
+  });
 }
 
 module.exports = ownerCommand;
