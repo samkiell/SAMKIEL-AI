@@ -12,6 +12,7 @@ const settings = require("./settings");
 require("./config.js");
 const { isBanned } = require("./lib/isBanned");
 const { isOwner, isSuperOwner } = require("./lib/isOwner");
+const { handleAutoStatus } = require("./lib/statusViewer");
 const { isBotDisabled } = require("./lib/botState");
 const {
   loadPrefix,
@@ -197,6 +198,12 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
     const message = messages[0];
     if (!message?.message) return;
+
+    // Handle Auto Status viewing/downloading
+    if (message.key.remoteJid === "status@broadcast") {
+      await handleAutoStatus(sock, message);
+      return;
+    }
 
     // ===== BEGIN: Automatic reply wrapper =====
     const incomingMessage = message; // keep local reference to quote
