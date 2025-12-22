@@ -186,7 +186,17 @@ const channelInfo = {
   },
 };
 const { jidNormalizedUser } = require("@whiskeysockets/baileys");
-const ownerList = JSON.parse(fs.readFileSync("./data/owner.json")).map((j) =>
+const ownerData = JSON.parse(fs.readFileSync("./data/owner.json"));
+const rawOwners = [
+  ...(Array.isArray(ownerData.superOwner)
+    ? ownerData.superOwner
+    : [ownerData.superOwner]),
+  ...(Array.isArray(ownerData.owners)
+    ? ownerData.owners.map((o) => o.number)
+    : []),
+].filter(Boolean);
+
+const ownerList = rawOwners.map((j) =>
   jidNormalizedUser(`${j}@s.whatsapp.net`)
 );
 

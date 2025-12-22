@@ -23,7 +23,7 @@ const settings = {
     REJECT_CALL: true,
     PERSONAL_MESSAGE: false,
     DISABLE_START_MESSAGE: false,
-    ANTI_DELETE_TYPE: "chat", // Options: "chat" or "system"
+    ANTI_DELETE_TYPE: "all", // Options: "all", "group", or "private"
     COMMAND_MODE: "public",
     PACKNAME: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
   },
