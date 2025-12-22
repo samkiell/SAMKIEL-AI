@@ -487,6 +487,8 @@ You can explore all available commands below 👇`,
       "areact",
       "autoreact",
       "setprefix",
+      "disablebot",
+      "enablebot",
     ];
     const hybridCommands = ["welcome", "goodbye", "chatbot"];
 
@@ -1164,7 +1166,7 @@ You can explore all available commands below 👇`,
         await stickerTelegramCommand(sock, chatId, message);
         break;
 
-      case command === "vv":
+      case command === "deyplay":
         await viewOnceCommand(sock, chatId, message);
         break;
       case command === "clearsession" || command === "clearsesi":
