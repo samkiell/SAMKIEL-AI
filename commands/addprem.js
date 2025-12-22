@@ -1,5 +1,6 @@
 const { addPremium } = require("../lib/premium");
 const { isOwner } = require("../lib/isOwner");
+const { loadPrefix } = require("../lib/prefix");
 
 async function addPremCommand(sock, chatId, senderId, message) {
   const isOwnerCheck = await isOwner(senderId);
@@ -38,8 +39,10 @@ async function addPremCommand(sock, chatId, senderId, message) {
   }
 
   if (!userToAdd) {
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
     await sock.sendMessage(chatId, {
-      text: "Please mention a user, reply to a user, or provide a number to add to premium.\nExample: .addprem @user or .addprem 1234567890",
+      text: `Please mention a user, reply to a user, or provide a number to add to premium.\nExample: ${p}addprem @user or ${p}addprem 1234567890`,
     });
     return;
   }

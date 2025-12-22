@@ -444,8 +444,6 @@ You can explore all available commands below 👇`,
           senderId
         );
         await Antilink(message, sock);
-        // Auto-react to non-command messages if enabled
-        await autoReactToNonCommand(sock, message);
       }
     }
 
