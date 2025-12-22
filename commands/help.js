@@ -2,7 +2,7 @@ const settings = require("../settings");
 const fs = require("fs");
 const path = require("path");
 const { isPremium } = require("../lib/premium");
-const { VALID_COMMANDS } = require("../lib/prefix");
+const { VALID_COMMANDS, loadPrefix } = require("../lib/prefix");
 
 function formatUptime(s) {
   const h = Math.floor(s / 3600);
@@ -14,158 +14,165 @@ function formatUptime(s) {
 async function helpCommand(sock, chatId, senderId) {
   const uptime = formatUptime(process.uptime());
   const isPrem = isPremium(senderId);
+  const currentPrefix = loadPrefix();
+
+  const p = currentPrefix === "off" ? "" : currentPrefix;
 
   const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
 │ ⏱️ *Uptime:* ${uptime}
 │ ⚙️ *Commands:* ${VALID_COMMANDS.length}
-│ 🌟 *Version:* ${settings.version || "3.2"}
+│ 🌟 *Version:* ${settings.version || "3"}
 │ 🛠️ *Developer:* ${settings.botOwner || "ѕαмкιєℓ.∂єν"}
 │ 🌐 *Website:* https://samkiel.dev
+│ 📌 *Prefix:* ${currentPrefix === "off" ? "None" : currentPrefix}
 ╰──────────────────╯
 
 💎 *PREMIUM COMMANDS*
-╔═══════════════════╗
-║ ✧ 💎 upgrade
-║ ✧ 💎 gpt
-║ ✧ 💎 gemini
-║ ✧ 💎 imagine
-║ ✧ 💎 remini
-║ ✧ 💎 sora
-║ ✧ 💎 removebg
-╚═══════════════════╝
+  ╔═══════════════════╗
+  ║ ✧ 💎 ${p}upgrade
+  ║ ✧ 💎 ${p}gpt
+  ║ ✧ 💎 ${p}gemini
+  ║ ✧ 💎 ${p}imagine
+  ║ ✧ 💎 ${p}remini
+  ║ ✧ 💎 ${p}sora
+  ║ ✧ 💎 ${p}removebg
+  ╚═══════════════════╝
 
 🆓 *FREE COMMANDS*
 
-╔═══════════════════╗
-🌐 *General Commands*:
-║ ✧ 🛎️ help 
-║ ✧ 🏓 ping
-║ ✧ 🟢 alive
-║ ✧ 🗣️ tts <text>
-║ ✧ 👤 owner
-║ ✧ 😂 joke
-║ ✧ 💭 quote
-║ ✧ 🤔 fact
-║ ✧ 🌦️ weather <city>
-║ ✧ 📰 news
-║ ✧ 🎨 attp <text>
-║ ✧ 🎵 lyrics <song_title>
-║ ✧ 🎱 8ball <question>
-║ ✧ 🏷️ groupinfo
-║ ✧ 👥 staff or admins 
-║ ✧ 🆚 vv
-║ ✧ 💌 pair or rent
-║ ✧ 🌍 trt <text> <lang>
-║ ✧ 📸 ss <link>
-╚═══════════════════╝ 
+  ╔═══════════════════╗
+  🌐 *General Commands*:
+  ║ ✧ 🛎️ ${p}help 
+  ║ ✧ 🏓 ${p}ping
+  ║ ✧ 🟢 ${p}alive
+  ║ ✧ 🗣️ ${p}tts <text>
+  ║ ✧  ${p}owner
+  ║ ✧ 😂 ${p}joke
+  ║ ✧ 💭 ${p}quote
+  ║ ✧ 🤔 ${p}fact
+  ║ ✧ 🌦️ ${p}weather <city>
+  ║ ✧ 📰 ${p}news
+  ║ ✧ 🎨 ${p}attp <text>
+  ║ ✧ 🎵 ${p}lyrics <song_title>
+  ║ ✧ 🎱 ${p}8ball <question>
+  ║ ✧ 🏷️ ${p}groupinfo
+  ║ ✧ 👥 ${p}staff or ${p}admins 
+  ║ ✧ 🆚 ${p}vv
+  ║ ✧ 💌 ${p}pair or ${p}rent
+  ║ ✧ 🌍 ${p}trt <text> <lang>
+  ║ ✧ 📸 ${p}ss <link>
+  ╚═══════════════════╝ 
 
-╔═══════════════════╗
-👮‍♂️ *Admin Commands*:
-║ ✧ 🔨 ban @user
-║ ✧ ⬆️ promote @user
-║ ✧ ⬇️ demote @user
-║ ✧ ⏱️ mute <minutes>
-║ ✧ 🔊 unmute
-║ ✧ ❌ delete or del
-║ ✧ 🚫 kick @user
-║ ✧ 📊 warnings @user
-║ ✧ ⚠️ warn @user
-║ ✧ 🔗 antilink
-║ ✧ 🛡️ antibadword
-║ ✧ 🧹 clear
-║ ✧ 📣 tag <message>
-║ ✧ 📢 tagall
-║ ✧ 🤖 chatbot
-║ ✧ 🔄 resetlink
-╚═══════════════════╝
+  ╔═══════════════════╗
+  👮‍♂️ *Admin Commands*:
+  ║ ✧ 🔨 ${p}ban @user
+  ║ ✧ ⬆️ ${p}promote @user
+  ║ ✧ ⬇️ ${p}demote @user
+  ║ ✧ ⏱️ ${p}mute <minutes>
+  ║ ✧ 🔊 ${p}unmute
+  ║ ✧ ❌ ${p}delete or ${p}del
+  ║ ✧ 🚫 ${p}kick @user
+  ║ ✧ 📊 ${p}warnings @user
+  ║ ✧ ⚠️ ${p}warn @user
+  ║ ✧ 🔗 ${p}antilink
+  ║ ✧ 🛡️ ${p}antibadword
+  ║ ✧ 🧹 ${p}clear
+  ║ ✧ 📣 ${p}tag <message>
+  ║ ✧ 📢 ${p}tagall
+  ║ ✧ 🤖 ${p}chatbot
+  ║ ✧ 🔄 ${p}resetlink
+  ╚═══════════════════╝
 
-╔═══════════════════╗
-🔒 *Owner Commands*:
-║ ✧ 🛠️ mode
-║ ✧ 📤 autostatus
-║ ✧ 🗑️ clearsession
-║ ✧ 🔍 antidelete
-║ ✧ 🧽 cleartmp
-║ ✧ 🖼️ setpp <reply to image>
-║ ✧ 🤖 autoreact
-╚═══════════════════╝
+  ╔═══════════════════╗
+  🔒 *Owner Commands*:
+  ║ ✧ 🛠️ ${p}mode
+  ║ ✧ 📤 ${p}autostatus
+  ║ ✧ 🗑️ ${p}clearsession
+  ║ ✧ 🔍 ${p}antidelete
+  ║ ✧ 🧽 ${p}cleartmp
+  ║ ✧ 🖼️ ${p}setpp <reply to image>
+  ║ ✧ 🤖 ${p}autoreact
+  ║ ✧ 🛠️ ${p}setprefix <symbol>
+  ║ ✧ 🚫 ${p}disablebot
+  ║ ✧ ✅ ${p}enablebot
+  ╚═══════════════════╝
 
-╔═══════════════════╗
-🎨 *Image/Sticker Commands*:
-║ ✧ 🌀 blur <image>
-║ ✧ 🌅 simage <reply to sticker>
-║ ✧ 🖼️ sticker <reply to image>
-║ ✧ 🎴 tgsticker <Link>
-║ ✧ 🤣 meme
-║ ✧ ✍️ take <packname>
-║ ✧ 🔀 emojimix <emj1>+<emj2>
-╚═══════════════════╝  
+  ╔═══════════════════╗
+  🎨 *Image/Sticker Commands*:
+  ║ ✧ 🌀 ${p}blur <image>
+  ║ ✧ 🌅 ${p}simage <reply to sticker>
+  ║ ✧ 🖼️ ${p}sticker <reply to image>
+  ║ ✧ 🎴 ${p}tgsticker <Link>
+  ║ ✧ 🤣 ${p}meme
+  ║ ✧ ✍️ ${p}take <packname>
+  ║ ✧ 🔀 ${p}emojimix <emj1>+<emj2>
+  ╚═══════════════════╝  
 
-╔═══════════════════╗
-🎮 *Game Commands*:
-║ ✧ 🎮 tictactoe @user
-║ ✧ 🧩 hangman
-║ ✧ 🔡 guess <letter>
-║ ✧ 🧠 trivia
-║ ✧ ❓ answer <answer>
-║ ✧ 💬 truth
-║ ✧ 🎯 dare
-╚═══════════════════╝
+  ╔═══════════════════╗
+  🎮 *Game Commands*:
+  ║ ✧ 🎮 ${p}tictactoe @user
+  ║ ✧ 🧩 ${p}hangman
+  ║ ✧ 🔡 ${p}guess <letter>
+  ║ ✧ 🧠 ${p}trivia
+  ║ ✧ ❓ ${p}answer <answer>
+  ║ ✧ 💬 ${p}truth
+  ║ ✧ 🎯 ${p}dare
+  ╚═══════════════════╝
 
-╔═══════════════════╗
-🎯 *Fun Commands*:
-║ ✧ 🌟 compliment @user
-║ ✧ 😡 insult @user
-║ ✧ 💌 flirt 
-║ ✧ 🎤 shayari
-║ ✧ 🌙 goodnight
-║ ✧ 🌹 roseday
-║ ✧ 🧙‍♂️ character @user
-║ ✧ ☠️ wasted @user
-║ ✧ ❤️‍🔥 ship @user
-║ ✧ 😘 simp @user
-║ ✧ 🤦‍♂️ stupid @user [text]
-╚═══════════════════╝
+  ╔═══════════════════╗
+  🎯 *Fun Commands*:
+  ║ ✧ 🌟 ${p}compliment @user
+  ║ ✧ 😡 ${p}insult @user
+  ║ ✧ 💌 ${p}flirt 
+  ║ ✧ 🎤 ${p}shayari
+  ║ ✧ 🌙 ${p}goodnight
+  ║ ✧ 🌹 ${p}roseday
+  ║ ✧ 🧙‍♂️ ${p}character @user
+  ║ ✧ ☠️ ${p}wasted @user
+  ║ ✧ ❤️‍🔥 ${p}ship @user
+  ║ ✧ 😘 ${p}simp @user
+  ║ ✧ 🤦‍♂️ ${p}stupid @user [text]
+  ╚═══════════════════╝
 
-╔═══════════════════╗
-🔤 *Textmaker*:
-║ ✧ ✨ metallic <text>
-║ ✧ ❄️ ice <text>
-║ ✧ ⛄ snow <text>
-║ ✧ 🌟 impressive <text>
-║ ✧ 🖥️ matrix <text>
-║ ✧ 💡 light <text>
-║ ✧ 🌈 neon <text>
-║ ✧ 😈 devil <text>
-║ ✧ 💜 purple <text>
-║ ✧ ⚡ thunder <text>
-║ ✧ 🍃 leaves <text>
-║ ✧ 🎞️ 1917 <text>
-║ ✧ 🛡️ arena <text>
-║ ✧ 🖥️ hacker <text>
-║ ✧ 🏖️ sand <text>
-║ ✧ 🎤 blackpink <text>
-║ ✧ 🖥️ glitch <text>
-║ ✧ 🔥 fire <text>
-╚═══════════════════╝
+  ╔═══════════════════╗
+  🔤 *Textmaker*:
+  ║ ✧ ✨ ${p}metallic <text>
+  ║ ✧ ❄️ ${p}ice <text>
+  ║ ✧ ⛄ ${p}snow <text>
+  ║ ✧ 🌟 ${p}impressive <text>
+  ║ ✧ 🖥️ ${p}matrix <text>
+  ║ ✧ 💡 ${p}light <text>
+  ║ ✧ 🌈 ${p}neon <text>
+  ║ ✧ 😈 ${p}devil <text>
+  ║ ✧ 💜 ${p}purple <text>
+  ║ ✧ ⚡ ${p}thunder <text>
+  ║ ✧ 🍃 ${p}leaves <text>
+  ║ ✧ 🎞️ ${p}1917 <text>
+  ║ ✧ 🛡️ arena <text>
+  ║ ✧ 🖥️ hacker <text>
+  ║ ✧ 🏖️ sand <text>
+  ║ ✧ 🎤 blackpink <text>
+  ║ ✧ 🖥️ glitch <text>
+  ║ ✧ 🔥 fire <text>
+  ╚═══════════════════╝
 
-╔═══════════════════╗
-📥 *Downloader*:
-║ ✧ 🎵 play <song_name>
-║ ✧ 🎧 song <song_name>
-║ ✧ 📸 instagram <link>
-║ ✧ 📘 facebook <link>
-║ ✧ 🎬 tiktok <link>
-╚═══════════════════╝
+  ╔═══════════════════╗
+  📥 *Downloader*:
+  ║ ✧ 🎵 ${p}play <song_name>
+  ║ ✧ 🎧 ${p}song <song_name>
+  ║ ✧ 📸 ${p}instagram <link>
+  ║ ✧ 📘 ${p}facebook <link>
+  ║ ✧ 🎬 ${p}tiktok <link>
+  ╚═══════════════════╝
 
-╔═══════════════════╗
-💻 *Github Commands*:
-║ ✧ 🧩 git
-║ ✧ 🛠️ github
-║ ✧ ⚙️ sc
-║ ✧ 📂 script
-║ ✧ 📁 repo
-╚═══════════════════╝
+  ╔═══════════════════╗
+  💻 *Github Commands*:
+  ║ ✧ 🧩 ${p}git
+  ║ ✧ 🛠️ ${p}github
+  ║ ✧ ⚙️ ${p}sc
+  ║ ✧ 📂 ${p}script
+  ║ ✧ 📁 ${p}repo
+  ╚═══════════════════╝
 
 ${
   isPrem

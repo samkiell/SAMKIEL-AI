@@ -187,7 +187,6 @@ const { jidNormalizedUser } = require("@whiskeysockets/baileys");
 const ownerList = JSON.parse(fs.readFileSync("./data/owner.json")).map((j) =>
   jidNormalizedUser(`${j}@s.whatsapp.net`)
 );
-const prefix = loadPrefix();
 
 async function handleMessages(sock, messageUpdate, printLog) {
   let chatId;
@@ -250,14 +249,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
     }
 
     let userMessage =
-      message.message?.conversation?.trim().toLowerCase() ||
-      message.message?.extendedTextMessage?.text?.trim().toLowerCase() ||
-      message.message?.listResponseMessage?.singleSelectReply?.selectedRowId
-        ?.trim()
-        .toLowerCase() ||
-      message.message?.buttonsResponseMessage?.selectedButtonId
-        ?.trim()
-        .toLowerCase() ||
+      message.message?.conversation?.trim() ||
+      message.message?.extendedTextMessage?.text?.trim() ||
+      message.message?.listResponseMessage?.singleSelectReply?.selectedRowId?.trim() ||
+      message.message?.buttonsResponseMessage?.selectedButtonId?.trim() ||
       "";
 
     // Get command without prefix
