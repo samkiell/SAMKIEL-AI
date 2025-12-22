@@ -9,6 +9,7 @@ const {
 const { writeFile } = require("fs/promises");
 const settings = require("../settings");
 const { loadPrefix } = require("../lib/prefix");
+const { isOwner } = require("../lib/isOwner");
 
 // In-memory message store for caching
 const messageStore = new Map();
