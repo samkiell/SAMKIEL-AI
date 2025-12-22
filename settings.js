@@ -11,6 +11,7 @@ const settings = {
   // Feature Toggles
   featureToggles: {
     AUTO_STATUS_VIEW: "on", // Options: "off", "on" (view + download), "no-dl" (view only)
+    ENABLE_STATUS_REACTION: true, // Toggle for status reactions
     STATUS_VIEW_EMOJI: "👀",
     STATUS_VIEW_MSG: `Viewed by ${botName}`,
     ANTI_DELETE: true,
