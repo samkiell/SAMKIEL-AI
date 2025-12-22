@@ -1663,8 +1663,8 @@ module.exports = {
   handleMessages,
   handleGroupParticipantUpdate,
   handleStatus: async (sock, chatUpdate) => {
-    const message = chatUpdate.messages[0];
-    if (message) {
+    if (chatUpdate.messages && chatUpdate.messages.length > 0) {
+      const message = chatUpdate.messages[0];
       await handleAutoStatus(sock, message);
     }
   },
