@@ -25,6 +25,8 @@ const settings = {
     DISABLE_START_MESSAGE: false,
     ANTI_DELETE_TYPE: "all", // Options: "all", "group", or "private"
     COMMAND_MODE: "public",
+    RANKING: false,
+    AUTO_REACTION: false,
     PACKNAME: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
   },
 
