@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { isOwner } = require("../lib/isOwner");
+const { loadPrefix } = require("../lib/prefix");
 
 const channelInfo = {
   contextInfo: {
@@ -48,8 +49,10 @@ async function autoStatusCommand(sock, chatId, msg, args) {
     if (!args || args.length === 0) {
       const status = config.enabled ? "enabled" : "disabled";
       const reactStatus = config.reactOn ? "enabled" : "disabled";
+      const currentPrefix = loadPrefix();
+      const p = currentPrefix === "off" ? "" : currentPrefix;
       await sock.sendMessage(chatId, {
-        text: `🔄 *Auto Status Settings*\n\n📱 *Auto Status View:* ${status}\n💫 *Status Reactions:* ${reactStatus}\n\n*Commands:*\n.autostatus on - Enable auto status view\n.autostatus off - Disable auto status view\n.autostatus react on - Enable status reactions\n.autostatus react off - Disable status reactions`,
+        text: `🔄 *Auto Status Settings*\n\n📱 *Auto Status View:* ${status}\n💫 *Status Reactions:* ${reactStatus}\n\n*Commands:*\n${p}autostatus on - Enable auto status view\n${p}autostatus off - Disable auto status view\n${p}autostatus react on - Enable status reactions\n${p}autostatus react off - Disable status reactions`,
         ...channelInfo,
       });
       return;
@@ -75,8 +78,10 @@ async function autoStatusCommand(sock, chatId, msg, args) {
     } else if (command === "react") {
       // Handle react subcommand
       if (!args[1]) {
+        const currentPrefix = loadPrefix();
+        const p = currentPrefix === "off" ? "" : currentPrefix;
         await sock.sendMessage(chatId, {
-          text: "❌ Please specify on/off for reactions!\nUse: .autostatus react on/off",
+          text: `❌ Please specify on/off for reactions!\nUse: ${p}autostatus react on/off`,
           ...channelInfo,
         });
         return;
@@ -98,14 +103,18 @@ async function autoStatusCommand(sock, chatId, msg, args) {
           ...channelInfo,
         });
       } else {
+        const currentPrefix = loadPrefix();
+        const p = currentPrefix === "off" ? "" : currentPrefix;
         await sock.sendMessage(chatId, {
-          text: "❌ Invalid reaction command! Use: .autostatus react on/off",
+          text: `❌ Invalid reaction command! Use: ${p}autostatus react on/off`,
           ...channelInfo,
         });
       }
     } else {
+      const currentPrefix = loadPrefix();
+      const p = currentPrefix === "off" ? "" : currentPrefix;
       await sock.sendMessage(chatId, {
-        text: "❌ Invalid command! Use:\n.autostatus on/off - Enable/disable auto status view\n.autostatus react on/off - Enable/disable status reactions",
+        text: `❌ Invalid command! Use:\n${p}autostatus on/off - Enable/disable auto status view\n${p}autostatus react on/off - Enable/disable status reactions`,
         ...channelInfo,
       });
     }
