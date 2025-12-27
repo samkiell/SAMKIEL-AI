@@ -1,34 +1,34 @@
-const botName = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
+const botName = "sasf";
 
 const settings = {
   // Core Foundation
   botName: botName,
   prefix: ".",
-  botNumber: "",
-  ownerNumber: "2348087357158",
-  ownerName: "SAMKIEL",
+  botNumber: "1111111111111",
+  ownerNumber: "232345564534",
+  ownerName: "Joshua Brightt",
   developer: "ѕαмкιєℓ.∂єν",
   portfolio: "https://samkiel.dev",
   website: "https://bot.samkiel.dev",
 
   // Feature Toggles
   featureToggles: {
-    AUTO_STATUS_VIEW: "on", // Options: "off", "on" (view + download), "no-dl" (view only)
-    ENABLE_STATUS_REACTION: true, // Toggle for status reactions
-    STATUS_VIEW_EMOJI: "👀",
-    STATUS_VIEW_MSG: "off",
-    ANTI_DELETE: true,
-    SEND_READ: false,
-    ALWAYS_ONLINE: true,
-    REJECT_CALL: true,
-    PERSONAL_MESSAGE: false,
-    DISABLE_START_MESSAGE: false,
-    ANTI_DELETE_TYPE: "all", // Options: "all", "group", or "private"
-    COMMAND_MODE: "public",
-    RANKING: false,
-    AUTO_REACTION: false,
-    PACKNAME: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
-  },
+  AUTO_STATUS_VIEW: "off",
+  ENABLE_STATUS_REACTION: false, // Mapped
+  STATUS_VIEW_EMOJI: "👀", // Fixed for now
+  STATUS_VIEW_MSG: "off",
+  ANTI_DELETE: false,
+  SEND_READ: false,
+  ALWAYS_ONLINE: false,
+  REJECT_CALL: false,
+  PERSONAL_MESSAGE: false,
+  DISABLE_START_MESSAGE: false,
+  ANTI_DELETE_TYPE: "all",
+  COMMAND_MODE: "public",
+  RANKING: false,
+  AUTO_REACTION: false,
+  PACKNAME: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"
+},
 
   // Metadata & Other Configs
   author: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
