@@ -3,10 +3,10 @@ const botName = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
 const settings = {
   // Core Foundation
   botName: botName,
-  prefix: "#",
+  prefix: ".",
   botNumber: "2348050694825",
-  ownerNumber: "69409defc67e08eb1b6d166b",
-  ownerName: "Admin 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
+  ownerNumber: "232345564534",
+  ownerName: "Joshua Brightt",
   developer: "ѕαмкιєℓ.∂єν",
   portfolio: "https://samkiel.dev",
   website: "https://bot.samkiel.dev",
