@@ -58,6 +58,7 @@ const {
 } = require("./commands/tictactoe");
 const { incrementMessageCount, topMembers } = require("./commands/topmembers");
 const ownerCommand = require("./commands/owner");
+const channelCommand = require("./commands/channel");
 const deleteCommand = require("./commands/delete");
 const {
   handleAntilinkCommand,
@@ -667,6 +668,9 @@ You can explore all available commands below 👇`,
         command === "bot" ||
         command === "list":
         await helpCommand(sock, chatId, senderId, message.pushName);
+        break;
+      case command === "channel":
+        await channelCommand(sock, chatId, message);
         break;
       case command === "sticker" || command === "s":
         await stickerCommand(sock, chatId, message);
