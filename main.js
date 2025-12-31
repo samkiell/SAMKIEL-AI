@@ -804,7 +804,7 @@ You can explore all available commands below 👇`,
       case command === "news":
         await newsCommand(sock, chatId);
         break;
-      case command === "pdf": {
+      case command.startsWith("pdf"): {
         console.log("➡️ Starting PDF command...");
         let text = userMessage.trim().split(/\s+/).slice(1).join(" ");
 
