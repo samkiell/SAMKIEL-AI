@@ -828,16 +828,15 @@ You can explore all available commands below 👇`,
           return;
         }
 
+        let pdfPath = null;
+
         try {
-          const pdfPath = path.join(
-            __dirname,
-            "temp",
-            `samkielbot-${Date.now()}.pdf`
-          );
+          const tempDir = path.join(__dirname, "temp");
+          pdfPath = path.join(tempDir, `samkielbot-${Date.now()}.pdf`);
 
           // Ensure temp directory exists
-          if (!fs.existsSync(path.dirname(pdfPath))) {
-            fs.mkdirSync(path.dirname(pdfPath), { recursive: true });
+          if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
           }
 
           console.log(`📄 Generating PDF with ${text.length} characters...`);
@@ -855,11 +854,15 @@ You can explore all available commands below 👇`,
 
           console.log(`✅ PDF generated at: ${pdfPath}`);
 
+          // Read file buffer
+          const pdfBuffer = fs.readFileSync(pdfPath);
+          console.log(`📦 Buffer read, size: ${pdfBuffer.length} bytes`);
+
           console.log("📤 Sending PDF...");
           await sock.sendMessage(
             chatId,
             {
-              document: { url: pdfPath },
+              document: pdfBuffer,
               fileName: "samkiel-text.pdf",
               mimetype: "application/pdf",
               caption: "✅ PDF Generated Successfully",
@@ -867,18 +870,25 @@ You can explore all available commands below 👇`,
             { quoted: message }
           );
           console.log("✅ PDF sent successfully.");
-
-          // Cleanup
-          if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
         } catch (err) {
-          console.error("❌ Error in PdDF command:", err);
+          console.error("❌ Error in PDF command:", err);
           await sock.sendMessage(
             chatId,
             {
-              text: "❌ Failed to generate/send PDF. Check console for details.",
+              text: "❌ Failed to generate/send PDF. " + err.message,
             },
             { quoted: message }
           );
+        } finally {
+          // Cleanup
+          if (pdfPath && fs.existsSync(pdfPath)) {
+            try {
+              fs.unlinkSync(pdfPath);
+              console.log("🧹 Cleanup successful");
+            } catch (e) {
+              console.error("🧹 Cleanup failed:", e);
+            }
+          }
         }
         break;
       }
