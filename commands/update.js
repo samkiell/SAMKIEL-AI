@@ -44,7 +44,7 @@ async function updateViaGit() {
     : await run(`git diff --name-status ${oldRev} ${newRev}`).catch(() => "");
   await run(`git reset --hard ${newRev}`);
   try {
-    await run("git clean -fd");
+    await run("git clean -fd -e data -e session -e .env");
   } catch (e) {
     console.log(
       "Warning: git clean failed, possibly due to locked files:",
