@@ -448,11 +448,15 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     await restartProcess(sock, chatId, message);
   } catch (err) {
     console.error("Update failed:", err);
-    await sock.sendMessage(
-      chatId,
-      { text: `❌ Update failed:\n${String(err.message || err)}` },
-      { quoted: message }
-    );
+    try {
+      await sock.sendMessage(
+        chatId,
+        { text: `❌ Update failed:\n${String(err.message || err)}` },
+        { quoted: message }
+      );
+    } catch (e) {
+      console.warn("Could not send update failure message:", e.message);
+    }
   }
 }
 

@@ -1461,13 +1461,27 @@ You can explore all available commands below 👇`,
       }
     }
   } catch (error) {
+    // Suppress "Connection Closed" errors which happen during restarts/network issues
+    if (
+      error.message?.includes("Connection Closed") ||
+      error.message?.includes("428") ||
+      error.message?.includes("Timed Out")
+    ) {
+      console.warn("⚠️ Connection interrupted during message processing.");
+      return;
+    }
+
     console.error("❌ Error in message handler:", error.message);
     // Only try to send error message if we have a valid chatId
     if (chatId) {
-      await sock.sendMessage(chatId, {
-        text: "❌ Failed to process command!",
-        ...channelInfo,
-      });
+      try {
+        await sock.sendMessage(chatId, {
+          text: "❌ Failed to process command!",
+          ...channelInfo,
+        });
+      } catch (e) {
+        // Ignore errors sending the error message (e.g. if connection is closed)
+      }
     }
   }
 }
