@@ -871,7 +871,7 @@ You can explore all available commands below 👇`,
           // Cleanup
           if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
         } catch (err) {
-          console.error("❌ Error in PDF command:", err);
+          console.error("❌ Error in PdDF command:", err);
           await sock.sendMessage(
             chatId,
             {
