@@ -77,7 +77,7 @@ async function saveStatusCommand(sock, chatId, message, args) {
     console.error("Error in saveStatusCommand:", error);
     await sock.sendMessage(
       chatId,
-      { text: "❌ Failed to save status. Error: " + error.message },
+      { text: "❌ Failed to savve status. Error: " + error.message },
       { quoted: message }
     );
   }
