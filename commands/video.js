@@ -1,6 +1,6 @@
 const axios = require("axios");
 const yts = require("yt-search");
-const ytdl = require("ytdl-core");
+const { ytmp4 } = require("ruhend-scraper");
 const fs = require("fs");
 const path = require("path");
 
@@ -15,34 +15,30 @@ const AXIOS_DEFAULTS = {
 
 // Provider Functions
 
-async function getYtdlAppVideo(url) {
-  // Internal fallback using ytdl-core
-  return new Promise((resolve, reject) => {
-    try {
-      ytdl
-        .getInfo(url)
-        .then((info) => {
-          const format = ytdl.chooseFormat(info.formats, { quality: "18" }); // 18 is mp4 360p
-          // Sometimes chooseFormat returns null if exact match not found
-          const actualFormat =
-            format ||
-            info.formats.find((f) => f.hasVideo && f.hasAudio) ||
-            info.formats.find((f) => f.hasVideo);
+async function getRuhendVideo(url) {
+  const data = await ytmp4(url);
+  if (!data) throw new Error("Ruhend Scraper returned no data");
 
-          if (actualFormat && actualFormat.url) {
-            resolve({
-              download: actualFormat.url,
-              title: info.videoDetails.title,
-            });
-          } else {
-            reject(new Error("ytdl-core found no suitable format"));
-          }
-        })
-        .catch(reject);
-    } catch (e) {
-      reject(e);
-    }
-  });
+  // Check possible valid structures from ruhend-scraper
+  if (data.video) {
+    return {
+      download: data.video,
+      title: data.title,
+    };
+  } else if (data.url) {
+    return {
+      download: data.url,
+      title: data.title,
+    };
+  } else if (data.data?.url) {
+    // Sometimes it's nested
+    return {
+      download: data.data.url,
+      title: data.data.title || data.title,
+    };
+  }
+
+  throw new Error("Ruhend Scraper returned no valid video url");
 }
 
 async function getWidipeVideo(url) {
@@ -176,12 +172,13 @@ async function videoCommand(sock, chatId, message) {
     }
 
     // Provider Loop
+    // Priority: Ruhend (Local/Powerful) -> External APIs -> Fallback
     const providers = [
+      getRuhendVideo,
       getWidipeVideo,
       getBk9Video,
       getDarkYasiyaVideo,
       getIzumiVideo,
-      getYtdlAppVideo,
     ];
     let videoData = null;
     let lastError = null;

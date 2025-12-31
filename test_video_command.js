@@ -34,7 +34,7 @@ async function runTest(query) {
 // Run tests
 (async () => {
   // Test 1: Search Query
-  await runTest("despacito");
+  await runTest("how to install windows 11 samkiel");
 
   // Test 2: Direct URL (Optional, uncomment to test)
   // await runTest("https://www.youtube.com/watch?v=kJQP7kiw5Fk");
