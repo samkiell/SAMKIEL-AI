@@ -805,64 +805,81 @@ You can explore all available commands below 👇`,
         await newsCommand(sock, chatId);
         break;
       case command === "pdf": {
-        const text = userMessage.trim().split(/\s+/).slice(1).join(" ");
+        console.log("➡️ Starting PDF command...");
+        let text = userMessage.trim().split(/\s+/).slice(1).join(" ");
+
+        // Check for quoted message text if no direct text provided
         if (!text) {
+          const quoted =
+            message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+          text =
+            quoted?.conversation || quoted?.extendedTextMessage?.text || "";
+        }
+
+        if (!text) {
+          console.log("❌ PDF command failed: No text provided.");
           await sock.sendMessage(
             chatId,
             {
-              text: "Please provide text to convert to PDF. Example: .pdf Hello World",
+              text: "Please provide text or reply to a text message to convert to PDF.\nExample: .pdf Hello World",
             },
             { quoted: message }
           );
           return;
         }
-        const pdfPath = path.join(
-          __dirname,
-          "temp",
-          `samkielbot-${Date.now()}.pdf`
-        );
-        // Ensure temp directory exists
-        if (!fs.existsSync(path.dirname(pdfPath))) {
-          fs.mkdirSync(path.dirname(pdfPath), { recursive: true });
-        }
 
-        const doc = new PDFDocument();
-        const stream = fs.createWriteStream(pdfPath);
+        try {
+          const pdfPath = path.join(
+            __dirname,
+            "temp",
+            `samkielbot-${Date.now()}.pdf`
+          );
 
-        doc.pipe(stream);
-        doc.text(text);
-        doc.end();
-
-        stream.on("finish", async () => {
-          try {
-            await sock.sendMessage(
-              chatId,
-              {
-                document: { url: pdfPath },
-                fileName: "samkiel-text.pdf",
-                mimetype: "application/pdf",
-              },
-              { quoted: message }
-            );
-          } catch (err) {
-            console.error("Error sending PDF:", err);
-            await sock.sendMessage(
-              chatId,
-              { text: "Error sending PDF." },
-              { quoted: message }
-            );
-          } finally {
-            if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
+          // Ensure temp directory exists
+          if (!fs.existsSync(path.dirname(pdfPath))) {
+            fs.mkdirSync(path.dirname(pdfPath), { recursive: true });
           }
-        });
-        stream.on("error", async (err) => {
-          console.error("Error generating PDF:", err);
+
+          console.log(`📄 Generating PDF with ${text.length} characters...`);
+          const doc = new PDFDocument();
+          const stream = fs.createWriteStream(pdfPath);
+
+          doc.pipe(stream);
+          doc.text(text);
+          doc.end();
+
+          await new Promise((resolve, reject) => {
+            stream.on("finish", resolve);
+            stream.on("error", reject);
+          });
+
+          console.log(`✅ PDF generated at: ${pdfPath}`);
+
+          console.log("📤 Sending PDF...");
           await sock.sendMessage(
             chatId,
-            { text: "Error generating PDF." },
+            {
+              document: { url: pdfPath },
+              fileName: "samkiel-text.pdf",
+              mimetype: "application/pdf",
+              caption: "✅ PDF Generated Successfully",
+            },
             { quoted: message }
           );
-        });
+          console.log("✅ PDF sent successfully.");
+
+          // Cleanup
+          if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
+        } catch (err) {
+          console.error("❌ Error in PDF command:", err);
+          await sock.sendMessage(
+            chatId,
+            {
+              text: "❌ Failed to generate/send PDF. Check console for details.",
+            },
+            { quoted: message }
+          );
+        }
         break;
       }
       case command.startsWith("ttt") || command.startsWith("tictactoe"):
