@@ -1,11 +1,6 @@
 const axios = require("axios");
 const yts = require("yt-search");
 
-// Izumi API configuration
-const izumi = {
-  baseURL: "https://izumiiiiiiii.dpdns.org",
-};
-
 const AXIOS_DEFAULTS = {
   timeout: 60000,
   headers: {
@@ -15,40 +10,49 @@ const AXIOS_DEFAULTS = {
   },
 };
 
-async function tryRequest(getter, attempts = 3) {
-  let lastError;
-  for (let attempt = 1; attempt <= attempts; attempt++) {
-    try {
-      return await getter();
-    } catch (err) {
-      lastError = err;
-      if (attempt < attempts) {
-        await new Promise((r) => setTimeout(r, 1000 * attempt));
-      }
-    }
+// Provider Functions
+async function getWidipeVideo(url) {
+  const res = await axios.get(
+    `https://widipe.com/download/ytdl?url=${encodeURIComponent(url)}`,
+    AXIOS_DEFAULTS
+  );
+  if (res.data?.result?.mp4) {
+    return {
+      download: res.data.result.mp4,
+      title: null, // Widipe often doesn't give title in this endpoint, rely on yts title
+    };
   }
-  throw lastError;
+  throw new Error("Widipe API returned no MP4");
 }
 
-async function getIzumiVideoByUrl(youtubeUrl) {
-  const apiUrl = `${izumi.baseURL}/downloader/youtube?url=${encodeURIComponent(
-    youtubeUrl
-  )}&format=720`;
-  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
-  if (res?.data?.result?.download) return res.data.result; // { download, title, ... }
-  throw new Error("Izumi video api returned no download");
+async function getBk9Video(url) {
+  const res = await axios.get(
+    `https://bk9.fun/download/youtube?url=${encodeURIComponent(url)}`,
+    AXIOS_DEFAULTS
+  );
+  if (res.data?.BK9?.video?.url) {
+    return {
+      download: res.data.BK9.video.url,
+      title: res.data.BK9.title,
+    };
+  }
+  throw new Error("Bk9 API returned no video");
 }
 
-async function getOkatsuVideoByUrl(youtubeUrl) {
-  const apiUrl = `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp4?url=${encodeURIComponent(
-    youtubeUrl
-  )}`;
-  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
-  // shape: { status, creator, url, result: { status, title, mp4 } }
-  if (res?.data?.result?.mp4) {
-    return { download: res.data.result.mp4, title: res.data.result.title };
+async function getIzumiVideo(url) {
+  const res = await axios.get(
+    `https://izumiiiiiiii.dpdns.org/downloader/youtube?url=${encodeURIComponent(
+      url
+    )}&format=720`,
+    AXIOS_DEFAULTS
+  );
+  if (res.data?.result?.download) {
+    return {
+      download: res.data.result.download,
+      title: res.data.result.title,
+    };
   }
-  throw new Error("Okatsu ytmp4 returned no mp4");
+  throw new Error("Izumi API returned no download");
 }
 
 async function videoCommand(sock, chatId, message) {
@@ -61,7 +65,9 @@ async function videoCommand(sock, chatId, message) {
     if (!searchQuery) {
       await sock.sendMessage(
         chatId,
-        { text: "What video do you want to download?" },
+        {
+          text: "What video do you want to download? Usage: *video <search query or url>*",
+        },
         { quoted: message }
       );
       return;
@@ -71,6 +77,8 @@ async function videoCommand(sock, chatId, message) {
     let videoUrl = "";
     let videoTitle = "";
     let videoThumbnail = "";
+
+    // Check if it's a URL
     if (
       searchQuery.startsWith("http://") ||
       searchQuery.startsWith("https://")
@@ -78,61 +86,69 @@ async function videoCommand(sock, chatId, message) {
       videoUrl = searchQuery;
     } else {
       // Search YouTube for the video
-      const { videos } = await yts(searchQuery);
-      if (!videos || videos.length === 0) {
+      try {
+        const { videos } = await yts(searchQuery);
+        if (!videos || videos.length === 0) {
+          await sock.sendMessage(
+            chatId,
+            { text: "❌ No videos found for your search!" },
+            { quoted: message }
+          );
+          return;
+        }
+        videoUrl = videos[0].url;
+        videoTitle = videos[0].title;
+        videoThumbnail = videos[0].thumbnail;
+      } catch (err) {
+        console.error("YTS Error:", err);
         await sock.sendMessage(
           chatId,
-          { text: "No videos found!" },
+          { text: "❌ Error searching YouTube." },
           { quoted: message }
         );
         return;
       }
-      videoUrl = videos[0].url;
-      videoTitle = videos[0].title;
-      videoThumbnail = videos[0].thumbnail;
     }
 
-    // Send thumbnail immediately
+    // Send thumbnail/status
     try {
-      const ytId = (videoUrl.match(/(?:youtu\.be\/|v=)([a-zA-Z0-9_-]{11})/) ||
-        [])[1];
-      const thumb =
-        videoThumbnail ||
-        (ytId ? `https://i.ytimg.com/vi/${ytId}/sddefault.jpg` : undefined);
       const captionTitle = videoTitle || searchQuery;
-      if (thumb) {
-        await sock.sendMessage(
-          chatId,
-          {
-            image: { url: thumb },
-            caption: `*${captionTitle}*\nDownloading...`,
-          },
-          { quoted: message }
-        );
-      }
-    } catch (e) {
-      console.error("[VIDEO] thumb error:", e?.message || e);
-    }
-
-    // Validate YouTube URL
-    let urls = videoUrl.match(
-      /(?:https?:\/\/)?(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch\?v=|v\/|embed\/|shorts\/|playlist\?list=)?)([a-zA-Z0-9_-]{11})/gi
-    );
-    if (!urls) {
       await sock.sendMessage(
         chatId,
-        { text: "This is not a valid YouTube link!" },
+        {
+          image: { url: videoThumbnail || "https://i.imgur.com/3Uq8b1L.jpeg" }, // Fallback image if no thumb
+          caption: `*${captionTitle}*\n\n🔍 Found! Downloading video...`,
+        },
+        { quoted: message }
+      );
+    } catch (e) {
+      console.log("Thumb send error (non-fatal):", e.message);
+    }
+
+    // Provider Loop
+    const providers = [getWidipeVideo, getBk9Video, getIzumiVideo];
+    let videoData = null;
+    let lastError = null;
+
+    for (const provider of providers) {
+      try {
+        videoData = await provider(videoUrl);
+        if (videoData) break;
+      } catch (e) {
+        console.warn(`Video provider failed: ${e.message}`);
+        lastError = e;
+      }
+    }
+
+    if (!videoData) {
+      await sock.sendMessage(
+        chatId,
+        {
+          text: "❌ Failed to download video from all sources. Please try again later.",
+        },
         { quoted: message }
       );
       return;
-    }
-
-    // Get video: try Izumi first, then Okatsu fallback
-    let videoData;
-    try {
-      videoData = await getIzumiVideoByUrl(videoUrl);
-    } catch (e1) {
-      videoData = await getOkatsuVideoByUrl(videoUrl);
     }
 
     // Send video directly using the download URL
@@ -152,7 +168,7 @@ async function videoCommand(sock, chatId, message) {
     console.error("[VIDEO] Command Error:", error?.message || error);
     await sock.sendMessage(
       chatId,
-      { text: "Download failed: " + (error?.message || "Unknown error") },
+      { text: "❌ Critical error: " + (error?.message || "Unknown error") },
       { quoted: message }
     );
   }
