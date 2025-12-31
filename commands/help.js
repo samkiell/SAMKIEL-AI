@@ -1,7 +1,7 @@
 const settings = require("../settings");
 const fs = require("fs");
 const path = require("path");
-const { isPremium } = require("../lib/premium");
+
 const { VALID_COMMANDS, loadPrefix } = require("../lib/prefix");
 
 function formatUptime(s) {
@@ -13,7 +13,7 @@ function formatUptime(s) {
 
 async function helpCommand(sock, chatId, senderId) {
   const uptime = formatUptime(process.uptime());
-  const isPrem = isPremium(senderId);
+
   const currentPrefix = loadPrefix();
 
   const p = currentPrefix === "off" ? "" : currentPrefix;
@@ -21,26 +21,24 @@ async function helpCommand(sock, chatId, senderId) {
   const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
 │ ⏱️ *Uptime:* ${uptime}
 │ ⚙️ *Commands:* ${VALID_COMMANDS.length}
+│ 📌 *Prefix:* ${currentPrefix === "off" ? "None" : currentPrefix}
 │ 🌟 *Version:* ${settings.version || "3"}
 │ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
 │ 🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
 │ 🌐 *Website:* ${settings.website || "https://samkielbot.app"}
 │ 📂 *Portfolio:* ${settings.portfolio || "https://samkiel.dev"}
-│ 📌 *Prefix:* ${currentPrefix === "off" ? "None" : currentPrefix}
+│
 ╰──────────────────╯
 
-💎 *PREMIUM COMMANDS*
   ╔═══════════════════╗
-  ║ ✧ 💎 ${p}upgrade
-  ║ ✧ 💎 ${p}gpt
-  ║ ✧ 💎 ${p}gemini
-  ║ ✧ 💎 ${p}imagine
-  ║ ✧ 💎 ${p}remini
-  ║ ✧ 💎 ${p}sora
-  ║ ✧ 💎 ${p}removebg
+  🤖 *AI Commands*:
+  ║ ✧ 🤖 ${p}gpt
+  ║ ✧ 🧠 ${p}gemini
+  ║ ✧ 🎨 ${p}imagine
+  ║ ✧ �️ ${p}remini
+  ║ ✧ 🎥 ${p}sora
+  ║ ✧ ✂️ ${p}removebg
   ╚═══════════════════╝
-
-🆓 *FREE COMMANDS*
 
   ╔═══════════════════╗
   🌐 *General Commands*:
