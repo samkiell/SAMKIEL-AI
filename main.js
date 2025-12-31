@@ -215,32 +215,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
     const message = messages[0];
     if (!message?.message) return;
 
-    // ===== BEGIN: Automatic reply wrapper =====
-    const incomingMessage = message; // keep local reference to quote
-
-    // Preserve original sendMessage for restoration later
-    const originalSendMessage = sock.sendMessage;
-
-    // Override sendMessage for this specific incoming message
-    sock.sendMessage = async function (jid, content, options) {
-      try {
-        // Ensure options exists
-        if (!options || typeof options !== "object") options = {};
-
-        // If no quoted message provided, attach the triggering one
-        if (!options.quoted) {
-          options.quoted = incomingMessage;
-        }
-
-        // Execute original sendMessage with proper binding
-        return await originalSendMessage.call(this, jid, content, options);
-      } catch (err) {
-        console.error("sendMessage wrapper error:", err);
-        return await originalSendMessage.call(this, jid, content, options);
-      }
-    };
-    // ===== END: Automatic reply wrapper =====
-
     // Store message for antidelete feature
     if (message.message) {
       storeMessage(message);
@@ -1576,14 +1550,6 @@ You can explore all available commands below 👇`,
         console.error("❌ Error in global auto-reaction:", err);
       }
     }
-
-    // ===== Restore original sendMessage =====
-    try {
-      sock.sendMessage = originalSendMessage;
-    } catch (restoreError) {
-      console.error("Error restoring sendMessage:", restoreError);
-    }
-    // ===== END restore =====
   } catch (error) {
     console.error("❌ Error in message handler:", error.message);
     // Only try to send error message if we have a valid chatId

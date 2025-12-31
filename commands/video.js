@@ -156,7 +156,7 @@ async function videoCommand(sock, chatId, message) {
       }
     }
 
-    // Send thumbnail/status
+      // Send thumbnail/status
     try {
       const captionTitle = videoTitle || searchQuery;
       await sock.sendMessage(
@@ -252,7 +252,7 @@ async function videoCommand(sock, chatId, message) {
         if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
       }, 120000); // 2 minutes delay
     } catch (downloadError) {
-      console.error("Temp download failed:", downloadError);
+      console.error("Temp download failed:", downloadError.message || String(downloadError));
       // Fallback to sending URL directly if file download fails
       await sock.sendMessage(
         chatId,
@@ -268,7 +268,7 @@ async function videoCommand(sock, chatId, message) {
       );
     }
   } catch (error) {
-    console.error("[VIDEO] Command Error:", error?.message || error);
+    console.error("[VIDEO] Command Error:", error.message || String(error));
     await sock.sendMessage(
       chatId,
       { text: "❌ Critical error: " + (error?.message || "Unknown error") },
