@@ -230,8 +230,17 @@ async function handleAntideleteCommand(sock, chatId, message, args) {
   }
 
   // Parse args
-  const subCmd = args[0] ? args[0].toLowerCase() : "";
-  const param = args[1] ? args[1].toLowerCase() : "";
+  let subCmd = "";
+  let param = "";
+
+  if (typeof args === "string") {
+    const parts = args.trim().split(/\s+/);
+    subCmd = parts[0] ? parts[0].toLowerCase() : "";
+    param = parts[1] ? parts[1].toLowerCase() : "";
+  } else if (Array.isArray(args)) {
+    subCmd = args[0] ? args[0].toLowerCase() : "";
+    param = args[1] ? args[1].toLowerCase() : "";
+  }
 
   if (subCmd === "on") {
     config.enabled = true;
