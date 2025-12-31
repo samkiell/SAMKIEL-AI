@@ -24,7 +24,7 @@ async function helpCommand(sock, chatId, senderId) {
 │ 🌟 *Version:* ${settings.version || "3"}
 │ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
 │ 🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
-│ 🌐 *Website:* ${settings.website || "https://bot.samkiel.dev"}
+│ 🌐 *Website:* ${settings.website || "https://samkielbot.app"}
 │ 📂 *Portfolio:* ${settings.portfolio || "https://samkiel.dev"}
 │ 📌 *Prefix:* ${currentPrefix === "off" ? "None" : currentPrefix}
 ╰──────────────────╯

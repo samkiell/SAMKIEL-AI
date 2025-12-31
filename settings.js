@@ -9,7 +9,7 @@ const settings = {
   ownerName: "SAMKIEL",
   developer: "ѕαмкιєℓ.∂єν",
   portfolio: "https://samkiel.dev",
-  website: "https://bot.samkiel.dev",
+  website: "https://samkielbot.app",
 
   // Feature Toggles
   featureToggles: {
