@@ -30,7 +30,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
  � *User:* ${pushName || "User"}
 ││ �🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
 │ 💾 *Memory:* ${memStr}
- 🌟 *Version:* ${settings.version || "3"}
+ 🌟 *Version:* ${settings.version}
 │ 🌐 *Website:* ${settings.website || "https://samkielbot.app"}
 │ 📂 *Portfolio:* ${settings.portfolio || "https://samkiel.dev"}
 │
