@@ -47,6 +47,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   ╔═══════════════════╗
   🌐 *General Commands*:
   ║ ✧ 🛎️ ${p}help 
+  ║ ✧ 📢 ${p}channel
   ║ ✧ 🏓 ${p}ping
   ║ ✧ 🟢 ${p}alive
   ║ ✧ 🗣️ ${p}tts <text>

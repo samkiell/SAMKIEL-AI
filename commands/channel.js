@@ -4,7 +4,7 @@ async function channelCommand(sock, chatId, message) {
   const channelLink =
     settings.channelLink ||
     "https://whatsapp.com/channel/0029VbAhWo3C6Zvf2t4Rne0h";
-  const channelName = settings.botName || "Samkiel AI";
+  const channelName = settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
 
   await sock.sendMessage(
     chatId,
