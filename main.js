@@ -171,6 +171,7 @@ const handleBotControl = require("./commands/botControl");
 const prefixCommand = require("./commands/prefix");
 const deployCommand = require("./commands/deploy");
 const anticallCommand = require("./commands/anticall");
+const pluginCommand = require("./commands/plugin");
 
 // Global settings
 global.packname = settings.packname;
@@ -678,6 +679,9 @@ You can explore all available commands below 👇`,
         break;
       case command === "channel":
         await channelCommand(sock, chatId, message);
+        break;
+      case command === "plugin" || command === "plugins":
+        await pluginCommand(sock, chatId, message);
         break;
       case command === "sticker" || command === "s":
         await stickerCommand(sock, chatId, message);

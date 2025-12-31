@@ -366,6 +366,8 @@ async function startXeonBotInc() {
         }
       } catch (e) {}
 
+      const isAntiCallEnabled = await getAntiCall();
+
       const pluginList = [
         `🔌 *Auto Status View:* ${settings.featureToggles.AUTO_STATUS_VIEW}`,
         `🔌 *Always Online:* ${
@@ -376,6 +378,7 @@ async function startXeonBotInc() {
         }`,
         `🔌 *Auto Reaction:* ${isAutoReactGlobal ? "On" : "Off"}`,
         `🔌 *Ranking:* ${isRankGlobal ? "On" : "Off"}`,
+        `🔌 *Anti-Call:* ${isAntiCallEnabled ? "On" : "Off"}`,
       ].join("\n");
 
       await XeonBotInc.sendMessage(botNumber, {

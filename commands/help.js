@@ -88,6 +88,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   ║ ✧ 📢 ${p}tagall
   ║ ✧ 🤖 ${p}chatbot
   ║ ✧ 🔄 ${p}resetlink
+  ║ ✧ 🔌 ${p}plugin
   ╚═══════════════════╝
 
   ╔═══════════════════╗
@@ -102,6 +103,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   ║ ✧ 🛠️ ${p}setprefix <symbol>
   ║ ✧ 🚫 ${p}disablebot
   ║ ✧ ✅ ${p}enablebot
+  ║ ✧ 📞 ${p}anticall on/off
   ╚═══════════════════╝
 
   ╔═══════════════════╗
