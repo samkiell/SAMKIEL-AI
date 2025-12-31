@@ -1,12 +1,5 @@
 // Main logic of the bot
 
-const {
-  addPremium,
-  removePremium,
-  loadPremium,
-  isPremium,
-} = require("./lib/premium");
-
 const videoCommand = require("./commands/video");
 const settings = require("./settings");
 require("./config.js");
@@ -163,8 +156,7 @@ const { addXp } = require("./lib/leveling");
 const rankCommand = require("./commands/rank");
 const leaderboardCommand = require("./commands/leaderboard");
 const panelCommand = require("./commands/admin");
-const addPremCommand = require("./commands/addprem");
-const delPremCommand = require("./commands/delprem");
+
 const rankToggleCommand = require("./commands/ranktoggle");
 const { isRankEnabled } = require("./lib/rankConfig");
 const handleBotControl = require("./commands/botControl");
@@ -532,69 +524,8 @@ You can explore all available commands below 👇`,
       }
     }
 
-    // Premium Command enforcement
-    const premiumCommands = [
-      "gpt",
-      "gemini",
-      "imagine",
-      "remini",
-      "sora",
-      "removebg",
-      "upgrade",
-    ];
-
-    const isPremiumCmd = premiumCommands.includes(command);
-    if (isPremiumCmd) {
-      let isPrem = isPremium(senderId);
-      const isCreator = await isOwner(senderId);
-
-      // If not premium (by direct ID match) and not creator, but is an LID in a group:
-      // Try to resolve the LID to a Phone JID using group metadata
-      if (!isPrem && !isCreator && senderId.endsWith("@lid") && isGroup) {
-        try {
-          const groupMetadata = await sock.groupMetadata(chatId);
-          const participant = groupMetadata.participants.find(
-            (p) => p.lid === senderId
-          );
-          if (participant && participant.id) {
-            isPrem = isPremium(participant.id);
-          }
-        } catch (e) {
-          console.error("Failed to resolve LID for premium check:", e);
-        }
-      }
-
-      if (!isPrem && !isCreator) {
-        const vcard =
-          "BEGIN:VCARD\n" +
-          "VERSION:3.0\n" +
-          "FN:Samkiel\n" +
-          "TEL;type=CELL;type=VOICE;waid=2348087357158:2348087357158\n" +
-          "END:VCARD";
-
-        await sock.sendMessage(chatId, {
-          text: "This command is available only for Premium users.\nTo upgrade, contact Samkiel using the contact card below.",
-          ...channelInfo,
-        });
-
-        await sock.sendMessage(chatId, {
-          contacts: {
-            displayName: "Samkiel",
-            contacts: [{ vcard }],
-          },
-        });
-        return;
-      }
-    }
-
     // Command handlers
     switch (true) {
-      case command === "upgrade":
-        await sock.sendMessage(chatId, {
-          text: "You are already a premium user.",
-          ...channelInfo,
-        });
-        break;
       case command === "simage": {
         const quotedMessage =
           message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
@@ -1359,112 +1290,7 @@ You can explore all available commands below 👇`,
       case command === "lid":
         await lidCommand(sock, chatId, senderId, message);
         break;
-      case command === "listprem" || command === "premlist": {
-        const { users } = loadPremium();
-        if (users.length === 0) {
-          await sock.sendMessage(chatId, {
-            text: "📜 No premium users found.",
-          });
-          return;
-        }
 
-        let text = "📜 *Premium User List:*\n\n";
-        users.forEach((u, i) => {
-          text += `${i + 1}. @${u.number}\n`;
-        });
-
-        await sock.sendMessage(chatId, {
-          text,
-          mentions: users.map((u) => u.jid),
-        });
-        break;
-      }
-      case command.startsWith("addprem") || command.startsWith("addpremium"):
-        if (!(await isOwner(senderId))) {
-          await sock.sendMessage(chatId, {
-            text: "❌ Only owner can add premium users.",
-          });
-          return;
-        }
-        let userToAdd =
-          message.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
-        if (
-          !userToAdd &&
-          message.message?.extendedTextMessage?.contextInfo?.participant
-        ) {
-          userToAdd =
-            message.message.extendedTextMessage.contextInfo.participant;
-        }
-        if (!userToAdd) {
-          const args = command.split(" ");
-          if (args.length > 1) {
-            userToAdd = args[1].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
-          }
-        }
-
-        if (!userToAdd) {
-          await sock.sendMessage(chatId, {
-            text: "Please mention a user or provide a number to add to premium.",
-          });
-          return;
-        }
-
-        addPremium(userToAdd, userToAdd.split("@")[0]);
-        await sock.sendMessage(chatId, {
-          text: `✅ Added @${userToAdd.split("@")[0]} to premium list`,
-          mentions: [userToAdd],
-        });
-
-        // Notify the user in DM
-        await sock.sendMessage(userToAdd, {
-          text: `🎉 *CONGRATULATIONS!* 🎉\n\nYou are now a *PREMIUM USER*! 🌟\n\nEnjoy exclusive features and enhanced access.
-           🚀\nhearts from samkiel! 💎`,
-        });
-        break;
-      case command.startsWith("delprem") ||
-        command.startsWith("delpremium") ||
-        command.startsWith("removepremium"):
-        if (!(await isOwner(senderId))) {
-          await sock.sendMessage(chatId, {
-            text: "❌ Only owner can remove premium users.",
-          });
-          return;
-        }
-        let userToDel =
-          message.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
-        if (
-          !userToDel &&
-          message.message?.extendedTextMessage?.contextInfo?.participant
-        ) {
-          userToDel =
-            message.message.extendedTextMessage.contextInfo.participant;
-        }
-        if (!userToDel) {
-          const args = command.split(" ");
-          if (args.length > 1) {
-            userToDel = args[1].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
-          }
-        }
-
-        if (!userToDel) {
-          await sock.sendMessage(chatId, {
-            text: "Please mention a user or provide a number to remove from premium.",
-          });
-          return;
-        }
-
-        removePremium(userToDel);
-        await sock.sendMessage(chatId, {
-          text: `✅ Removed @${userToDel.split("@")[0]} from premium list`,
-          mentions: [userToDel],
-        });
-        break;
-      case command.startsWith("addprem"):
-        await addPremCommand(sock, chatId, senderId, message);
-        break;
-      case command.startsWith("delprem"):
-        await delPremCommand(sock, chatId, senderId, message);
-        break;
       case command === "prefix":
         await prefixCommand(sock, chatId, message, channelInfo);
         break;

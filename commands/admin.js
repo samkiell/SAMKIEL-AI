@@ -22,17 +22,11 @@ async function panelCommand(sock, chatId, message) {
 
     // Paths to data files
     const messageCountPath = path.join(__dirname, "../data/messageCount.json");
-    const premiumPath = path.join(__dirname, "../data/premium.json");
 
     // Read data files
     let messageData = {};
     if (fs.existsSync(messageCountPath)) {
       messageData = JSON.parse(fs.readFileSync(messageCountPath, "utf8"));
-    }
-
-    let premiumData = { users: [] };
-    if (fs.existsSync(premiumPath)) {
-      premiumData = JSON.parse(fs.readFileSync(premiumPath, "utf8"));
     }
 
     // Calculate Stats
@@ -70,7 +64,6 @@ async function panelCommand(sock, chatId, message) {
     }
 
     const totalUsers = uniqueUsers.size;
-    const totalPremium = premiumData.users.length;
 
     // System Stats
     const uptimeSeconds = process.uptime();
@@ -107,7 +100,6 @@ async function panelCommand(sock, chatId, message) {
 *👥 Total Users:* ${totalUsers}
 *🏢 Total Groups:* ${totalGroups}
 *📩 Total Messages:* ${totalMessages}
-*💎 Premium Users:* ${totalPremium}
 *💬 Active DMs:* ${totalDMs}
 *📰 Newsletters:* ${totalNewsletters}
 ━━━━━━━━━━━━━━━━━━━━
