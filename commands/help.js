@@ -89,6 +89,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   ║ ✧ 🤖 ${p}chatbot
   ║ ✧ 🔄 ${p}resetlink
   ║ ✧ 🔌 ${p}plugin
+  ║ ✧ 💾 ${p}savestatus [dm]
   ╚═══════════════════╝
 
   ╔═══════════════════╗

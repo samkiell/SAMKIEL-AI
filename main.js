@@ -172,6 +172,7 @@ const prefixCommand = require("./commands/prefix");
 const deployCommand = require("./commands/deploy");
 const anticallCommand = require("./commands/anticall");
 const pluginCommand = require("./commands/plugin");
+const saveStatusCommand = require("./commands/savestatus");
 
 // Global settings
 global.packname = settings.packname;
@@ -656,6 +657,10 @@ You can explore all available commands below 👇`,
         break;
       case command === "plugin" || command === "plugins":
         await pluginCommand(sock, chatId, message);
+        break;
+      case command === "savestatus":
+        const saveArgs = userMessage.trim().split(/\s+/).slice(1);
+        await saveStatusCommand(sock, chatId, message, saveArgs);
         break;
       case command === "sticker" || command === "s":
         await stickerCommand(sock, chatId, message);
