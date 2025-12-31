@@ -1,6 +1,7 @@
 const settings = require("../settings");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
 const { VALID_COMMANDS, loadPrefix } = require("../lib/prefix");
 
@@ -11,10 +12,13 @@ function formatUptime(s) {
   return `${h}h ${m}m ${s2}s`;
 }
 
-async function helpCommand(sock, chatId, senderId) {
+async function helpCommand(sock, chatId, senderId, pushName) {
   const uptime = formatUptime(process.uptime());
-
   const currentPrefix = loadPrefix();
+
+  const usedMemory = process.memoryUsage().rss / 1024 / 1024;
+  const totalMemory = os.totalmem() / 1024 / 1024;
+  const memStr = `${Math.round(usedMemory)}MB / ${Math.round(totalMemory)}MB`;
 
   const p = currentPrefix === "off" ? "" : currentPrefix;
 
@@ -22,9 +26,11 @@ async function helpCommand(sock, chatId, senderId) {
 │ ⏱️ *Uptime:* ${uptime}
 │ ⚙️ *Commands:* ${VALID_COMMANDS.length}
 │ 📌 *Prefix:* ${currentPrefix === "off" ? "None" : currentPrefix}
-│ 🌟 *Version:* ${settings.version || "3"}
-│ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
-│ 🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
+││ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
+ � *User:* ${pushName || "User"}
+││ �🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
+│ 💾 *Memory:* ${memStr}
+ 🌟 *Version:* ${settings.version || "3"}
 │ 🌐 *Website:* ${settings.website || "https://samkielbot.app"}
 │ 📂 *Portfolio:* ${settings.portfolio || "https://samkiel.dev"}
 │
