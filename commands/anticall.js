@@ -4,7 +4,7 @@ const { isOwner } = require("../lib/isOwner");
 async function anticallCommand(sock, chatId, message, args) {
   const senderId = message.key.participant || message.key.remoteJid;
 
-  if (!isOwner(senderId)) {
+  if (!(await isOwner(senderId))) {
     await sock.sendMessage(
       chatId,
       { text: "❌ Only the bot owner can use this command." },
@@ -20,7 +20,7 @@ async function anticallCommand(sock, chatId, message, args) {
     await sock.sendMessage(
       chatId,
       {
-        text: "✅ *Anti-Call* has been ENABLED. The bot will now reject incoming calls.",
+        text: "✅ *Anti-Call* has been ENABLED.\nThe bot will now reject incoming calls.",
       },
       { quoted: message }
     );
@@ -29,7 +29,7 @@ async function anticallCommand(sock, chatId, message, args) {
     await sock.sendMessage(
       chatId,
       {
-        text: "❌ *Anti-Call* has been DISABLED. Incoming calls will not be rejected.",
+        text: "❌ *Anti-Call* has been DISABLED.\nIncoming calls will not be rejected.",
       },
       { quoted: message }
     );

@@ -817,7 +817,7 @@ You can explore all available commands below 👇`,
         }
         break;
       case command.startsWith("tag"):
-        const messageText = rawText.slice(4).trim(); // use rawText here, not userMessage
+        const messageText = userMessage.trim().split(/\s+/).slice(1).join(" "); // Fixed rawText error
         const replyMessage =
           message.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
           null;
