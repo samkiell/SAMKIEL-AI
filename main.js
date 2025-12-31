@@ -37,6 +37,7 @@ const {
   delGoodBye,
   isGoodByeOn,
   isSudo,
+  getAntiCall,
 } = require("./lib/index");
 
 // Command imports
@@ -169,6 +170,7 @@ const { isRankEnabled } = require("./lib/rankConfig");
 const handleBotControl = require("./commands/botControl");
 const prefixCommand = require("./commands/prefix");
 const deployCommand = require("./commands/deploy");
+const anticallCommand = require("./commands/anticall");
 
 // Global settings
 global.packname = settings.packname;
@@ -488,6 +490,7 @@ You can explore all available commands below 👇`,
       "setprefix",
       "disablebot",
       "enablebot",
+      "anticall",
     ];
     const hybridCommands = ["welcome", "goodbye", "chatbot"];
 
@@ -662,6 +665,10 @@ You can explore all available commands below 👇`,
         break;
       case command === "update":
         await updateCommand(sock, chatId, message);
+        break;
+      case command === "anticall":
+        const args = userMessage.trim().split(/\s+/).slice(1);
+        await anticallCommand(sock, chatId, message, args);
         break;
       case command === "help" ||
         command === "menu" ||
@@ -1663,9 +1670,28 @@ async function handleGroupParticipantUpdate(sock, update) {
 }
 
 // Instead, export the handlers along with handleMessages
+// Handle incoming calls
+async function handleCall(sock, callUpdate) {
+  const isAntiCallEnabled = await getAntiCall();
+  if (!isAntiCallEnabled) return;
+
+  for (const call of callUpdate) {
+    if (call.status === "offer") {
+      const callId = call.id;
+      const callerId = call.from;
+
+      await sock.rejectCall(callId, callerId);
+
+      // Optional: Inform the caller
+      // await sock.sendMessage(callerId, { text: "📞 Calls are disabled for this bot." });
+    }
+  }
+}
+
 module.exports = {
   handleMessages,
   handleGroupParticipantUpdate,
+  handleCall,
   handleStatus: async (sock, chatUpdate) => {
     if (chatUpdate.messages && chatUpdate.messages.length > 0) {
       const message = chatUpdate.messages[0];

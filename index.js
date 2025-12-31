@@ -9,6 +9,7 @@ const {
   handleMessages,
   handleGroupParticipantUpdate,
   handleStatus,
+  handleCall,
 } = require("./main");
 const PhoneNumber = require("awesome-phonenumber");
 const {
@@ -467,6 +468,10 @@ async function startXeonBotInc() {
 
   XeonBotInc.ev.on("messages.reaction", async (status) => {
     await handleStatus(XeonBotInc, status);
+  });
+
+  XeonBotInc.ev.on("call", async (callUpdate) => {
+    await handleCall(XeonBotInc, callUpdate);
   });
 
   return XeonBotInc;
