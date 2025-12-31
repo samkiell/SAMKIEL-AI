@@ -1,5 +1,8 @@
 const axios = require("axios");
 const yts = require("yt-search");
+const ytdl = require("ytdl-core");
+const fs = require("fs");
+const path = require("path");
 
 const AXIOS_DEFAULTS = {
   timeout: 60000,
@@ -11,6 +14,37 @@ const AXIOS_DEFAULTS = {
 };
 
 // Provider Functions
+
+async function getYtdlAppVideo(url) {
+  // Internal fallback using ytdl-core
+  return new Promise((resolve, reject) => {
+    try {
+      ytdl
+        .getInfo(url)
+        .then((info) => {
+          const format = ytdl.chooseFormat(info.formats, { quality: "18" }); // 18 is mp4 360p
+          // Sometimes chooseFormat returns null if exact match not found
+          const actualFormat =
+            format ||
+            info.formats.find((f) => f.hasVideo && f.hasAudio) ||
+            info.formats.find((f) => f.hasVideo);
+
+          if (actualFormat && actualFormat.url) {
+            resolve({
+              download: actualFormat.url,
+              title: info.videoDetails.title,
+            });
+          } else {
+            reject(new Error("ytdl-core found no suitable format"));
+          }
+        })
+        .catch(reject);
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
 async function getWidipeVideo(url) {
   const res = await axios.get(
     `https://widipe.com/download/ytdl?url=${encodeURIComponent(url)}`,
@@ -19,7 +53,7 @@ async function getWidipeVideo(url) {
   if (res.data?.result?.mp4) {
     return {
       download: res.data.result.mp4,
-      title: null, // Widipe often doesn't give title in this endpoint, rely on yts title
+      title: null,
     };
   }
   throw new Error("Widipe API returned no MP4");
@@ -37,6 +71,22 @@ async function getBk9Video(url) {
     };
   }
   throw new Error("Bk9 API returned no video");
+}
+
+async function getDarkYasiyaVideo(url) {
+  const res = await axios.get(
+    `https://api.dark-yasiya-api.vercel.app/download/ytmp4?url=${encodeURIComponent(
+      url
+    )}`,
+    AXIOS_DEFAULTS
+  );
+  if (res.data?.status && res.data?.result?.url) {
+    return {
+      download: res.data.result.url,
+      title: res.data.result.title,
+    };
+  }
+  throw new Error("Dark Yasiya API returned no video");
 }
 
 async function getIzumiVideo(url) {
@@ -126,7 +176,13 @@ async function videoCommand(sock, chatId, message) {
     }
 
     // Provider Loop
-    const providers = [getWidipeVideo, getBk9Video, getIzumiVideo];
+    const providers = [
+      getWidipeVideo,
+      getBk9Video,
+      getDarkYasiyaVideo,
+      getIzumiVideo,
+      getYtdlAppVideo,
+    ];
     let videoData = null;
     let lastError = null;
 
@@ -151,19 +207,69 @@ async function videoCommand(sock, chatId, message) {
       return;
     }
 
-    // Send video directly using the download URL
-    await sock.sendMessage(
-      chatId,
-      {
-        video: { url: videoData.download },
-        mimetype: "video/mp4",
-        fileName: `${videoData.title || videoTitle || "video"}.mp4`,
-        caption: `*${
-          videoData.title || videoTitle || "Video"
-        }*\n\n> *_Downloaded by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 _*`,
-      },
-      { quoted: message }
-    );
+    // DOWNLOAD TO TEMP FILE LOGIC
+    // Ensure temp directory exists
+    const tmpDir = path.join(__dirname, "../tmp");
+    if (!fs.existsSync(tmpDir)) {
+      try {
+        fs.mkdirSync(tmpDir);
+      } catch (e) {}
+    }
+
+    const tempFileName = `video_${Date.now()}.mp4`;
+    const tempFilePath = path.join(tmpDir, tempFileName);
+
+    try {
+      // Download the video stream to file
+      const writer = fs.createWriteStream(tempFilePath);
+      const response = await axios({
+        url: videoData.download,
+        method: "GET",
+        responseType: "stream",
+        ...AXIOS_DEFAULTS,
+      });
+
+      response.data.pipe(writer);
+
+      await new Promise((resolve, reject) => {
+        writer.on("finish", resolve);
+        writer.on("error", reject);
+      });
+
+      // Send the file
+      await sock.sendMessage(
+        chatId,
+        {
+          video: { url: tempFilePath }, // Baileys handles local paths
+          mimetype: "video/mp4",
+          fileName: `${videoData.title || videoTitle || "video"}.mp4`,
+          caption: `*${
+            videoData.title || videoTitle || "Video"
+          }*\n\n> *_Downloaded by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 _*`,
+        },
+        { quoted: message }
+      );
+
+      // Cleanup
+      setTimeout(() => {
+        if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+      }, 120000); // 2 minutes delay
+    } catch (downloadError) {
+      console.error("Temp download failed:", downloadError);
+      // Fallback to sending URL directly if file download fails
+      await sock.sendMessage(
+        chatId,
+        {
+          video: { url: videoData.download },
+          mimetype: "video/mp4",
+          fileName: `${videoData.title || videoTitle || "video"}.mp4`,
+          caption: `*${
+            videoData.title || videoTitle || "Video"
+          }*\n\n> *_Downloaded by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 _*`,
+        },
+        { quoted: message }
+      );
+    }
   } catch (error) {
     console.error("[VIDEO] Command Error:", error?.message || error);
     await sock.sendMessage(
