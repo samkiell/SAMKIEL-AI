@@ -22,6 +22,7 @@ const ytdl = require("ytdl-core");
 const path = require("path");
 const axios = require("axios");
 const ffmpeg = require("fluent-ffmpeg");
+const PDFDocument = require("pdfkit");
 const {
   addWelcome,
   delWelcome,
@@ -803,6 +804,67 @@ You can explore all available commands below 👇`,
       case command === "news":
         await newsCommand(sock, chatId);
         break;
+      case command === "pdf": {
+        const text = userMessage.trim().split(/\s+/).slice(1).join(" ");
+        if (!text) {
+          await sock.sendMessage(
+            chatId,
+            {
+              text: "Please provide text to convert to PDF. Example: .pdf Hello World",
+            },
+            { quoted: message }
+          );
+          return;
+        }
+        const pdfPath = path.join(
+          __dirname,
+          "temp",
+          `samkielbot-${Date.now()}.pdf`
+        );
+        // Ensure temp directory exists
+        if (!fs.existsSync(path.dirname(pdfPath))) {
+          fs.mkdirSync(path.dirname(pdfPath), { recursive: true });
+        }
+
+        const doc = new PDFDocument();
+        const stream = fs.createWriteStream(pdfPath);
+
+        doc.pipe(stream);
+        doc.text(text);
+        doc.end();
+
+        stream.on("finish", async () => {
+          try {
+            await sock.sendMessage(
+              chatId,
+              {
+                document: { url: pdfPath },
+                fileName: "samkiel-text.pdf",
+                mimetype: "application/pdf",
+              },
+              { quoted: message }
+            );
+          } catch (err) {
+            console.error("Error sending PDF:", err);
+            await sock.sendMessage(
+              chatId,
+              { text: "Error sending PDF." },
+              { quoted: message }
+            );
+          } finally {
+            if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
+          }
+        });
+        stream.on("error", async (err) => {
+          console.error("Error generating PDF:", err);
+          await sock.sendMessage(
+            chatId,
+            { text: "Error generating PDF." },
+            { quoted: message }
+          );
+        });
+        break;
+      }
       case command.startsWith("ttt") || command.startsWith("tictactoe"):
         const tttText = command.split(" ").slice(1).join(" ");
         await tictactoeCommand(sock, chatId, senderId, tttText);
