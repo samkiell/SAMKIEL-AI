@@ -666,7 +666,7 @@ You can explore all available commands below 👇`,
         command === "menu" ||
         command === "bot" ||
         command === "list":
-        await helpCommand(sock, chatId, senderId);
+        await helpCommand(sock, chatId, senderId, message.pushName);
         break;
       case command === "sticker" || command === "s":
         await stickerCommand(sock, chatId, message);

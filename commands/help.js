@@ -23,17 +23,16 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   const p = currentPrefix === "off" ? "" : currentPrefix;
 
   const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
+│ 👤 *User:* ${pushName || "User"}
 │ ⏱️ *Uptime:* ${uptime}
+│ 💾 *Memory:* ${memStr}
 │ ⚙️ *Commands:* ${VALID_COMMANDS.length}
 │ 📌 *Prefix:* ${currentPrefix === "off" ? "None" : currentPrefix}
-││ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
- � *User:* ${pushName || "User"}
-││ �🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
-│ 💾 *Memory:* ${memStr}
- 🌟 *Version:* ${settings.version}
+│ 🌟 *Version:* ${settings.version || "3.7.2"}
+│ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
+│ 🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
 │ 🌐 *Website:* ${settings.website || "https://samkielbot.app"}
 │ 📂 *Portfolio:* ${settings.portfolio || "https://samkiel.dev"}
-│
 ╰──────────────────╯
 
   ╔═══════════════════╗
@@ -41,7 +40,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   ║ ✧ 🤖 ${p}gpt
   ║ ✧ 🧠 ${p}gemini
   ║ ✧ 🎨 ${p}imagine
-  ║ ✧ �️ ${p}remini
+  ║ ✧ 🖼️ ${p}remini
   ║ ✧ 🎥 ${p}sora
   ║ ✧ ✂️ ${p}removebg
   ╚═══════════════════╝
@@ -174,10 +173,6 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   ║ ✧ 📘 ${p}facebook <link>
   ║ ✧ 🎬 ${p}tiktok <link>
   ╚═══════════════════╝
-
-
-
-
 
 ✉️ Join our community for updates:
 https://chat.whatsapp.com/GwVMsm7rRRE7cEIIsvojdd`;
