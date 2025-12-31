@@ -30,6 +30,7 @@ const {
   reSize,
 } = require("./lib/myfunc");
 const { loadPrefix } = require("./lib/prefix");
+const { getAntiCall } = require("./lib/index");
 
 // Define global reply function
 global.reply = async (sock, message, content) => {
