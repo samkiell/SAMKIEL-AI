@@ -74,7 +74,13 @@ async function aiCommand(sock, chatId, message) {
 
         for (const api of gptApis) {
           try {
-            const response = await axios.get(api);
+            const response = await axios.get(api, { timeout: 10000 });
+            if (response.status !== 200) {
+              console.warn(
+                `GPT API failed with status ${response.status}: ${api}`
+              );
+              continue;
+            }
             const data = response.data;
 
             if (
@@ -169,7 +175,10 @@ async function aiCommand(sock, chatId, message) {
         }
 
         const geminiApis = [
-          `https://api.siputzx.my.id/api/ai/llama33?prompt=You+are+Gemini+developed+by+Google&text=${encodeURIComponent(
+          `https://api.vreden.my.id/api/ai/gemini?query=${encodeURIComponent(
+            query
+          )}`,
+          `https://api.siputzx.my.id/api/ai/gemini?text=${encodeURIComponent(
             query
           )}`,
           `https://api.giftedtech.web.id/api/ai/geminiai?apikey=gifted&q=${encodeURIComponent(
@@ -179,8 +188,9 @@ async function aiCommand(sock, chatId, message) {
 
         for (const api of geminiApis) {
           try {
-            const response = await fetch(api);
-            const data = await response.json();
+            const response = await axios.get(api, { timeout: 10000 });
+            if (response.status !== 200) continue;
+            const data = response.data;
 
             if (
               data.data ||
@@ -236,8 +246,9 @@ async function aiCommand(sock, chatId, message) {
 
         for (const api of deepseekApis) {
           try {
-            const response = await fetch(api);
-            const data = await response.json();
+            const response = await axios.get(api, { timeout: 10000 });
+            if (response.status !== 200) continue;
+            const data = response.data;
 
             const answer =
               data.data ||
@@ -247,7 +258,7 @@ async function aiCommand(sock, chatId, message) {
               data.BK9 ||
               data.response;
 
-            if (answer) {
+            if (answer && typeof answer === "string") {
               appendMessage(userId, "assistant", answer);
               await sock.sendMessage(
                 chatId,
