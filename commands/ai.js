@@ -13,9 +13,14 @@ async function aiCommand(sock, chatId, message) {
     const p = currentPrefix === "off" ? "" : currentPrefix;
 
     if (!text) {
-      return await global.reply(sock, message, {
-        text: `Please provide a question after ${p}gpt or ${p}gemini\n\nExample: ${p}gpt write a basic html code`,
-      });
+      return await sock.sendMessage(
+        chatId,
+        {
+          text: `Please provide a question after ${p}gpt or ${p}gemini\n\nExample: ${p}gpt write a basic html code`,
+          ...global.channelInfo,
+        },
+        { quoted: message }
+      );
     }
 
     // Get the command and query
@@ -24,9 +29,14 @@ async function aiCommand(sock, chatId, message) {
     const query = parts.slice(1).join(" ").trim();
 
     if (!query) {
-      return await global.reply(sock, message, {
-        text: `Please provide a question after ${p}gpt or ${p}gemini`,
-      });
+      return await sock.sendMessage(
+        chatId,
+        {
+          text: `Please provide a question after ${p}gpt or ${p}gemini`,
+          ...global.channelInfo,
+        },
+        { quoted: message }
+      );
     }
 
     try {
@@ -95,9 +105,14 @@ async function aiCommand(sock, chatId, message) {
                 data.BK9;
 
               appendMessage(userId, "assistant", answer);
-              await global.reply(sock, message, {
-                text: answer,
-              });
+              await sock.sendMessage(
+                chatId,
+                {
+                  text: answer,
+                  ...global.channelInfo,
+                },
+                { quoted: message }
+              );
               return;
             }
           } catch (e) {
@@ -106,9 +121,14 @@ async function aiCommand(sock, chatId, message) {
           }
         }
 
-        await global.reply(sock, message, {
-          text: "❌ All GPT APIs failed, Elon musk hasnt paid up. Please try again later.",
-        });
+        await sock.sendMessage(
+          chatId,
+          {
+            text: "❌ All GPT APIs failed, Elon musk hasnt paid up. Please try again later.",
+            ...global.channelInfo,
+          },
+          { quoted: message }
+        );
         return;
       } else if (commandPart === "gemini") {
         const geminiApis = [
@@ -143,9 +163,14 @@ async function aiCommand(sock, chatId, message) {
                 data.response;
 
               appendMessage(userId, "assistant", answer);
-              await global.reply(sock, message, {
-                text: answer,
-              });
+              await sock.sendMessage(
+                chatId,
+                {
+                  text: answer,
+                  ...global.channelInfo,
+                },
+                { quoted: message }
+              );
               return;
             }
           } catch (e) {
@@ -154,22 +179,37 @@ async function aiCommand(sock, chatId, message) {
           }
         }
 
-        await global.reply(sock, message, {
-          text: "❌ All Gemini APIs failed. Please try again later.",
-        });
+        await sock.sendMessage(
+          chatId,
+          {
+            text: "❌ All Gemini APIs failed. Please try again later.",
+            ...global.channelInfo,
+          },
+          { quoted: message }
+        );
         return;
       }
     } catch (error) {
       console.error("API Error:", error);
-      await global.reply(sock, message, {
-        text: "❌ Failed to get response. Please try again later.",
-      });
+      await sock.sendMessage(
+        chatId,
+        {
+          text: "❌ Failed to get response. Please try again later.",
+          ...global.channelInfo,
+        },
+        { quoted: message }
+      );
     }
   } catch (error) {
     console.error("AI Command Error:", error);
-    await global.reply(sock, message, {
-      text: "❌ An error occurred. Please try again later.",
-    });
+    await sock.sendMessage(
+      chatId,
+      {
+        text: "❌ An error occurred. Please try again later.",
+        ...global.channelInfo,
+      },
+      { quoted: message }
+    );
   }
 }
 

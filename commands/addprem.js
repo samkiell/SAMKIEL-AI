@@ -7,6 +7,7 @@ async function addPremCommand(sock, chatId, senderId, message) {
   if (!isOwnerCheck) {
     await sock.sendMessage(chatId, {
       text: "❌ Only the bot owner can add premium users.",
+      ...global.channelInfo,
     });
     return;
   }
@@ -43,6 +44,7 @@ async function addPremCommand(sock, chatId, senderId, message) {
     const p = currentPrefix === "off" ? "" : currentPrefix;
     await sock.sendMessage(chatId, {
       text: `Please mention a user, reply to a user, or provide a number to add to premium.\nExample: ${p}addprem @user or ${p}addprem 1234567890`,
+      ...global.channelInfo,
     });
     return;
   }
@@ -54,6 +56,7 @@ async function addPremCommand(sock, chatId, senderId, message) {
   await sock.sendMessage(chatId, {
     text: `✅ User @${userToAdd.split("@")[0]} has been added to Premium!`,
     mentions: [userToAdd],
+    ...global.channelInfo,
   });
 }
 
