@@ -11,14 +11,80 @@ async function movieCommand(sock, chatId, message, args) {
       return await sock.sendMessage(
         chatId,
         {
-          text: `🎥 *Movie Search*\n\nPlease provide a movie or TV show name.\nExample: *${p}movie Avengers*`,
+          text: `🎥 *Movie Search*\n\nPlease provide a movie or TV show name.\nExample: *${p}movie Avengers*\n\nTo download to WhatsApp directly:\n*${p}movie dl <ID>*`,
           ...global.channelInfo,
         },
         { quoted: message }
       );
     }
 
-    // 1. Search for movie
+    // Handle Direct Download Sub-command
+    if (args[0] === "dl" && args[1]) {
+      const movieId = args[1];
+      await sock.sendMessage(chatId, {
+        react: { text: "⏳", key: message.key },
+      });
+
+      // 1. Get movie info for filename
+      const infoUrl = `https://movieapi.giftedtech.co.ke/api/info/${movieId}`;
+      const infoRes = await axios.get(infoUrl);
+      const movie = infoRes.data.results.subject;
+
+      // 2. Get download sources
+      const sourcesUrl = `https://movieapi.giftedtech.co.ke/api/sources/${movieId}`;
+      const sourcesRes = await axios.get(sourcesUrl);
+      const sources = sourcesRes.data.results || [];
+
+      if (sources.length === 0) {
+        return await sock.sendMessage(
+          chatId,
+          { text: "❌ No direct download sources found for this ID." },
+          { quoted: message }
+        );
+      }
+
+      // Pick the best available quality (usually first in list)
+      const downloadUrl = sources[0].download_url;
+      const quality = sources[0].quality;
+
+      await sock.sendMessage(
+        chatId,
+        {
+          text: `📥 *Downloading:* ${movie.title} (${quality})\n\n_Please wait, this might take a few minutes depending on file size..._`,
+          ...global.channelInfo,
+        },
+        { quoted: message }
+      );
+
+      try {
+        await sock.sendMessage(
+          chatId,
+          {
+            document: { url: downloadUrl },
+            fileName: `${movie.title} [${quality}].mp4`,
+            mimetype: "video/mp4",
+            caption: `🎬 *${movie.title}*\n✅ Download Complete!`,
+            ...global.channelInfo,
+          },
+          { quoted: message }
+        );
+        await sock.sendMessage(chatId, {
+          react: { text: "✅", key: message.key },
+        });
+      } catch (dlErr) {
+        console.error("Movie download error:", dlErr);
+        await sock.sendMessage(
+          chatId,
+          {
+            text: "❌ Failed to send movie directly. Please use the links above.",
+          },
+          { quoted: message }
+        );
+      }
+      return;
+    }
+
+    // 1. Search for movie (Standard Search)
     const searchUrl = `https://movieapi.giftedtech.co.ke/api/search/${encodeURIComponent(
       query
     )}`;
@@ -65,14 +131,16 @@ async function movieCommand(sock, chatId, message, args) {
     // 5. Construct message
     const caption =
       `🎬 *${movie.title}*\n\n` +
+      `🆔 *ID:* \`${movieId}\`\n` +
       `📅 *Release:* ${movie.releaseDate || "N/A"}\n` +
       `⭐ *Rating:* ${movie.imdbRatingValue || "N/A"}/10\n` +
       `🎭 *Genre:* ${movie.genre || "N/A"}\n` +
       `⏱️ *Duration:* ${Math.floor(movie.duration / 60)} min\n\n` +
       `📝 *Description:* ${
-        movie.description || "No description available."
-      }\n` +
+        movie.description.substring(0, 300) || "No description available."
+      }...\n` +
       `${downloadLinks}\n\n` +
+      `💡 *Tip:* To download directly to WhatsApp, use:\n*${p}movie dl ${movieId}*\n\n` +
       `*POWERED BY 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋*`;
 
     // 6. Send message
