@@ -1,17 +1,5 @@
 const yts = require("yt-search");
 const axios = require("axios");
-// Channel Info
-const channelInfo = {
-  contextInfo: {
-    forwardingScore: 1,
-    isForwarded: true,
-    forwardedNewsletterMessageInfo: {
-      newsletterJid: "1203634008622713830@newsletter",
-      newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
-      serverMessageId: -1,
-    },
-  },
-};
 
 async function playCommand(sock, chatId, message) {
   try {
@@ -54,10 +42,12 @@ async function playCommand(sock, chatId, message) {
         chatId,
         {
           image: { url: video.thumbnail },
-          caption: `*${video.title}*\n\n*Duration:* ${
+          caption: `*${
+            video.title
+          }*\n\n*Status:* ⬇️ Downloading...\n*Duration:* ${
             video.timestamp
           }\n*Views:* ${video.views.toLocaleString()}\n\n *DOWNLOAD BY 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋*`,
-          contextInfo: channelInfo.contextInfo,
+          ...global.channelInfo,
         },
         { quoted: message }
       );

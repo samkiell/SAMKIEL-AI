@@ -127,7 +127,7 @@ const instagramCommand = require("./commands/instagram");
 const facebookCommand = require("./commands/facebook");
 const playCommand = require("./commands/play");
 const tiktokCommand = require("./commands/tiktok");
-const songCommand = require("./commands/song");
+
 const aiCommand = require("./commands/ai");
 const { handleTranslateCommand } = require("./commands/translate");
 const { handleSsCommand } = require("./commands/ss");
