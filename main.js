@@ -186,6 +186,7 @@ const channelInfo = {
     },
   },
 };
+global.channelInfo = channelInfo;
 const { jidNormalizedUser } = require("@whiskeysockets/baileys");
 const ownerData = JSON.parse(fs.readFileSync("./data/owner.json"));
 const rawOwners = [
