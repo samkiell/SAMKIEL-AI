@@ -138,6 +138,7 @@ const {
 } = require("./lib/reactions");
 const { goodnightCommand } = require("./commands/goodnight");
 const { shayariCommand } = require("./commands/shayari");
+const movieCommand = require("./commands/movie");
 const { rosedayCommand } = require("./commands/roseday");
 const imagineCommand = require("./commands/imagine");
 const { reminiCommand } = require("./commands/remini");
@@ -992,6 +993,11 @@ You can explore all available commands below 👇`,
       case command === "truth":
         await truthCommand(sock, chatId);
         break;
+      case command.startsWith("movie"): {
+        const movieArgs = userMessage.trim().split(/\s+/).slice(1);
+        await movieCommand(sock, chatId, message, movieArgs);
+        break;
+      }
       case command === "clear":
         if (isGroup) await clearCommand(sock, chatId);
         break;

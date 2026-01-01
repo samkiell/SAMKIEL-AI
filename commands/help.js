@@ -57,6 +57,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   ║ ✧ 💭 ${p}quote
   ║ ✧ 🤔 ${p}fact
   ║ ✧ 🌦️ ${p}weather <city>
+  ║ ✧ 📽️ ${p}movie <name>
   ║ ✧ 📰 ${p}news
   ║ ✧ 📄 ${p}pdf <text>
   ║ ✧ 🎨 ${p}attp <text>
