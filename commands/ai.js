@@ -125,6 +125,49 @@ async function aiCommand(sock, chatId, message) {
         );
         return;
       } else if (commandPart === "gemini") {
+        try {
+          const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyD6B3n7bjM0-fe9vbzxgw47IxltNoTcEAU`;
+
+          const response = await axios.post(
+            geminiApiUrl,
+            {
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: query,
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+            const answer = response.data.candidates[0].content.parts[0].text;
+            appendMessage(userId, "assistant", answer);
+            await sock.sendMessage(
+              chatId,
+              {
+                text: answer,
+                ...global.channelInfo,
+              },
+              { quoted: message }
+            );
+            return;
+          }
+        } catch (e) {
+          console.warn(
+            "Primary Gemini API failed, trying fallbacks...",
+            e.message
+          );
+        }
+
         const geminiApis = [
           `https://api.siputzx.my.id/api/ai/llama33?prompt=You+are+Gemini+developed+by+Google&text=${encodeURIComponent(
             query
@@ -167,8 +210,8 @@ async function aiCommand(sock, chatId, message) {
               return;
             }
           } catch (e) {
-            console.warn(`Gemini API failed: ${api}`, e.message);
-            continue; // Try the next API if this one fails
+            console.warn(`Gemini Fallback API failed: ${api}`, e.message);
+            continue;
           }
         }
 
