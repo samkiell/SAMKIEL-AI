@@ -1293,10 +1293,14 @@ You can explore all available commands below 👇`,
       case command.startsWith("video"):
         await videoCommand(sock, chatId, message);
         break;
-      case command.startsWith("play") || command.startsWith("music"):
+      case command.startsWith("play"):
         await playCommand(sock, chatId, message);
         break;
-      case command.startsWith("song"):
+      case command.startsWith("song") ||
+        command.startsWith("music") ||
+        command.startsWith("mp3") ||
+        command.startsWith("ytmp3") ||
+        command.startsWith("yts"):
         await songCommand(sock, chatId, message);
         break;
 
