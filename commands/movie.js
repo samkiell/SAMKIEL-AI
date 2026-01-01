@@ -161,7 +161,7 @@ async function movieCommand(sock, chatId, message, args) {
         movie.description.substring(0, 300) || "No description available."
       }...\n` +
       `${downloadLinks}\n\n` +
-      `💡 *Tip:* To download directly to WhatsApp, use:\n*${p}movie dl ${movieId}*\n\n` +
+      `💡 *Tip:* To download directly to WhatsApp, use:\n*${p}movie dl ${movie.title}*\n\n` +
       `*POWERED BY 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋*`;
 
     // 6. Send message
