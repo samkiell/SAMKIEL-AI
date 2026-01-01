@@ -126,6 +126,7 @@ const setProfilePicture = require("./commands/setpp");
 const instagramCommand = require("./commands/instagram");
 const facebookCommand = require("./commands/facebook");
 const playCommand = require("./commands/play");
+const songCommand = require("./commands/song");
 const tiktokCommand = require("./commands/tiktok");
 
 const aiCommand = require("./commands/ai");
@@ -1292,10 +1293,11 @@ You can explore all available commands below 👇`,
       case command.startsWith("video"):
         await videoCommand(sock, chatId, message);
         break;
-      case command.startsWith("play") ||
-        command.startsWith("song") ||
-        command.startsWith("music"):
+      case command.startsWith("play") || command.startsWith("music"):
         await playCommand(sock, chatId, message);
+        break;
+      case command.startsWith("song"):
+        await songCommand(sock, chatId, message);
         break;
 
       case command.startsWith("tiktok") || command.startsWith("tt"):
