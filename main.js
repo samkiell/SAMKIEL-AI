@@ -1528,21 +1528,59 @@ async function handleGroupParticipantUpdate(sock, update) {
       const isWelcomeEnabled = await isWelcomeOn(id);
       if (!isWelcomeEnabled) return;
 
-      // Get welcome message from data
-      const data = JSON.parse(fs.readFileSync("./data/userGroupData.json"));
-      const welcomeData = data.welcome[id];
-      const welcomeMessage =
-        welcomeData?.message || "Welcome {user} to the group! 🎉";
+      try {
+        // Get Group Metadata
+        const groupMetadata = await sock.groupMetadata(id);
+        const groupName = groupMetadata.subject;
+        const memberCount = groupMetadata.participants.length;
+        const groupDesc = groupMetadata.desc?.toString() || "No description";
 
-      // Send welcome message for each new participant
-      for (const participant of participants) {
-        const user = participant.split("@")[0];
-        const formattedMessage = welcomeMessage.replace("{user}", `@${user}`);
+        // Get welcome message from data
+        const data = JSON.parse(fs.readFileSync("./data/userGroupData.json"));
+        const welcomeData = data.welcome[id];
+        const customMessage =
+          welcomeData?.message || "Welcome to the group! 🎉";
 
-        await sock.sendMessage(id, {
-          text: formattedMessage,
-          mentions: [participant],
-        });
+        // Send welcome message for each new participant
+        for (const participant of participants) {
+          let ppUrl;
+          try {
+            ppUrl = await sock.profilePictureUrl(participant, "image");
+          } catch (e) {
+            // Fallback default image if privacy settings prevent getting PP
+            ppUrl =
+              "https://i.pinimg.com/736x/70/dd/61/70dd612c65034b88ebf474a52ccc70c4.jpg";
+          }
+
+          const userUser = participant.split("@")[0];
+          const text = `
+╭━━━━━━━━━━━━━━━━━━━┈⊷
+┃ 👤 *Hello @${userUser}*
+┃ 📛 *Welcome to:* ${groupName}
+┃ 👥 *Members:* ${memberCount}
+┃ 🕒 *Joined:* ${new Date().toLocaleTimeString()}
+╰━━━━━━━━━━━━━━━━━━━┈⊷
+
+${customMessage}`.trim();
+
+          await sock.sendMessage(id, {
+            image: { url: ppUrl },
+            caption: text,
+            mentions: [participant],
+            contextInfo: {
+              externalAdReply: {
+                title: "Welcome New Member!",
+                body: groupName,
+                thumbnailUrl: ppUrl,
+                sourceUrl: global.channelLink || "https://whatsapp.com",
+                mediaType: 1,
+                renderLargerThumbnail: true,
+              },
+            },
+          });
+        }
+      } catch (err) {
+        console.error("Error sending welcome message:", err);
       }
     }
 
