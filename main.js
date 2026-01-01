@@ -1565,7 +1565,7 @@ async function handleGroupParticipantUpdate(sock, update) {
           const text = `
 ╭━━━━━━━━━━━━━━━━━━━┈⊷
 ┃ 👤 *Hello @${userUser}*
-┃ 📛 *Welcome to:* ${groupName}
+┃ 📛 *Welcome to* ${groupName}
 ┃ 👥 *Members:* ${memberCount}
 ┃ 🕒 *Joined:* ${new Date().toLocaleTimeString()}
 ╰━━━━━━━━━━━━━━━━━━━┈⊷
@@ -1573,19 +1573,8 @@ async function handleGroupParticipantUpdate(sock, update) {
 ${customMessage}`.trim();
 
           await sock.sendMessage(id, {
-            image: { url: ppUrl },
             caption: text,
             mentions: [participant],
-            contextInfo: {
-              externalAdReply: {
-                title: "Welcome New Member!",
-                body: groupName,
-                thumbnailUrl: ppUrl,
-                sourceUrl: global.channelLink || "https://whatsapp.com",
-                mediaType: 1,
-                renderLargerThumbnail: true,
-              },
-            },
           });
         }
       } catch (err) {
