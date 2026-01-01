@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const https = require("https");
 const settings = require("../settings");
+const { loadPrefix } = require("../lib/prefix");
 
 function run(cmd) {
   return new Promise((resolve, reject) => {
@@ -316,7 +317,7 @@ async function restartProcess(sock, chatId, message) {
   try {
     await sock.sendMessage(
       chatId,
-      { text: "✅ Update complete! Restarting…" },
+      { text: "✅ Update complete! Restarting…", ...global.channelInfo },
       { quoted: message }
     );
   } catch {}
@@ -347,6 +348,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         chatId,
         {
           text: '❌ Update not configured!\n\nTo enable updates:\n• Set up a Git repository, OR\n• Configure updateZipUrl in settings.js, OR\n• Set UPDATE_ZIP_URL environment variable\n\nExample: updateZipUrl: "https://example.com/bot-update.zip"',
+          ...global.channelInfo,
         },
         { quoted: message }
       );
@@ -356,7 +358,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     // Minimal UX
     await sock.sendMessage(
       chatId,
-      { text: "🔄 Updating the bot, please wait…" },
+      { text: "🔄 Updating the bot, please wait…", ...global.channelInfo },
       { quoted: message }
     );
 
@@ -373,13 +375,17 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         await updateViaGit();
 
       if (alreadyUpToDate && !isForce) {
+        const currentPrefix = loadPrefix();
+        const p = currentPrefix === "off" ? "." : currentPrefix; // Default to . if off for instructions? Or empty? "Use update --force". Safest is to use p or dot.
+
         await sock.sendMessage(
           chatId,
           {
             text: `✅ *Already up to date* \nCurrent Version: \`${newRev.substring(
               0,
               7
-            )}\`\n\nUse \`.update --force\` to reinstall anyway.`,
+            )}\`\n\nUse \`${p}update --force\` to reinstall anyway.`,
+            ...global.channelInfo,
           },
           { quoted: message }
         );
@@ -460,11 +466,16 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     }
 
     // Send the detailed report
-    await sock.sendMessage(chatId, { text: updateReport }, { quoted: message });
+    await sock.sendMessage(
+      chatId,
+      { text: updateReport, ...global.channelInfo },
+      { quoted: message }
+    );
 
     try {
       await sock.sendMessage(chatId, {
         text: `🔄 Restarting to apply changes...`,
+        ...global.channelInfo,
       });
     } catch {}
 
@@ -474,7 +485,10 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     try {
       await sock.sendMessage(
         chatId,
-        { text: `❌ Update failed:\n${String(err.message || err)}` },
+        {
+          text: `❌ Update failed:\n${String(err.message || err)}`,
+          ...global.channelInfo,
+        },
         { quoted: message }
       );
     } catch (e) {
