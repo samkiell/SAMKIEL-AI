@@ -48,7 +48,7 @@ async function playCommand(sock, chatId, message) {
             video.title
           }*\n\n*Status:* ⬇️ Downloading...\n*Duration:* ${
             video.timestamp
-          }\n*Views:* ${video.views.toLocaleString()}\n\n *DOWNLOAD BY 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋*`,
+          }\n*Views:* ${video.views.toLocaleString()}\n\n *POWERED BY 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋*`,
           ...global.channelInfo,
         },
         { quoted: message }
@@ -57,47 +57,83 @@ async function playCommand(sock, chatId, message) {
       console.log("Failed to send preview image:", e);
     }
 
-    // Fetch audio data from API
-    const response = await axios.get(
-      `https://apis-keith.vercel.app/download/dlmp3?url=${urlYt}`
-    );
-    console.log("API response:", response.data);
-    const data = response.data;
+    // List of providers to try
+    const providers = [
+      {
+        name: "Keith",
+        url: `https://apis-keith.vercel.app/download/dlmp3?url=${urlYt}`,
+        parse: (res) =>
+          res.data?.result?.data?.downloadUrl || res.data?.result?.downloadUrl,
+        getTitle: (res) =>
+          res.data?.result?.data?.title || res.data?.result?.title,
+      },
+      {
+        name: "Vreden",
+        url: `https://api.vreden.my.id/api/ytmp3?url=${urlYt}`,
+        parse: (res) =>
+          res.data?.result?.download?.url || res.data?.result?.url,
+        getTitle: (res) =>
+          res.data?.result?.metadata?.title || res.data?.result?.title,
+      },
+      {
+        name: "Itzpire",
+        url: `https://itzpire.com/download/ytmp3?url=${urlYt}`,
+        parse: (res) =>
+          res.data?.data?.downloadUrl || res.data?.result?.downloadUrl,
+        getTitle: (res) => res.data?.data?.title || res.data?.result?.title,
+      },
+      {
+        name: "GiftedTech",
+        url: `https://api.giftedtech.web.id/api/download/ytmp3?apikey=gifted&url=${urlYt}`,
+        parse: (res) => res.data?.result?.download_url || res.data?.result?.url,
+        getTitle: (res) => res.data?.result?.title,
+      },
+    ];
 
-    if (
-      !data ||
-      !data.status ||
-      !data.result ||
-      !data.result.data ||
-      !data.result.data.downloadUrl
-    ) {
-      console.log("API did not return valid data");
+    let audioUrl = null;
+    let audioTitle = video.title;
+
+    for (const provider of providers) {
+      try {
+        console.log(`Trying provider: ${provider.name}`);
+        const res = await axios.get(provider.url, { timeout: 15000 });
+        const resultUrl = provider.parse(res);
+        if (resultUrl) {
+          audioUrl = resultUrl;
+          audioTitle = provider.getTitle(res) || audioTitle;
+          console.log(`Success with provider: ${provider.name}`);
+          break;
+        }
+      } catch (e) {
+        console.warn(`Provider ${provider.name} failed:`, e.message);
+        continue;
+      }
+    }
+
+    if (!audioUrl) {
+      console.log("No providers worked");
       return await sock.sendMessage(chatId, {
-        text: "Failed to fetch audio from the API. Please try again later.",
+        text: "❌ Failed to fetch audio from all available sources. Please try again later.",
         ...global.channelInfo,
       });
     }
 
-    const audioUrl = data.result.data.downloadUrl;
-    const title = data.result.data.title;
-    console.log("Audio URL:", audioUrl, "Title:", title);
-
     // Send the audio
-    console.log("Sending audio file");
+    console.log("Sending audio file:", audioUrl);
     await sock.sendMessage(
       chatId,
       {
         audio: { url: audioUrl },
         mimetype: "audio/mpeg",
-        fileName: `SAMKIEL-BOT - ${title}.mp3`,
+        fileName: `SAMKIEL-BOT - ${audioTitle}.mp3`,
         ...global.channelInfo,
       },
       { quoted: message }
     );
   } catch (error) {
-    console.error("Error in song2 command:", error);
+    console.error("Error in play command:", error);
     await sock.sendMessage(chatId, {
-      text: "Download failed. Please try again later.",
+      text: "❌ Download failed or timed out. Please try again later.",
       ...global.channelInfo,
     });
   }
