@@ -366,6 +366,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
 
     const isForce =
       typeof zipOverride === "string" && zipOverride.includes("force");
+    console.log(`[UPDATE] isForce: ${isForce}`);
     // Also check if user typed "--force" in the command message, currently passed as zipOverride if typed manually
     // Actually the main handler passes arguments strangely.
     // Assuming if zipOverride string allows arguments.

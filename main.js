@@ -575,8 +575,10 @@ You can explore all available commands below 👇`,
         await unbanCommand(sock, chatId, message);
         break;
       case command.startsWith("update"):
-        const updateArgs = command.slice(6).trim();
-        await updateCommand(sock, chatId, message, updateArgs);
+        {
+          const updateArgs = command.slice(6).trim();
+          await updateCommand(sock, chatId, message, updateArgs || userMessage);
+        }
         break;
       case command === "anticall":
         const args = userMessage.trim().split(/\s+/).slice(1);
@@ -1454,9 +1456,7 @@ You can explore all available commands below 👇`,
           }
         }
         break;
-      case command === "update":
-        await updateCommand(sock, chatId, message, userMessage);
-        break;
+
       default:
         if (isGroup) {
           // Handle non-command group messages
