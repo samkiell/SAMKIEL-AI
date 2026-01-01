@@ -19,6 +19,7 @@ async function emojimixCommand(sock, chatId, msg) {
     if (!args[0]) {
       await sock.sendMessage(chatId, {
         text: `🎴 Example: ${p}emojimix 😎+🥰`,
+        ...global.channelInfo,
       });
       return;
     }
@@ -26,6 +27,7 @@ async function emojimixCommand(sock, chatId, msg) {
     if (!text.includes("+")) {
       await sock.sendMessage(chatId, {
         text: `✳️ Separate the emoji with a *+* sign\n\n📌 Example: \n*${p}emojimix* 😎+🥰`,
+        ...global.channelInfo,
       });
       return;
     }
@@ -43,6 +45,7 @@ async function emojimixCommand(sock, chatId, msg) {
     if (!data.results || data.results.length === 0) {
       await sock.sendMessage(chatId, {
         text: "❌ These emojis cannot be mixed! Try different ones.",
+        ...global.channelInfo,
       });
       return;
     }
@@ -111,6 +114,7 @@ async function emojimixCommand(sock, chatId, msg) {
     console.error("Error in emojimix command:", error);
     await sock.sendMessage(chatId, {
       text: `❌ Failed to mix emojis! Make sure you're using valid emojis.\n\nExample: ${p}emojimix 😎+🥰`,
+      ...global.channelInfo,
     });
   }
 }

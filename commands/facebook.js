@@ -15,6 +15,7 @@ async function facebookCommand(sock, chatId, message) {
       const p = currentPrefix === "off" ? "" : currentPrefix;
       return await sock.sendMessage(chatId, {
         text: `Please provide a Facebook video URL.\nExample: ${p}fb https://www.facebook.com/...`,
+        ...global.channelInfo,
       });
     }
 
@@ -22,6 +23,7 @@ async function facebookCommand(sock, chatId, message) {
     if (!url.includes("facebook.com")) {
       return await sock.sendMessage(chatId, {
         text: "That is not a Facebook link.",
+        ...global.channelInfo,
       });
     }
 
@@ -44,6 +46,7 @@ async function facebookCommand(sock, chatId, message) {
     ) {
       return await sock.sendMessage(chatId, {
         text: "Sorry the API didn't respond correctly. Please try Again later!",
+        ...global.channelInfo,
       });
     }
 
@@ -52,6 +55,7 @@ async function facebookCommand(sock, chatId, message) {
     if (!fbvid) {
       return await sock.sendMessage(chatId, {
         text: "Wrong Facebook data. Please ensure the video exists.",
+        ...global.channelInfo,
       });
     }
 
@@ -99,7 +103,8 @@ async function facebookCommand(sock, chatId, message) {
       {
         video: { url: tempFile },
         mimetype: "video/mp4",
-        caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝗞𝗡𝗜𝗚𝗛𝗧-𝗕𝗢𝗧",
+        caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
+        ...global.channelInfo,
       },
       { quoted: message }
     );
@@ -114,6 +119,7 @@ async function facebookCommand(sock, chatId, message) {
     console.error("Error in Facebook command:", error);
     await sock.sendMessage(chatId, {
       text: "An error occurred. API might be down. Error: " + error.message,
+      ...global.channelInfo,
     });
   }
 }
