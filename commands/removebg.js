@@ -1,6 +1,7 @@
 const axios = require("axios");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 const { uploadImage } = require("../lib/uploadImage");
+const { loadPrefix } = require("../lib/prefix");
 
 async function getQuotedOrOwnImageUrl(sock, message) {
   // 1) Quoted image (highest priority)
@@ -40,6 +41,8 @@ module.exports = {
   async exec(sock, message, args) {
     try {
       const chatId = message.key.remoteJid;
+      const currentPrefix = loadPrefix();
+      const p = currentPrefix === "off" ? "" : currentPrefix;
       let imageUrl = null;
 
       // Check if args contain a URL
@@ -51,7 +54,8 @@ module.exports = {
           return sock.sendMessage(
             chatId,
             {
-              text: "❌ Invalid URL provided.\n\nUsage: `.removebg https://example.com/image.jpg`",
+              text: `❌ Invalid URL provided.\n\nUsage: ${p}removebg https://example.com/image.jpg`,
+              ...global.channelInfo,
             },
             { quoted: message }
           );
@@ -64,7 +68,8 @@ module.exports = {
           return sock.sendMessage(
             chatId,
             {
-              text: "📸 *Remove Background Command*\n\nUsage:\n• `.removebg <image_url>`\n• Reply to an image with `.removebg`\n• Send image with `.removebg`\n\nExample: `.removebg https://example.com/image.jpg`",
+              text: `📸 *Remove Background Command*\n\nUsage:\n• ${p}removebg <image_url>\n• Reply to an image with ${p}removebg\n• Send image with ${p}removebg\n\nExample: ${p}removebg https://example.com/image.jpg`,
+              ...global.channelInfo,
             },
             { quoted: message }
           );
@@ -92,7 +97,8 @@ module.exports = {
           {
             image: response.data,
             caption:
-              "✨ *Background removed successfully!*\n\n𝗣𝗥𝗢𝗖𝗘𝗦𝗦𝗘𝗗 𝗕𝗬 𝗞𝗡𝗜𝗚𝗛𝗧-𝗕𝗢𝗧",
+              "✨ *Background removed successfully!*\n\n𝗣𝗥𝗢𝗖𝗘𝗦𝗦𝗘𝗗 𝗕𝗬 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
+            ...global.channelInfo,
           },
           { quoted: message }
         );
@@ -123,6 +129,7 @@ module.exports = {
         chatId,
         {
           text: errorMessage,
+          ...global.channelInfo,
         },
         { quoted: message }
       );

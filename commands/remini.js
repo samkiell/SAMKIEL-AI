@@ -1,6 +1,7 @@
 const axios = require("axios");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 const { uploadImage } = require("../lib/uploadImage");
+const { loadPrefix } = require("../lib/prefix");
 
 async function getQuotedOrOwnImageUrl(sock, message) {
   // 1) Quoted image (highest priority)
@@ -34,6 +35,8 @@ async function getQuotedOrOwnImageUrl(sock, message) {
 
 async function reminiCommand(sock, chatId, message, args) {
   try {
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
     let imageUrl = null;
 
     // Check if args contain a URL
@@ -45,7 +48,8 @@ async function reminiCommand(sock, chatId, message, args) {
         return sock.sendMessage(
           chatId,
           {
-            text: "❌ Invalid URL provided.\n\nUsage: `.remini https://example.com/image.jpg`",
+            text: `❌ Invalid URL provided.\n\nUsage: ${p}remini https://example.com/image.jpg`,
+            ...global.channelInfo,
           },
           { quoted: message }
         );
@@ -58,19 +62,22 @@ async function reminiCommand(sock, chatId, message, args) {
         return sock.sendMessage(
           chatId,
           {
-            text: "📸 *Remini AI Enhancement Command*\n\nUsage:\n• `.remini <image_url>`\n• Reply to an image with `.remini`\n• Send image with `.remini`\n\nExample: `.remini https://example.com/image.jpg`",
+            text: `📸 *Remini AI Enhancement Command*\n\nUsage:\n• ${p}remini <image_url>\n• Reply to an image with ${p}remini\n• Send image with ${p}remini\n\nExample: ${p}remini https://example.com/image.jpg`,
+            ...global.channelInfo,
           },
           { quoted: message }
         );
       }
     }
 
-    await sock.sendMessage(chatId, {
-      text: "🌞 Enhancing Image... please be patient 🤲🏾\n> 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
-    });
-    {
-      quoted: message;
-    }
+    await sock.sendMessage(
+      chatId,
+      {
+        text: "🌞 Enhancing Image... please be patient 🤲🏾\n> 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
+        ...global.channelInfo,
+      },
+      { quoted: message }
+    );
 
     // Call the Remini API
     const apiUrl = `https://api.princetechn.com/api/tools/remini?apikey=prince_tech_api_azfsbshfb&url=${encodeURIComponent(
@@ -103,6 +110,7 @@ async function reminiCommand(sock, chatId, message, args) {
               image: imageResponse.data,
               caption:
                 "✨ *Image enhanced successfully!*\n\n𝗘𝗡𝗛𝗔𝗡𝗖𝗘𝗗 𝗕𝗬 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
+              ...global.channelInfo,
             },
             { quoted: message }
           );
@@ -142,6 +150,7 @@ async function reminiCommand(sock, chatId, message, args) {
       chatId,
       {
         text: errorMessage,
+        ...global.channelInfo,
       },
       { quoted: message }
     );

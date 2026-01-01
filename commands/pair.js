@@ -1,20 +1,16 @@
 const axios = require("axios");
 const { sleep } = require("../lib/myfunc");
+const { loadPrefix } = require("../lib/prefix");
 
 async function pairCommand(sock, chatId, message, q) {
   try {
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
+
     if (!q) {
       return await sock.sendMessage(chatId, {
-        text: "Please provide valid WhatsApp number\nExample: .pair 91702395XXXX",
-        contextInfo: {
-          forwardingScore: 1,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363400862271383@newsletter",
-            newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 ",
-            serverMessageId: -1,
-          },
-        },
+        text: `Please provide valid WhatsApp number\nExample: ${p}pair 91702395XXXX`,
+        ...global.channelInfo,
       });
     }
 
@@ -26,15 +22,7 @@ async function pairCommand(sock, chatId, message, q) {
     if (numbers.length === 0) {
       return await sock.sendMessage(chatId, {
         text: "Invalid number❌️ Please use the correct format!",
-        contextInfo: {
-          forwardingScore: 1,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363400862271383@newsletter",
-            newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 ",
-            serverMessageId: -1,
-          },
-        },
+        ...global.channelInfo,
       });
     }
 
@@ -45,29 +33,13 @@ async function pairCommand(sock, chatId, message, q) {
       if (!result[0]?.exists) {
         return await sock.sendMessage(chatId, {
           text: `That number is not registered on WhatsApp❗️`,
-          contextInfo: {
-            forwardingScore: 1,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-              newsletterJid: "120363400862271383@newsletter",
-              newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 ",
-              serverMessageId: -1,
-            },
-          },
+          ...global.channelInfo,
         });
       }
 
       await sock.sendMessage(chatId, {
         text: "Wait a moment for the code",
-        contextInfo: {
-          forwardingScore: 1,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363400862271383@newsletter",
-            newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 ",
-            serverMessageId: -1,
-          },
-        },
+        ...global.channelInfo,
       });
 
       try {
@@ -84,15 +56,7 @@ async function pairCommand(sock, chatId, message, q) {
           await sleep(5000);
           await sock.sendMessage(chatId, {
             text: `Your pairing code: ${code}`,
-            contextInfo: {
-              forwardingScore: 1,
-              isForwarded: true,
-              forwardedNewsletterMessageInfo: {
-                newsletterJid: "120363400862271383@newsletter",
-                newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 ",
-                serverMessageId: -1,
-              },
-            },
+            ...global.channelInfo,
           });
         } else {
           throw new Error("Invalid response from server");
@@ -106,15 +70,7 @@ async function pairCommand(sock, chatId, message, q) {
 
         await sock.sendMessage(chatId, {
           text: errorMessage,
-          contextInfo: {
-            forwardingScore: 1,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-              newsletterJid: "120363400862271383@newsletter",
-              newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 ",
-              serverMessageId: -1,
-            },
-          },
+          ...global.channelInfo,
         });
       }
     }
@@ -122,15 +78,7 @@ async function pairCommand(sock, chatId, message, q) {
     console.error(error);
     await sock.sendMessage(chatId, {
       text: "An error occurred. Please try again later.",
-      contextInfo: {
-        forwardingScore: 1,
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-          newsletterJid: "120363400862271383@newsletter",
-          newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 ",
-          serverMessageId: -1,
-        },
-      },
+      ...global.channelInfo,
     });
   }
 }
