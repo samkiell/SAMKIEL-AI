@@ -3,18 +3,6 @@ const path = require("path");
 const { isOwner } = require("../lib/isOwner");
 const { loadPrefix } = require("../lib/prefix");
 
-const channelInfo = {
-  contextInfo: {
-    forwardingScore: 1,
-    isForwarded: true,
-    forwardedNewsletterMessageInfo: {
-      newsletterJid: "120363400862271383@newsletter",
-      newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 ",
-      serverMessageId: -1,
-    },
-  },
-};
-
 // Path to store auto status configuration
 const configPath = path.join(__dirname, "../data/autoStatus.json");
 
@@ -59,7 +47,7 @@ async function autoStatusCommand(sock, chatId, msg, args) {
     if (!isOwnerCheck) {
       await sock.sendMessage(chatId, {
         text: "❌ This command can only be used by the owner!",
-        ...channelInfo,
+        ...global.channelInfo,
       });
       return;
     }
@@ -95,7 +83,7 @@ ${p}autostatus msg on/off
 ${p}autostatus msg set <text>
 ${p}autostatus emoji on/off
 ${p}autostatus emoji set <emoji>`,
-        ...channelInfo,
+        ...global.channelInfo,
       });
       return;
     }
@@ -108,14 +96,14 @@ ${p}autostatus emoji set <emoji>`,
       fs.writeFileSync(configPath, JSON.stringify(config));
       await sock.sendMessage(chatId, {
         text: "✅ Auto status view has been enabled!\nBot will now automatically view all contact statuses.",
-        ...channelInfo,
+        ...global.channelInfo,
       });
     } else if (command === "off") {
       config.enabled = false;
       fs.writeFileSync(configPath, JSON.stringify(config));
       await sock.sendMessage(chatId, {
         text: "❌ Auto status view has been disabled!\nBot will no longer automatically view statuses.",
-        ...channelInfo,
+        ...global.channelInfo,
       });
     } else if (command === "react") {
       // Handle react subcommand
@@ -124,7 +112,7 @@ ${p}autostatus emoji set <emoji>`,
         const p = currentPrefix === "off" ? "" : currentPrefix;
         await sock.sendMessage(chatId, {
           text: `❌ Please specify on/off for reactions!\nUse: ${p}autostatus react on/off`,
-          ...channelInfo,
+          ...global.channelInfo,
         });
         return;
       }
@@ -135,21 +123,21 @@ ${p}autostatus emoji set <emoji>`,
         fs.writeFileSync(configPath, JSON.stringify(config));
         await sock.sendMessage(chatId, {
           text: "💫 Status reactions have been enabled!\nBot will now react to status updates.",
-          ...channelInfo,
+          ...global.channelInfo,
         });
       } else if (reactCommand === "off") {
         config.reactOn = false;
         fs.writeFileSync(configPath, JSON.stringify(config));
         await sock.sendMessage(chatId, {
           text: "❌ Status reactions have been disabled!\nBot will no longer react to status updates.",
-          ...channelInfo,
+          ...global.channelInfo,
         });
       } else {
         const currentPrefix = loadPrefix();
         const p = currentPrefix === "off" ? "" : currentPrefix;
         await sock.sendMessage(chatId, {
           text: `❌ Invalid reaction command! Use: ${p}autostatus react on/off`,
-          ...channelInfo,
+          ...global.channelInfo,
         });
       }
     } else if (command === "msg") {
@@ -159,7 +147,7 @@ ${p}autostatus emoji set <emoji>`,
         const p = currentPrefix === "off" ? "" : currentPrefix;
         await sock.sendMessage(chatId, {
           text: `❌ Please specify an action!\nUse:\n${p}autostatus msg on/off\n${p}autostatus msg set <text>`,
-          ...channelInfo,
+          ...global.channelInfo,
         });
         return;
       }
@@ -170,21 +158,21 @@ ${p}autostatus emoji set <emoji>`,
         fs.writeFileSync(configPath, JSON.stringify(config));
         await sock.sendMessage(chatId, {
           text: "✅ Status reply messages enabled!",
-          ...channelInfo,
+          ...global.channelInfo,
         });
       } else if (subCmd === "off") {
         config.msgEnabled = false;
         fs.writeFileSync(configPath, JSON.stringify(config));
         await sock.sendMessage(chatId, {
           text: "❌ Status reply messages disabled!",
-          ...channelInfo,
+          ...global.channelInfo,
         });
       } else if (subCmd === "set") {
         const newMsg = args.slice(2).join(" ");
         if (!newMsg) {
           await sock.sendMessage(chatId, {
             text: "❌ Please provide text for the status reply message.",
-            ...channelInfo,
+            ...global.channelInfo,
           });
           return;
         }
@@ -193,12 +181,12 @@ ${p}autostatus emoji set <emoji>`,
         fs.writeFileSync(configPath, JSON.stringify(config));
         await sock.sendMessage(chatId, {
           text: `✅ Status reply message updated to:\n"${newMsg}"`,
-          ...channelInfo,
+          ...global.channelInfo,
         });
       } else {
         await sock.sendMessage(chatId, {
           text: "❌ Invalid msg command.",
-          ...channelInfo,
+          ...global.channelInfo,
         });
       }
     } else if (command === "emoji") {
@@ -208,7 +196,7 @@ ${p}autostatus emoji set <emoji>`,
         const p = currentPrefix === "off" ? "" : currentPrefix;
         await sock.sendMessage(chatId, {
           text: `❌ Please specify an action!\nUse:\n${p}autostatus emoji on/off\n${p}autostatus emoji set <emoji>`,
-          ...channelInfo,
+          ...global.channelInfo,
         });
         return;
       }
@@ -219,21 +207,21 @@ ${p}autostatus emoji set <emoji>`,
         fs.writeFileSync(configPath, JSON.stringify(config));
         await sock.sendMessage(chatId, {
           text: "✅ Status reactions enabled!",
-          ...channelInfo,
+          ...global.channelInfo,
         });
       } else if (subCmd === "off") {
         config.reactOn = false;
         fs.writeFileSync(configPath, JSON.stringify(config));
         await sock.sendMessage(chatId, {
           text: "❌ Status reactions disabled!",
-          ...channelInfo,
+          ...global.channelInfo,
         });
       } else if (subCmd === "set") {
         const newEmoji = args[2];
         if (!newEmoji) {
           await sock.sendMessage(chatId, {
             text: "❌ Please provide an emoji.",
-            ...channelInfo,
+            ...global.channelInfo,
           });
           return;
         }
@@ -242,12 +230,12 @@ ${p}autostatus emoji set <emoji>`,
         fs.writeFileSync(configPath, JSON.stringify(config));
         await sock.sendMessage(chatId, {
           text: `✅ Status reaction emoji set to: ${newEmoji}`,
-          ...channelInfo,
+          ...global.channelInfo,
         });
       } else {
         await sock.sendMessage(chatId, {
           text: "❌ Invalid emoji command.",
-          ...channelInfo,
+          ...global.channelInfo,
         });
       }
     } else {
@@ -261,14 +249,14 @@ ${p}autostatus msg on/off
 ${p}autostatus msg set <text>
 ${p}autostatus emoji on/off
 ${p}autostatus emoji set <emoji>`,
-        ...channelInfo,
+        ...global.channelInfo,
       });
     }
   } catch (error) {
     console.error("Error in autostatus command:", error);
     await sock.sendMessage(chatId, {
       text: "❌ Error occurred while managing auto status!\n" + error.message,
-      ...channelInfo,
+      ...global.channelInfo,
     });
   }
 }
