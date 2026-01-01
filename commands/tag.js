@@ -30,6 +30,7 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
   if (!isBotAdmin && !isSuper) {
     await sock.sendMessage(chatId, {
       text: "Please make the bot an admin first.",
+      ...global.channelInfo,
     });
     return;
   }
@@ -63,6 +64,7 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
         image: { url: filePath },
         caption: messageText || replyMessage.imageMessage.caption || "",
         mentions: mentionedJidList,
+        ...global.channelInfo,
       };
     } else if (replyMessage.videoMessage) {
       const filePath = await downloadMediaMessage(
@@ -73,12 +75,14 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
         video: { url: filePath },
         caption: messageText || replyMessage.videoMessage.caption || "",
         mentions: mentionedJidList,
+        ...global.channelInfo,
       };
     } else if (replyMessage.conversation || replyMessage.extendedTextMessage) {
       content = {
         text:
           replyMessage.conversation || replyMessage.extendedTextMessage.text,
         mentions: mentionedJidList,
+        ...global.channelInfo,
       };
     } else if (replyMessage.documentMessage) {
       const filePath = await downloadMediaMessage(
@@ -90,6 +94,7 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
         fileName: replyMessage.documentMessage.fileName,
         caption: messageText || "",
         mentions: mentionedJidList,
+        ...global.channelInfo,
       };
     }
 
@@ -100,6 +105,7 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
   await sock.sendMessage(chatId, {
     text: messageText || "Stop drinking Garri, e dey spoil your eye 😹",
     mentions: mentionedJidList,
+    ...global.channelInfo,
   });
 }
 

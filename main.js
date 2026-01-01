@@ -716,6 +716,7 @@ You can explore all available commands below 👇`,
         if (!isGroup) {
           await sock.sendMessage(chatId, {
             text: "This command can only be used in groups!",
+            ...channelInfo,
           });
           return;
         }
@@ -725,6 +726,7 @@ You can explore all available commands below 👇`,
         if (!isSenderAdmin && !isOwnerCheck) {
           await sock.sendMessage(chatId, {
             text: "Only group admins or bot owner can use this command.",
+            ...channelInfo,
           });
           return;
         }
@@ -824,6 +826,7 @@ You can explore all available commands below 👇`,
             chatId,
             {
               text: "Please provide text or reply to a text message to convert to PDF.\nExample: .pdf Hello World",
+              ...channelInfo,
             },
             { quoted: message }
           );
@@ -868,6 +871,7 @@ You can explore all available commands below 👇`,
               fileName: "samkiel-text.pdf",
               mimetype: "application/pdf",
               caption: "✅ PDF Generated Successfully",
+              ...channelInfo,
             },
             { quoted: message }
           );
@@ -878,6 +882,7 @@ You can explore all available commands below 👇`,
             chatId,
             {
               text: "❌ Failed to generate/send PDF. " + err.message,
+              ...channelInfo,
             },
             { quoted: message }
           );

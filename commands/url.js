@@ -65,6 +65,7 @@ async function urlCommand(sock, chatId, message) {
         chatId,
         {
           text: "Send or reply to a media (image, video, audio, sticker, document) to get a URL.",
+          ...global.channelInfo,
         },
         { quoted: message }
       );
@@ -112,7 +113,7 @@ async function urlCommand(sock, chatId, message) {
     if (!url) {
       await sock.sendMessage(
         chatId,
-        { text: "Failed to upload media." },
+        { text: "Failed to upload media.", ...global.channelInfo },
         { quoted: message }
       );
       return;
@@ -120,14 +121,14 @@ async function urlCommand(sock, chatId, message) {
 
     await sock.sendMessage(
       chatId,
-      { text: `URL: ${url}` },
+      { text: `URL: ${url}`, ...global.channelInfo },
       { quoted: message }
     );
   } catch (error) {
     console.error("[URL] error:", error?.message || error);
     await sock.sendMessage(
       chatId,
-      { text: "Failed to convert media to URL." },
+      { text: "Failed to convert media to URL.", ...global.channelInfo },
       { quoted: message }
     );
   }

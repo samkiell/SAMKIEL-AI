@@ -11,7 +11,10 @@ async function panelCommand(sock, chatId, message) {
   if (!(await isOwner(senderJid)) && !message.key.fromMe) {
     await sock.sendMessage(
       chatId,
-      { text: "❌ Access denied. This command is for the bot owner only." },
+      {
+        text: "❌ Access denied. This command is for the bot owner only.",
+        ...global.channelInfo,
+      },
       { quoted: message }
     );
     return;
@@ -111,6 +114,7 @@ async function panelCommand(sock, chatId, message) {
         text: dashboard,
         // optional: contextInfo for a nice card look if available
         contextInfo: {
+          ...global.channelInfo.contextInfo,
           externalAdReply: {
             title: "System Dashboard",
             body: "Real-time Monitoring",
@@ -127,7 +131,7 @@ async function panelCommand(sock, chatId, message) {
     console.error("Error in panel command:", error);
     await sock.sendMessage(
       chatId,
-      { text: "❌ Failed to retrieve system stats." },
+      { text: "❌ Failed to retrieve system stats.", ...global.channelInfo },
       { quoted: message }
     );
   }

@@ -15,7 +15,7 @@ async function handleAntilinkCommand(
     if (!isSenderAdmin) {
       await sock.sendMessage(
         chatId,
-        { text: "```For Group Admins Only!```" },
+        { text: "```For Group Admins Only!```", ...global.channelInfo },
         { quoted: message }
       );
       return;
@@ -28,7 +28,11 @@ async function handleAntilinkCommand(
 
     if (!action) {
       const usage = `\`\`\`ANTILINK SETUP\n\n${prefix}antilink on\n${prefix}antilink set delete | kick | warn\n${prefix}antilink off\n\`\`\``;
-      await sock.sendMessage(chatId, { text: usage }, { quoted: message });
+      await sock.sendMessage(
+        chatId,
+        { text: usage, ...global.channelInfo },
+        { quoted: message }
+      );
       return;
     }
 
@@ -38,7 +42,7 @@ async function handleAntilinkCommand(
         if (existingConfig?.enabled) {
           await sock.sendMessage(
             chatId,
-            { text: "*_Antilink is already on_*" },
+            { text: "*_Antilink is already on_*", ...global.channelInfo },
             { quoted: message }
           );
           return;
@@ -50,6 +54,7 @@ async function handleAntilinkCommand(
             text: result
               ? "*_Antilink has been turned ON_*"
               : "*_Failed to turn on Antilink_*",
+            ...global.channelInfo,
           },
           { quoted: message }
         );
@@ -59,7 +64,7 @@ async function handleAntilinkCommand(
         await removeAntilink(chatId, "on");
         await sock.sendMessage(
           chatId,
-          { text: "*_Antilink has been turned OFF_*" },
+          { text: "*_Antilink has been turned OFF_*", ...global.channelInfo },
           { quoted: message }
         );
         break;
@@ -70,6 +75,7 @@ async function handleAntilinkCommand(
             chatId,
             {
               text: `*_Please specify an action: ${prefix}antilink set delete | kick | warn_*`,
+              ...global.channelInfo,
             },
             { quoted: message }
           );
@@ -81,6 +87,7 @@ async function handleAntilinkCommand(
             chatId,
             {
               text: "*_Invalid action. Choose delete, kick, or warn._*",
+              ...global.channelInfo,
             },
             { quoted: message }
           );
@@ -93,6 +100,7 @@ async function handleAntilinkCommand(
             text: setResult
               ? `*_Antilink action set to ${setAction}_*`
               : "*_Failed to set Antilink action_*",
+            ...global.channelInfo,
           },
           { quoted: message }
         );
@@ -107,6 +115,7 @@ async function handleAntilinkCommand(
             text: `*_Antilink Configuration:_*\nStatus: ${
               status ? "ON" : "OFF"
             }\nAction: ${actionConfig ? actionConfig.action : "Not set"}`,
+            ...global.channelInfo,
           },
           { quoted: message }
         );
@@ -115,12 +124,14 @@ async function handleAntilinkCommand(
       default:
         await sock.sendMessage(chatId, {
           text: `*_Use ${prefix}antilink for usage._*`,
+          ...global.channelInfo,
         });
     }
   } catch (error) {
     console.error("Error in antilink command:", error);
     await sock.sendMessage(chatId, {
       text: "*_Error processing antilink command_*",
+      ...global.channelInfo,
     });
   }
 }
@@ -207,6 +218,7 @@ async function handleLinkDetection(
         senderId.split("@")[0]
       }, posting links is not allowed.`,
       mentions: mentionedJidList,
+      ...global.channelInfo,
     });
   } else {
     console.log(

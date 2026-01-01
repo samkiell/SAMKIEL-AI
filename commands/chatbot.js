@@ -85,6 +85,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
     return sock.sendMessage(chatId, {
       text: `*CHATBOT SETUP*\n\n*${p}chatbot on*\nEnable chatbot\n\n*${p}chatbot off*\nDisable chatbot in this group`,
       quoted: message,
+      ...global.channelInfo,
     });
   }
 
@@ -109,6 +110,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
         return sock.sendMessage(chatId, {
           text: "*Chatbot is already enabled for this group*",
           quoted: message,
+          ...global.channelInfo,
         });
       }
       data.chatbot[chatId] = true;
@@ -117,6 +119,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
       return sock.sendMessage(chatId, {
         text: "*Chatbot has been enabled for this group*",
         quoted: message,
+        ...global.channelInfo,
       });
     }
 
@@ -126,6 +129,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
         return sock.sendMessage(chatId, {
           text: "*Chatbot is already disabled for this group*",
           quoted: message,
+          ...global.channelInfo,
         });
       }
       delete data.chatbot[chatId];
@@ -134,6 +138,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
       return sock.sendMessage(chatId, {
         text: "*Chatbot has been disabled for this group*",
         quoted: message,
+        ...global.channelInfo,
       });
     }
   }
@@ -159,6 +164,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
     return sock.sendMessage(chatId, {
       text: "❌ Only group admins or the bot owner can use this command.",
       quoted: message,
+      ...global.channelInfo,
     });
   }
 
@@ -168,6 +174,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
       return sock.sendMessage(chatId, {
         text: "*Chatbot is already enabled for this group*",
         quoted: message,
+        ...global.channelInfo,
       });
     }
     data.chatbot[chatId] = true;
@@ -176,6 +183,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
     return sock.sendMessage(chatId, {
       text: "*Chatbot has been enabled for this group*",
       quoted: message,
+      ...global.channelInfo,
     });
   }
 
@@ -185,6 +193,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
       return sock.sendMessage(chatId, {
         text: "*Chatbot is already disabled for this group*",
         quoted: message,
+        ...global.channelInfo,
       });
     }
     delete data.chatbot[chatId];
@@ -193,6 +202,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
     return sock.sendMessage(chatId, {
       text: "*Chatbot has been disabled for this group*",
       quoted: message,
+      ...global.channelInfo,
     });
   }
 
@@ -202,6 +212,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
   return sock.sendMessage(chatId, {
     text: `*Invalid command. Use ${p}chatbot to see usage*`,
     quoted: message,
+    ...global.channelInfo,
   });
 }
 
@@ -287,6 +298,7 @@ async function handleChatbotResponse(
       await sock.sendMessage(chatId, {
         text: "Hmm, let me think about that... 🤔\nI'm having trouble processing your request right now.",
         quoted: message,
+        ...global.channelInfo,
       });
       return;
     }
@@ -299,6 +311,7 @@ async function handleChatbotResponse(
       chatId,
       {
         text: response,
+        ...global.channelInfo,
       },
       {
         quoted: message,
@@ -309,6 +322,7 @@ async function handleChatbotResponse(
     await sock.sendMessage(chatId, {
       text: "Oops! 😅 I got a bit confused there. Could you try asking that again?",
       quoted: message,
+      ...global.channelInfo,
     });
   }
 }

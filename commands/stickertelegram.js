@@ -25,6 +25,7 @@ async function stickerTelegramCommand(sock, chatId, msg) {
       const p = currentPrefix === "off" ? "" : currentPrefix;
       await sock.sendMessage(chatId, {
         text: `⚠️ Please enter the Telegram sticker URL!\n\nExample: ${p}tg https://t.me/addstickers/Porcientoreal`,
+        ...global.channelInfo,
       });
       return;
     }
@@ -33,6 +34,7 @@ async function stickerTelegramCommand(sock, chatId, msg) {
     if (!args[0].match(/(https:\/\/t.me\/addstickers\/)/gi)) {
       await sock.sendMessage(chatId, {
         text: "❌ Invalid URL! Make sure it's a Telegram sticker URL.",
+        ...global.channelInfo,
       });
       return;
     }
@@ -71,6 +73,7 @@ async function stickerTelegramCommand(sock, chatId, msg) {
       // Send initial message with sticker count
       await sock.sendMessage(chatId, {
         text: `📦 Found ${stickerSet.result.stickers.length} stickers\n⏳ Starting download...`,
+        ...global.channelInfo,
       });
 
       // Create temp directory if it doesn't exist
@@ -160,6 +163,7 @@ async function stickerTelegramCommand(sock, chatId, msg) {
           // Send sticker only once
           await sock.sendMessage(chatId, {
             sticker: finalBuffer,
+            ...global.channelInfo,
           });
 
           successCount++;
@@ -181,6 +185,7 @@ async function stickerTelegramCommand(sock, chatId, msg) {
       // Only send completion message at the end
       await sock.sendMessage(chatId, {
         text: `✅ Successfully downloaded ${successCount}/${stickerSet.result.stickers.length} stickers!`,
+        ...global.channelInfo,
       });
     } catch (error) {
       throw new Error(`Failed to process sticker pack: ${error.message}`);
@@ -189,6 +194,7 @@ async function stickerTelegramCommand(sock, chatId, msg) {
     console.error("Error in stickertelegram command:", error);
     await sock.sendMessage(chatId, {
       text: "❌ Failed to process Telegram stickers!\nMake sure:\n1. The URL is correct\n2. The sticker pack exists\n3. The sticker pack is public",
+      ...global.channelInfo,
     });
   }
 }
