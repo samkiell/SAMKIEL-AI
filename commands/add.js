@@ -121,15 +121,7 @@ async function addCommand(sock, chatId, senderId, message, args) {
       chatId,
       {
         text: msgText.trim(),
-        contextInfo: {
-          forwardingScore: 1,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363400862271383@newsletter",
-            newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
-            serverMessageId: -1,
-          },
-        },
+        ...global.channelInfo,
       },
       { quoted: message }
     );

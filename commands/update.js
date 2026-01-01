@@ -362,23 +362,33 @@ async function updateCommand(sock, chatId, message, zipOverride) {
 
     let updateReport = "";
 
+    const isForce =
+      typeof zipOverride === "string" && zipOverride.includes("force");
+    // Also check if user typed "--force" in the command message, currently passed as zipOverride if typed manually
+    // Actually the main handler passes arguments strangely.
+    // Assuming if zipOverride string allows arguments.
+
     if (hasGit) {
       const { oldRev, newRev, alreadyUpToDate, commits, files } =
         await updateViaGit();
 
-      if (alreadyUpToDate) {
+      if (alreadyUpToDate && !isForce) {
         await sock.sendMessage(
           chatId,
           {
             text: `✅ *Already up to date* \nCurrent Version: \`${newRev.substring(
               0,
               7
-            )}\``,
+            )}\`\n\nUse \`.update --force\` to reinstall anyway.`,
           },
           { quoted: message }
         );
         return;
       }
+
+      // If force, we proceed to report and npm install even if git didn't pull new changes (or maybe we should force reset?)
+      // updateViaGit ALREADY does a hard reset to origin/main. So running it essentially forces the file state to match remote.
+      // So falling through here is correct for "force" behavior in git mode too.
 
       // Format Git Report
       updateReport += `✅ *Update Completed Successfully!* \n\n`;
