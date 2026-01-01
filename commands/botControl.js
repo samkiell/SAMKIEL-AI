@@ -16,6 +16,7 @@ async function handleBotControl(
       chatId,
       {
         text: "❌ Only the bot owner can use this command!",
+        ...global.channelInfo,
       },
       { quoted: message }
     );
@@ -27,6 +28,7 @@ async function handleBotControl(
         chatId,
         {
           text: "❕ Bot is already disabled in this chat.",
+          ...global.channelInfo,
         },
         { quoted: message }
       );
@@ -37,6 +39,7 @@ async function handleBotControl(
       chatId,
       {
         text: "🚫 *Bot Disabled*\nI will no longer respond to commands in this chat until re-enabled by the owner.",
+        ...global.channelInfo,
       },
       { quoted: message }
     );
@@ -48,6 +51,7 @@ async function handleBotControl(
         chatId,
         {
           text: "❕ Bot is already enabled in this chat.",
+          ...global.channelInfo,
         },
         { quoted: message }
       );
@@ -58,6 +62,7 @@ async function handleBotControl(
       chatId,
       {
         text: "✅ *Bot Enabled*\nI'm back! I will now respond to commands in this chat.",
+        ...global.channelInfo,
       },
       { quoted: message }
     );

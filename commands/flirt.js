@@ -15,11 +15,15 @@ async function flirtCommand(sock, chatId) {
     const flirtMessage = json.result;
 
     // Send the flirt message
-    await sock.sendMessage(chatId, { text: flirtMessage });
+    await sock.sendMessage(chatId, {
+      text: flirtMessage,
+      ...global.channelInfo,
+    });
   } catch (error) {
     console.error("Error in flirt command:", error);
     await sock.sendMessage(chatId, {
       text: "❌ Failed to get flirt message. Please try again later!",
+      ...global.channelInfo,
     });
   }
 }

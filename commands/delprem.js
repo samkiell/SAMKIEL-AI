@@ -7,6 +7,7 @@ async function delPremCommand(sock, chatId, senderId, message) {
   if (!isOwnerCheck) {
     await sock.sendMessage(chatId, {
       text: "❌ Only the bot owner can remove premium users.",
+      ...global.channelInfo,
     });
     return;
   }
@@ -42,6 +43,7 @@ async function delPremCommand(sock, chatId, senderId, message) {
     const p = currentPrefix === "off" ? "" : currentPrefix;
     await sock.sendMessage(chatId, {
       text: `Please mention a user, reply to a user, or provide a number to remove from premium.\nExample: ${p}delprem @user`,
+      ...global.channelInfo,
     });
     return;
   }
@@ -52,6 +54,7 @@ async function delPremCommand(sock, chatId, senderId, message) {
   await sock.sendMessage(chatId, {
     text: `✅ User @${userToRem.split("@")[0]} has been removed from Premium!`,
     mentions: [userToRem],
+    ...global.channelInfo,
   });
 }
 

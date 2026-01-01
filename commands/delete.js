@@ -6,6 +6,7 @@ async function deleteCommand(sock, chatId, message, senderId) {
   if (!isBotAdmin) {
     await sock.sendMessage(chatId, {
       text: "I need to be an admin to delete messages.",
+      ...global.channelInfo,
     });
     return;
   }
@@ -13,6 +14,7 @@ async function deleteCommand(sock, chatId, message, senderId) {
   if (!isSenderAdmin) {
     await sock.sendMessage(chatId, {
       text: "Only admins can use the .delete command.",
+      ...global.channelInfo,
     });
     return;
   }
@@ -40,6 +42,7 @@ async function deleteCommand(sock, chatId, message, senderId) {
   } else {
     await sock.sendMessage(chatId, {
       text: "Please reply to a message you want to delete.",
+      ...global.channelInfo,
     });
   }
 }

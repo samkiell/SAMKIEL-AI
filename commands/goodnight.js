@@ -15,11 +15,15 @@ async function goodnightCommand(sock, chatId) {
     const goodnightMessage = json.result;
 
     // Send the goodnight message
-    await sock.sendMessage(chatId, { text: goodnightMessage });
+    await sock.sendMessage(chatId, {
+      text: goodnightMessage,
+      ...global.channelInfo,
+    });
   } catch (error) {
     console.error("Error in goodnight command:", error);
     await sock.sendMessage(chatId, {
       text: "❌ Failed to get goodnight message. Please try again later!",
+      ...global.channelInfo,
     });
   }
 }

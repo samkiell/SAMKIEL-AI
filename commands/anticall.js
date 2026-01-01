@@ -7,7 +7,10 @@ async function anticallCommand(sock, chatId, message, args) {
   if (!(await isOwner(senderId))) {
     await sock.sendMessage(
       chatId,
-      { text: "❌ Only the bot owner can use this command." },
+      {
+        text: "❌ Only the bot owner can use this command.",
+        ...global.channelInfo,
+      },
       { quoted: message }
     );
     return;
@@ -21,6 +24,7 @@ async function anticallCommand(sock, chatId, message, args) {
       chatId,
       {
         text: "✅ *Anti-Call* has been ENABLED.\nThe bot will now reject incoming calls.",
+        ...global.channelInfo,
       },
       { quoted: message }
     );
@@ -30,6 +34,7 @@ async function anticallCommand(sock, chatId, message, args) {
       chatId,
       {
         text: "❌ *Anti-Call* has been DISABLED.\nIncoming calls will not be rejected.",
+        ...global.channelInfo,
       },
       { quoted: message }
     );
@@ -42,6 +47,7 @@ async function anticallCommand(sock, chatId, message, args) {
         text: `📞 *Anti-Call Status*: ${
           currentStatus ? "ENABLED ✅" : "DISABLED ❌"
         }\n\nUsage: *anticall on/off*`,
+        ...global.channelInfo,
       },
       { quoted: message }
     );

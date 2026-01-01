@@ -11,6 +11,7 @@ async function channelCommand(sock, chatId, message) {
     {
       text: `📢 *Join our WhatsApp Channel!*\n\nStay updated with the latest news, updates, and community discussions.\n\n👉 *Link:* ${channelLink}\n\nDon't miss out!`,
       contextInfo: {
+        ...global.channelInfo.contextInfo,
         forwardingScore: 999,
         isForwarded: true,
         externalAdReply: {

@@ -201,6 +201,7 @@ async function handleMessageRevocation(sock, revocationMessage) {
     await sock.sendMessage(destJid, {
       text: header,
       mentions: [deleter, sender],
+      ...global.channelInfo,
     });
 
     // 7. Resend Content
@@ -220,7 +221,10 @@ async function handleAntideleteCommand(sock, chatId, message, args) {
   const senderId = message.key.participant || message.key.remoteJid;
 
   if (!(await isOwner(senderId))) {
-    return sock.sendMessage(chatId, { text: "❌ Owner only command." });
+    return sock.sendMessage(chatId, {
+      text: "❌ Owner only command.",
+      ...global.channelInfo,
+    });
   }
 
   // Load config
@@ -247,12 +251,14 @@ async function handleAntideleteCommand(sock, chatId, message, args) {
     fs.writeFileSync(configPath, JSON.stringify(config));
     await sock.sendMessage(chatId, {
       text: "✅ Anti-delete system enabled globally.",
+      ...global.channelInfo,
     });
   } else if (subCmd === "off") {
     config.enabled = false;
     fs.writeFileSync(configPath, JSON.stringify(config));
     await sock.sendMessage(chatId, {
       text: "❌ Anti-delete system disabled globally.",
+      ...global.channelInfo,
     });
   } else if (subCmd === "type") {
     if (param === "group") {
@@ -260,22 +266,26 @@ async function handleAntideleteCommand(sock, chatId, message, args) {
       fs.writeFileSync(configPath, JSON.stringify(config));
       await sock.sendMessage(chatId, {
         text: "✅ Mode set to GROUP: Deleted messages will be sent to the group chat.",
+        ...global.channelInfo,
       });
     } else if (param === "dm") {
       config.mode = "dm";
       fs.writeFileSync(configPath, JSON.stringify(config));
       await sock.sendMessage(chatId, {
         text: "✅ Mode set to DM: Deleted messages will be forwarded to your DM.",
+        ...global.channelInfo,
       });
     } else {
       await sock.sendMessage(chatId, {
         text: "❌ Invalid type! Use 'group' or 'dm'.",
+        ...global.channelInfo,
       });
     }
   } else if (subCmd === "gc") {
     if (!message.key.remoteJid.endsWith("@g.us")) {
       await sock.sendMessage(chatId, {
         text: "❌ This command is for groups only.",
+        ...global.channelInfo,
       });
       return;
     }
@@ -287,15 +297,20 @@ async function handleAntideleteCommand(sock, chatId, message, args) {
       }
       await sock.sendMessage(chatId, {
         text: "✅ Anti-delete active for this group.",
+        ...global.channelInfo,
       });
     } else if (param === "off") {
       config.allowedGroups = config.allowedGroups.filter((id) => id !== chatId);
       fs.writeFileSync(configPath, JSON.stringify(config));
       await sock.sendMessage(chatId, {
         text: "❌ Anti-delete disabled for this group.",
+        ...global.channelInfo,
       });
     } else {
-      await sock.sendMessage(chatId, { text: "❌ Use 'gc on' or 'gc off'." });
+      await sock.sendMessage(chatId, {
+        text: "❌ Use 'gc on' or 'gc off'.",
+        ...global.channelInfo,
+      });
     }
   } else {
     // Status Display
@@ -317,6 +332,7 @@ ${p}antidelete on/off (Global Switch)
 ${p}antidelete type group (Send to Group)
 ${p}antidelete type dm (Send to Owner DM)
 ${p}antidelete gc on/off (Enable/Disable for current group)`,
+      ...global.channelInfo,
     });
   }
 }
