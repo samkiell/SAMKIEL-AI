@@ -1573,8 +1573,10 @@ async function handleGroupParticipantUpdate(sock, update) {
 ${customMessage}`.trim();
 
           await sock.sendMessage(id, {
+            image: { url: ppUrl },
             caption: text,
             mentions: [participant],
+            ...global.channelInfo,
           });
         }
       } catch (err) {
