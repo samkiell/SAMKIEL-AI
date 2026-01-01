@@ -52,15 +52,7 @@ async function blurCommand(sock, chatId, message, quotedMessage) {
     await sock.sendMessage(chatId, {
       image: blurredImage,
       caption: "*You now have a blurrred image.*",
-      contextInfo: {
-        forwardingScore: 1,
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-          newsletterJid: "120363400862271383@newsletter",
-          newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 ",
-          serverMessageId: -1,
-        },
-      },
+      ...global.channelInfo,
     });
   } catch (error) {
     console.error("Error in blur command:", error);
