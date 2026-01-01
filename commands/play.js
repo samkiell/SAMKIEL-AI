@@ -1,5 +1,6 @@
 const yts = require("yt-search");
 const axios = require("axios");
+
 // Channel Info
 const channelInfo = {
   contextInfo: {
@@ -56,7 +57,7 @@ async function playCommand(sock, chatId, message) {
           image: { url: video.thumbnail },
           caption: `*${video.title}*\n\n*Duration:* ${
             video.timestamp
-          }\n*Views:* ${video.views.toLocaleString()}\n\n *POWERED BY 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋*`,
+          }\n*Views:* ${video.views.toLocaleString()}\n\n *DOWNLOAD BY 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋*`,
           contextInfo: channelInfo.contextInfo,
         },
         { quoted: message }
@@ -66,7 +67,7 @@ async function playCommand(sock, chatId, message) {
     }
 
     // Fetch audio data from API
-    // Updated to the new domain: apiskeith.vercel.app
+    // Using the NEW domain: apiskeith.vercel.app
     const response = await axios.get(
       `https://apiskeith.vercel.app/download/dlmp3?url=${urlYt}`
     );
@@ -102,7 +103,7 @@ async function playCommand(sock, chatId, message) {
       { quoted: message }
     );
   } catch (error) {
-    console.error("Error in song command:", error);
+    console.error("Error in song2 command:", error);
     await sock.sendMessage(chatId, {
       text: "Download failed. Please try again later.",
     });
