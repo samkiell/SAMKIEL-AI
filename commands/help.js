@@ -187,22 +187,20 @@ https://chat.whatsapp.com/GwVMsm7rRRE7cEIIsvojdd`;
       await sock.sendMessage(chatId, {
         image: fs.readFileSync(imagePath),
         caption: helpMessage,
-        contextInfo: {
-          forwardingScore: 1,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363400862271383@newsletter",
-            newsletterName: "Made with 🤍 by Ԇ・SAMKIEL",
-            serverMessageId: -1,
-          },
-        },
+        ...global.channelInfo,
       });
     } else {
-      await sock.sendMessage(chatId, { text: helpMessage });
+      await sock.sendMessage(chatId, {
+        text: helpMessage,
+        ...global.channelInfo,
+      });
     }
   } catch (e) {
     console.error("Help error:", e);
-    await sock.sendMessage(chatId, { text: helpMessage });
+    await sock.sendMessage(chatId, {
+      text: helpMessage,
+      ...global.channelInfo,
+    });
   }
 }
 

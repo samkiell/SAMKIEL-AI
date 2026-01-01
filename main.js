@@ -1409,7 +1409,7 @@ You can explore all available commands below 👇`,
         if (!newPrefix) {
           await sock.sendMessage(chatId, {
             text: `Usage: ${p}setprefix <prefix> or ${p}setprefix off\n\nExamples:\n${p}setprefix !\n${p}setprefix off (no prefix required)\n${p}setprefix . (default)`,
-            ...channelInfo,
+            ...global.channelInfo,
           });
           return;
         }

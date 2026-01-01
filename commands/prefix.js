@@ -5,7 +5,7 @@ async function prefixCommand(sock, chatId, message, channelInfo) {
   const prefixDisplay =
     currentPrefix === "off" ? "Disabled (None)" : `\`${currentPrefix}\``;
 
-  const response = `📌 *Current Prefix:* ${prefixDisplay}\n\n💡 To change use: \`.setprefix [new_prefix]\`\nExample: \`.setprefix !\` or \`.setprefix off\``;
+  const response = `📌 *Current Prefix:* ${prefixDisplay}\n\n💡 To change use: \`{p}setprefix [new_prefix]\`\nExample: \`{p}setprefix !\` or \`{p}setprefix off\``;
 
   await sock.sendMessage(chatId, { text: response }, { quoted: message });
 }
