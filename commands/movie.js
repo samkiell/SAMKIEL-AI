@@ -11,26 +11,47 @@ async function movieCommand(sock, chatId, message, args) {
       return await sock.sendMessage(
         chatId,
         {
-          text: `🎥 *Movie Search*\n\nPlease provide a movie or TV show name.\nExample: *${p}movie Avengers*\n\nTo download to WhatsApp directly:\n*${p}movie dl <ID>*`,
+          text: `🎥 *Movie Search*\n\nPlease provide a movie or TV show name.\nExample: *${p}movie Avengers*\n\nTo download to WhatsApp directly:\n*${p}movie dl <Name>*`,
           ...global.channelInfo,
         },
         { quoted: message }
       );
     }
 
-    // Handle Direct Download Sub-command
+    // Handle Direct Download Sub-command (Search by Name and Download)
     if (args[0] === "dl" && args[1]) {
-      const movieId = args[1];
+      const movieTitle = args.slice(1).join(" ");
       await sock.sendMessage(chatId, {
         react: { text: "⏳", key: message.key },
       });
 
-      // 1. Get movie info for filename
+      // 1. Search for movie to get the ID
+      const searchUrl = `https://movieapi.giftedtech.co.ke/api/search/${encodeURIComponent(
+        movieTitle
+      )}`;
+      const searchRes = await axios.get(searchUrl);
+
+      if (
+        !searchRes.data ||
+        !searchRes.data.results ||
+        !searchRes.data.results.items ||
+        searchRes.data.results.items.length === 0
+      ) {
+        return await sock.sendMessage(
+          chatId,
+          { text: `❌ Could not find any movie matching "${movieTitle}".` },
+          { quoted: message }
+        );
+      }
+
+      const movieId = searchRes.data.results.items[0].subjectId;
+
+      // 2. Get movie info for filename
       const infoUrl = `https://movieapi.giftedtech.co.ke/api/info/${movieId}`;
       const infoRes = await axios.get(infoUrl);
       const movie = infoRes.data.results.subject;
 
-      // 2. Get download sources
+      // 3. Get download sources
       const sourcesUrl = `https://movieapi.giftedtech.co.ke/api/sources/${movieId}`;
       const sourcesRes = await axios.get(sourcesUrl);
       const sources = sourcesRes.data.results || [];
@@ -38,7 +59,7 @@ async function movieCommand(sock, chatId, message, args) {
       if (sources.length === 0) {
         return await sock.sendMessage(
           chatId,
-          { text: "❌ No direct download sources found for this ID." },
+          { text: "❌ No direct download sources found for this movie." },
           { quoted: message }
         );
       }
@@ -50,7 +71,7 @@ async function movieCommand(sock, chatId, message, args) {
       await sock.sendMessage(
         chatId,
         {
-          text: `📥 *Downloading:* ${movie.title} (${quality})\n\n_Please wait, this might take a few minutes depending on file size..._`,
+          text: `📥 *Downloading:* ${movie.title} (${quality})\n\n_Please wait, this might take a few minutes..._`,
           ...global.channelInfo,
         },
         { quoted: message }
@@ -76,7 +97,7 @@ async function movieCommand(sock, chatId, message, args) {
         await sock.sendMessage(
           chatId,
           {
-            text: "❌ Failed to send movie directly. Please use the links above.",
+            text: "❌ Failed to send movie directly. It may be too large for WhatsApp.",
           },
           { quoted: message }
         );
