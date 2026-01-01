@@ -39,6 +39,7 @@ async function pairCommand(sock, chatId, message, q) {
 
       await sock.sendMessage(chatId, {
         text: "Wait a moment for the code",
+        ...global.channelInfo,
       });
 
       try {
@@ -55,6 +56,7 @@ async function pairCommand(sock, chatId, message, q) {
           await sleep(5000);
           await sock.sendMessage(chatId, {
             text: `Your pairing code: ${code}`,
+            ...global.channelInfo,
           });
         } else {
           throw new Error("Invalid response from server");
