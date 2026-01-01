@@ -574,8 +574,9 @@ You can explore all available commands below 👇`,
       case command.startsWith("unban"):
         await unbanCommand(sock, chatId, message);
         break;
-      case command === "update":
-        await updateCommand(sock, chatId, message);
+      case command.startsWith("update"):
+        const updateArgs = command.slice(6).trim();
+        await updateCommand(sock, chatId, message, updateArgs);
         break;
       case command === "anticall":
         const args = userMessage.trim().split(/\s+/).slice(1);
