@@ -253,6 +253,19 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
     "temp",
     "data",
     "baileys_store.json",
+    // Preserve local configuration files
+    "settings.js",
+    "config.js",
+    "lib/prefix.js", // Often contains default prefix logic, but prefix.json is in data/
+    // If the user modified these source files locally and wants to keep them:
+    // But usually updates SHOULD overwrite code.
+    // The user specifically asked to keep "configurations" like welcome message state.
+    // Those are stored in data/userGroupData.json which is inside 'data' folder
+    // 'data' folder is ALREADY ignored above (line 254), so userGroupData.json is safe.
+
+    // However, the user said "settings like welcome message".
+    // If they mean settings.js (the file), we should ignore it if it exists.
+    "settings.js",
   ];
   const copied = [];
   // Preserve ownerNumber from existing settings.js if present
