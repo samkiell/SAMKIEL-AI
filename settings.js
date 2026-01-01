@@ -35,7 +35,7 @@ const settings = {
   giphyApiKey: "qnl7ssQChTdPjsKta2Ax2LMaGXz303tq",
   description:
     "This is a bot for managing group commands and automating tasks.",
-  version: "3.7.2",
+  version: "2.7.0",
   updateZipUrl:
     "https://github.com/samkiel488/SAMKIEL-AI/archive/refs/heads/main.zip",
 };
