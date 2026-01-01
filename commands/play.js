@@ -1,5 +1,17 @@
 const yts = require("yt-search");
 const axios = require("axios");
+// Channel Info
+const channelInfo = {
+  contextInfo: {
+    forwardingScore: 1,
+    isForwarded: true,
+    forwardedNewsletterMessageInfo: {
+      newsletterJid: "1203634008622713830@newsletter",
+      newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
+      serverMessageId: -1,
+    },
+  },
+};
 
 async function playCommand(sock, chatId, message) {
   try {
@@ -15,7 +27,6 @@ async function playCommand(sock, chatId, message) {
       console.log("No search query provided");
       return await sock.sendMessage(chatId, {
         text: "What song do you want to download?",
-        ...global.channelInfo,
       });
     }
 
@@ -29,7 +40,6 @@ async function playCommand(sock, chatId, message) {
       console.log("No songs found!");
       return await sock.sendMessage(chatId, {
         text: "No songs found!",
-        ...global.channelInfo,
       });
     }
 
@@ -44,12 +54,10 @@ async function playCommand(sock, chatId, message) {
         chatId,
         {
           image: { url: video.thumbnail },
-          caption: `*${
-            video.title
-          }*\n\n*Status:* ⬇️ Downloading...\n*Duration:* ${
+          caption: `*${video.title}*\n\n*Duration:* ${
             video.timestamp
-          }\n*Views:* ${video.views.toLocaleString()}\n\n *POWERED BY 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋*`,
-          ...global.channelInfo,
+          }\n*Views:* ${video.views.toLocaleString()}\n\n *DOWNLOAD BY 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋*`,
+          contextInfo: channelInfo.contextInfo,
         },
         { quoted: message }
       );
@@ -57,84 +65,46 @@ async function playCommand(sock, chatId, message) {
       console.log("Failed to send preview image:", e);
     }
 
-    // List of providers to try
-    const providers = [
-      {
-        name: "Keith",
-        url: `https://apiskeith.vercel.app/download/dlmp3?url=${urlYt}`,
-        parse: (res) =>
-          res.data?.result?.data?.downloadUrl || res.data?.result?.downloadUrl,
-        getTitle: (res) =>
-          res.data?.result?.data?.title || res.data?.result?.title,
-      },
-      {
-        name: "Vreden",
-        url: `https://api.vreden.my.id/api/ytmp3?url=${urlYt}`,
-        parse: (res) =>
-          res.data?.result?.download?.url || res.data?.result?.url,
-        getTitle: (res) =>
-          res.data?.result?.metadata?.title || res.data?.result?.title,
-      },
-      {
-        name: "Itzpire",
-        url: `https://itzpire.com/download/ytmp3?url=${urlYt}`,
-        parse: (res) =>
-          res.data?.data?.downloadUrl || res.data?.result?.downloadUrl,
-        getTitle: (res) => res.data?.data?.title || res.data?.result?.title,
-      },
-      {
-        name: "GiftedTech",
-        url: `https://api.giftedtech.web.id/api/download/ytmp3?apikey=gifted&url=${urlYt}`,
-        parse: (res) => res.data?.result?.download_url || res.data?.result?.url,
-        getTitle: (res) => res.data?.result?.title,
-      },
-    ];
+    // Fetch audio data from API
+    // Updated to the new domain as requested: apiskeith.vercel.app
+    const response = await axios.get(
+      `https://apiskeith.vercel.app/download/dlmp3?url=${urlYt}`
+    );
+    console.log("API response:", response.data);
+    const data = response.data;
 
-    let audioUrl = null;
-    let audioTitle = video.title;
-
-    for (const provider of providers) {
-      try {
-        console.log(`Trying provider: ${provider.name}`);
-        const res = await axios.get(provider.url, { timeout: 15000 });
-        const resultUrl = provider.parse(res);
-        if (resultUrl) {
-          audioUrl = resultUrl;
-          audioTitle = provider.getTitle(res) || audioTitle;
-          console.log(`Success with provider: ${provider.name}`);
-          break;
-        }
-      } catch (e) {
-        console.warn(`Provider ${provider.name} failed:`, e.message);
-        continue;
-      }
-    }
-
-    if (!audioUrl) {
-      console.log("No providers worked");
+    if (
+      !data ||
+      !data.status ||
+      !data.result ||
+      !data.result.data ||
+      !data.result.data.downloadUrl
+    ) {
+      console.log("API did not return valid data");
       return await sock.sendMessage(chatId, {
-        text: "❌ Failed to fetch audio from all available sources. Please try again later.",
-        ...global.channelInfo,
+        text: "Failed to fetch audio from the API. Please try again later.",
       });
     }
 
+    const audioUrl = data.result.data.downloadUrl;
+    const title = data.result.data.title;
+    console.log("Audio URL:", audioUrl, "Title:", title);
+
     // Send the audio
-    console.log("Sending audio file:", audioUrl);
+    console.log("Sending audio file");
     await sock.sendMessage(
       chatId,
       {
         audio: { url: audioUrl },
         mimetype: "audio/mpeg",
-        fileName: `SAMKIEL-BOT - ${audioTitle}.mp3`,
-        ...global.channelInfo,
+        fileName: `SAMKIEL-BOT - ${title}.mp3`,
       },
       { quoted: message }
     );
   } catch (error) {
-    console.error("Error in play command:", error);
+    console.error("Error in song2 command:", error);
     await sock.sendMessage(chatId, {
-      text: "❌ Download failed or timed out. Please try again later.",
-      ...global.channelInfo,
+      text: "Download failed. Please try again later.",
     });
   }
 }
