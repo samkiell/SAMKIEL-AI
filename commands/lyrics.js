@@ -14,48 +14,53 @@ async function lyricsCommand(sock, chatId, songTitle, message) {
   }
 
   try {
-    // List of AI providers to try for lyrics
+    // List of providers to try for lyrics
     const providers = [
-      `https://bk9.fun/ai/gpt4?q=${encodeURIComponent(
-        `lyrics for ${songTitle}`
-      )}`,
-      `https://widipe.com/openai?text=${encodeURIComponent(
-        `lyrics for ${songTitle} by song name/artist`
-      )}`,
-      `https://api.dark-yasiya-api.vercel.app/chat/gpt?query=${encodeURIComponent(
-        `lyrics for ${songTitle}`
-      )}`,
-      `https://api.popcat.xyz/chatbot?owner=Samkiel&botname=SamkielAI&msg=${encodeURIComponent(
-        `lyrics for ${songTitle}`
-      )}`,
+      {
+        url: `https://lrclib.net/api/search?q=${encodeURIComponent(songTitle)}`,
+        type: "lrclib",
+      },
+      {
+        url: `https://api.lyrics.ovh/v1/${encodeURIComponent(
+          songTitle.split(" ").slice(0, 2).join(" ")
+        )}/${encodeURIComponent(songTitle.split(" ").slice(2).join(" "))}`,
+        type: "lyricsovh",
+      },
+      {
+        url: `https://api.popcat.xyz/lyrics?song=${encodeURIComponent(
+          songTitle
+        )}`,
+        type: "popcat",
+      },
     ];
 
     let lyrics = null;
 
-    for (const apiUrl of providers) {
+    for (const provider of providers) {
       try {
-        const res = await fetch(apiUrl);
-        if (!res.ok) {
-          // Try next if status not 200
-          console.warn(
-            `Lyrics provider ${apiUrl} returned non-OK status: ${res.status}`
-          );
-          continue;
-        }
+        const res = await fetch(provider.url);
+        if (!res.ok) continue;
 
         const data = await res.json();
-        // Check potential response fields
-        const content =
-          data.BK9 || data.result || data.message || data.answer || data.reply;
+        let content = null;
 
-        // Validate content looks like lyrics
-        if (content && typeof content === "string" && content.length > 50) {
+        if (provider.type === "lrclib") {
+          if (Array.isArray(data) && data.length > 0) {
+            content = data[0].plainLyrics || data[0].lyrics;
+          }
+        } else if (provider.type === "lyricsovh") {
+          content = data.lyrics;
+        } else if (provider.type === "popcat") {
+          content = data.lyrics;
+        }
+
+        if (content && content.length > 50) {
           lyrics = content;
-          break; // Found valid lyrics, stop looping
+          break;
         }
       } catch (e) {
-        console.warn(`Lyrics provider failed: ${apiUrl}`, e.message);
-        continue; // Try next provider on error
+        console.warn(`Lyrics provider failed: ${provider.url}`, e.message);
+        continue;
       }
     }
 
