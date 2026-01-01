@@ -147,6 +147,7 @@ const {
   setGroupPhoto,
 } = require("./commands/groupmanage");
 const removebg = require("./commands/removebg");
+const addCommand = require("./commands/add");
 const updateCommand = require("./commands/update");
 const settingsCommand = require("./commands/settings");
 const { vcfCommand } = require("./commands/vcf");
@@ -1375,6 +1376,10 @@ You can explore all available commands below 👇`,
         break;
       case command.startsWith("sudo"):
         await sudoCommand(sock, chatId, message);
+        break;
+      case command === "add":
+        const addArgs = userMessage.trim().split(/\s+/).slice(1);
+        await addCommand(sock, chatId, senderId, message, addArgs);
         break;
       case command === "lid":
         await lidCommand(sock, chatId, senderId, message);
