@@ -1,5 +1,5 @@
 const { getUserRank } = require("../lib/leveling");
-const { channelInfo } = require("../lib/messageConfig");
+// const { channelInfo } = require("../lib/messageConfig");
 
 async function rankCommand(sock, chatId, message) {
   let targetId = message.key.participant || message.key.remoteJid;
@@ -39,7 +39,7 @@ async function rankCommand(sock, chatId, message) {
     image: { url: profilePic },
     caption: rankMsg,
     mentions: [targetId],
-    ...channelInfo,
+    ...global.channelInfo,
   });
 }
 

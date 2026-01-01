@@ -14,6 +14,7 @@ END:VCARD
 
   await sock.sendMessage(chatId, {
     contacts: { displayName: ownerName, contacts: [{ vcard }] },
+    ...global.channelInfo,
   });
 }
 

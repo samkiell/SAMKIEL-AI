@@ -25,6 +25,7 @@ async function memeCommand(sock, chatId) {
         caption: "Here's your cheems meme! 🐕",
         buttons: buttons,
         headerType: 1,
+        ...global.channelInfo,
       });
     } else {
       throw new Error("Invalid response type from API");
@@ -33,6 +34,7 @@ async function memeCommand(sock, chatId) {
     console.error("Error in meme command:", error);
     await sock.sendMessage(chatId, {
       text: "❌ Failed to fetch meme. Please try again later.",
+      ...global.channelInfo,
     });
   }
 }

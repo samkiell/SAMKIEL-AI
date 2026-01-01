@@ -66,7 +66,10 @@ ${listAdmin}
     });
   } catch (error) {
     console.error("Error in groupinfo command:", error);
-    await sock.sendMessage(chatId, { text: "Failed to get group info!" });
+    await sock.sendMessage(chatId, {
+      text: "Failed to get group info!",
+      ...global.channelInfo,
+    });
   }
 }
 

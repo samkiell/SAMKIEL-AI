@@ -15,6 +15,7 @@ async function playCommand(sock, chatId, message) {
       console.log("No search query provided");
       return await sock.sendMessage(chatId, {
         text: "What song do you want to download?",
+        ...global.channelInfo,
       });
     }
 
@@ -28,6 +29,7 @@ async function playCommand(sock, chatId, message) {
       console.log("No songs found!");
       return await sock.sendMessage(chatId, {
         text: "No songs found!",
+        ...global.channelInfo,
       });
     }
 
@@ -72,6 +74,7 @@ async function playCommand(sock, chatId, message) {
       console.log("API did not return valid data");
       return await sock.sendMessage(chatId, {
         text: "Failed to fetch audio from the API. Please try again later.",
+        ...global.channelInfo,
       });
     }
 
@@ -87,6 +90,7 @@ async function playCommand(sock, chatId, message) {
         audio: { url: audioUrl },
         mimetype: "audio/mpeg",
         fileName: `${title}.mp3`,
+        ...global.channelInfo,
       },
       { quoted: message }
     );
@@ -94,6 +98,7 @@ async function playCommand(sock, chatId, message) {
     console.error("Error in song2 command:", error);
     await sock.sendMessage(chatId, {
       text: "Download failed. Please try again later.",
+      ...global.channelInfo,
     });
   }
 }

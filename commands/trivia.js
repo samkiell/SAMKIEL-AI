@@ -1,46 +1,69 @@
-const axios = require('axios');
+const axios = require("axios");
 
 let triviaGames = {};
 
 async function startTrivia(sock, chatId) {
-    if (triviaGames[chatId]) {
-        sock.sendMessage(chatId, { text: 'A trivia game is already in progress!' });
-        return;
-    }
+  if (triviaGames[chatId]) {
+    sock.sendMessage(chatId, {
+      text: "A trivia game is already in progress!",
+      ...global.channelInfo,
+    });
+    return;
+  }
 
-    try {
-        const response = await axios.get('https://opentdb.com/api.php?amount=1&type=multiple');
-        const questionData = response.data.results[0];
+  try {
+    const response = await axios.get(
+      "https://opentdb.com/api.php?amount=1&type=multiple"
+    );
+    const questionData = response.data.results[0];
 
-        triviaGames[chatId] = {
-            question: questionData.question,
-            correctAnswer: questionData.correct_answer,
-            options: [...questionData.incorrect_answers, questionData.correct_answer].sort(),
-        };
+    triviaGames[chatId] = {
+      question: questionData.question,
+      correctAnswer: questionData.correct_answer,
+      options: [
+        ...questionData.incorrect_answers,
+        questionData.correct_answer,
+      ].sort(),
+    };
 
-        sock.sendMessage(chatId, {
-            text: `Trivia Time!\n\nQuestion: ${triviaGames[chatId].question}\nOptions:\n${triviaGames[chatId].options.join('\n')}`
-        });
-    } catch (error) {
-        sock.sendMessage(chatId, { text: 'Error fetching trivia question. Try again later.' });
-    }
+    sock.sendMessage(chatId, {
+      text: `Trivia Time!\n\nQuestion: ${
+        triviaGames[chatId].question
+      }\nOptions:\n${triviaGames[chatId].options.join("\n")}`,
+      ...global.channelInfo,
+    });
+  } catch (error) {
+    sock.sendMessage(chatId, {
+      text: "Error fetching trivia question. Try again later.",
+      ...global.channelInfo,
+    });
+  }
 }
 
 function answerTrivia(sock, chatId, answer) {
-    if (!triviaGames[chatId]) {
-        sock.sendMessage(chatId, { text: 'No trivia game is in progress.' });
-        return;
-    }
+  if (!triviaGames[chatId]) {
+    sock.sendMessage(chatId, {
+      text: "No trivia game is in progress.",
+      ...global.channelInfo,
+    });
+    return;
+  }
 
-    const game = triviaGames[chatId];
+  const game = triviaGames[chatId];
 
-    if (answer.toLowerCase() === game.correctAnswer.toLowerCase()) {
-        sock.sendMessage(chatId, { text: `Correct! The answer is ${game.correctAnswer}` });
-    } else {
-        sock.sendMessage(chatId, { text: `Wrong! The correct answer was ${game.correctAnswer}` });
-    }
+  if (answer.toLowerCase() === game.correctAnswer.toLowerCase()) {
+    sock.sendMessage(chatId, {
+      text: `Correct! The answer is ${game.correctAnswer}`,
+      ...global.channelInfo,
+    });
+  } else {
+    sock.sendMessage(chatId, {
+      text: `Wrong! The correct answer was ${game.correctAnswer}`,
+      ...global.channelInfo,
+    });
+  }
 
-    delete triviaGames[chatId];
+  delete triviaGames[chatId];
 }
 
 module.exports = { startTrivia, answerTrivia };

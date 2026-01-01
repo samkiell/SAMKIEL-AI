@@ -71,7 +71,7 @@ async function setGroupName(sock, chatId, senderId, text, message) {
     const p = currentPrefix === "off" ? "" : currentPrefix;
     await sock.sendMessage(
       chatId,
-      { text: `Usage: ${p}setgname <new name>` },
+      { text: `Usage: ${p}setgname <new name>`, ...global.channelInfo },
       { quoted: message }
     );
     return;
