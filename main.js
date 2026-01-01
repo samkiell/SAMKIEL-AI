@@ -1578,7 +1578,7 @@ ${customMessage}`.trim();
           });
         }
       } catch (err) {
-        console.error("Error sending welcome message:", err);
+        console.error("Error sendingg welcome message:", err);
       }
     }
 
