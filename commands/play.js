@@ -89,7 +89,7 @@ async function playCommand(sock, chatId, message) {
       {
         audio: { url: audioUrl },
         mimetype: "audio/mpeg",
-        fileName: `${title}.mp3`,
+        fileName: `SAMKIEL-BOT - ${title}.mp3`,
         ...global.channelInfo,
       },
       { quoted: message }

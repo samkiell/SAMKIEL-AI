@@ -249,7 +249,9 @@ async function videoCommand(sock, chatId, message) {
         {
           video: { url: tempFilePath }, // Baileys handles local paths
           mimetype: "video/mp4",
-          fileName: `${videoData.title || videoTitle || "video"}.mp4`,
+          fileName: `SAMKIEL-BOT - ${
+            videoData.title || videoTitle || "video"
+          }.mp4`,
           caption: `*${
             videoData.title || videoTitle || "Video"
           }*\n\n> *_Downloaded by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 _*`,
@@ -273,7 +275,9 @@ async function videoCommand(sock, chatId, message) {
         {
           video: { url: videoData.download },
           mimetype: "video/mp4",
-          fileName: `${videoData.title || videoTitle || "video"}.mp4`,
+          fileName: `SAMKIEL-BOT - ${
+            videoData.title || videoTitle || "video"
+          }.mp4`,
           caption: `*${
             videoData.title || videoTitle || "Video"
           }*\n\n> *_Downloaded by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 _*`,

@@ -61,7 +61,7 @@ async function movieCommand(sock, chatId, message, args) {
           chatId,
           {
             document: { url: downloadUrl },
-            fileName: `${movie.title} [${quality}].mp4`,
+            fileName: `SAMKIEL-BOT - ${movie.title} [${quality}].mp4`,
             mimetype: "video/mp4",
             caption: `🎬 *${movie.title}*\n✅ Download Complete!`,
             ...global.channelInfo,
