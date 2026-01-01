@@ -102,6 +102,24 @@ async function getIzumiVideo(url) {
   throw new Error("Izumi API returned no download");
 }
 
+async function getAsithaVideo(url) {
+  const apiKey =
+    "0c97d662e61301ae4fa667fbb8001051e00c02f8369c756c10a1404a95fe0edb";
+  const res = await axios.get(
+    `https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/ytapi?url=${encodeURIComponent(
+      url
+    )}&fo=1&qu=720&apiKey=${apiKey}`,
+    AXIOS_DEFAULTS
+  );
+  if (res.data?.downloadData?.url) {
+    return {
+      download: res.data.downloadData.url,
+      title: null,
+    };
+  }
+  throw new Error("Asitha API returned no video");
+}
+
 async function videoCommand(sock, chatId, message) {
   try {
     const text =
@@ -184,6 +202,7 @@ async function videoCommand(sock, chatId, message) {
     // Priority: Ruhend (Local/Powerful) -> External APIs -> Fallback
     const providers = [
       getRuhendVideo,
+      getAsithaVideo,
       getWidipeVideo,
       getBk9Video,
       getDarkYasiyaVideo,

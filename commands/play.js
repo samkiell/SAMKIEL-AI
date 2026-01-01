@@ -66,27 +66,25 @@ async function playCommand(sock, chatId, message) {
     }
 
     // Fetch audio data from API
-    const response = await axios.get(
-      `https://apis-keith.vercel.app/download/dlmp3?url=${urlYt}`
-    );
+    const apiKey =
+      "0c97d662e61301ae4fa667fbb8001051e00c02f8369c756c10a1404a95fe0edb";
+    const apiUrl = `https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/ytapi?url=${encodeURIComponent(
+      urlYt
+    )}&fo=2&qu=128&apiKey=${apiKey}`;
+
+    const response = await axios.get(apiUrl);
     console.log("API response:", response.data);
     const data = response.data;
 
-    if (
-      !data ||
-      !data.status ||
-      !data.result ||
-      !data.result.data ||
-      !data.result.data.downloadUrl
-    ) {
+    if (!data || !data.downloadData || !data.downloadData.url) {
       console.log("API did not return valid data");
       return await sock.sendMessage(chatId, {
         text: "Failed to fetch audio from the API. Please try again later.",
       });
     }
 
-    const audioUrl = data.result.data.downloadUrl;
-    const title = data.result.data.title;
+    const audioUrl = data.downloadData.url;
+    const title = video.title || "Audio";
     console.log("Audio URL:", audioUrl, "Title:", title);
 
     // Send the audio

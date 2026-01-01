@@ -62,6 +62,22 @@ async function getOkatsuDownloadByUrl(youtubeUrl) {
   throw new Error("Okatsu ytmp3 returned no download");
 }
 
+async function getAsithaAudio(youtubeUrl) {
+  const apiKey =
+    "0c97d662e61301ae4fa667fbb8001051e00c02f8369c756c10a1404a95fe0edb";
+  const apiUrl = `https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/ytapi?url=${encodeURIComponent(
+    youtubeUrl
+  )}&fo=2&qu=128&apiKey=${apiKey}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  if (res?.data?.downloadData?.url) {
+    return {
+      url: res.data.downloadData.url,
+      title: null,
+    };
+  }
+  throw new Error("Asitha API returned no download");
+}
+
 async function songCommand(sock, chatId, message) {
   try {
     const text =
@@ -105,19 +121,24 @@ async function songCommand(sock, chatId, message) {
       { quoted: message }
     );
 
-    // Try Izumi primary by URL, then by query, then Okatsu fallback
+    // Try Asitha primary, then Izumi, then Okatsu fallback
     let audioData;
     try {
-      // 1) Primary: Izumi by youtube url
-      audioData = await getIzumiDownloadByUrl(video.url);
-    } catch (e1) {
+      // 1) Primary: Asitha API (User provided working)
+      audioData = await getAsithaAudio(video.url);
+    } catch (e0) {
       try {
-        // 2) Secondary: Izumi search by query/title
-        const query = video.title || text;
-        audioData = await getIzumiDownloadByQuery(query);
-      } catch (e2) {
-        // 3) Fallback: Okatsu by youtube url
-        audioData = await getOkatsuDownloadByUrl(video.url);
+        // 2) Secondary: Izumi by youtube url
+        audioData = await getIzumiDownloadByUrl(video.url);
+      } catch (e1) {
+        try {
+          // 3) Tertiary: Izumi search by query/title
+          const query = video.title || text;
+          audioData = await getIzumiDownloadByQuery(query);
+        } catch (e2) {
+          // 4) Fallback: Okatsu by youtube url
+          audioData = await getOkatsuDownloadByUrl(video.url);
+        }
       }
     }
 
