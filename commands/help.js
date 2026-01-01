@@ -73,6 +73,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
 
   ╔═══════════════════╗
   👮‍♂️ *Admin Commands*:
+  ║ ✧ ➕ ${p}add <number>
   ║ ✧ 🔨 ${p}ban @user
   ║ ✧ ⬆️ ${p}promote @user
   ║ ✧ ⬇️ ${p}demote @user

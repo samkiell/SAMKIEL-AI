@@ -1,5 +1,5 @@
 const isAdmin = require("../lib/isAdmin");
-const { getCommand } = require("../lib/prefix");
+const { getCommand, loadPrefix } = require("../lib/prefix");
 
 // Helper to format phone numbers
 function formatJid(number) {
@@ -55,11 +55,14 @@ async function addCommand(sock, chatId, senderId, message, args) {
     }
   }
 
+  const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
+
   if (usersToAdd.length === 0) {
     await sock.sendMessage(
       chatId,
       {
-        text: "❌ Please provide a phone number or reply to a user.\nExample:\n.add 2348012345678\n.add 919876543210",
+        text: `❌ Please provide a phone number or reply to a user.\nExample:\n${p}add 2348012345678\n${p}add 919876543210`,
       },
       { quoted: message }
     );
