@@ -1442,6 +1442,9 @@ You can explore all available commands below 👇`,
           }
         }
         break;
+      case command === "update":
+        await updateCommand(sock, chatId, message, userMessage);
+        break;
       default:
         if (isGroup) {
           // Handle non-command group messages
