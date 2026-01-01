@@ -1298,7 +1298,10 @@ You can explore all available commands below 👇`,
       case command.startsWith("tiktok") || command.startsWith("tt"):
         await tiktokCommand(sock, chatId, message);
         break;
-      case command.startsWith("gpt") || command.startsWith("gemini"):
+      case command.startsWith("gpt") ||
+        command.startsWith("gemini") ||
+        command.startsWith("deepseek") ||
+        command.startsWith("ds"):
         await aiCommand(sock, chatId, message);
         break;
       case command.startsWith("translate") || command.startsWith("trt"):

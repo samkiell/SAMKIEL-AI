@@ -38,6 +38,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   🤖 *AI Commands*:
   ║ ✧ 🤖 ${p}gpt
   ║ ✧ 🧠 ${p}gemini
+  ║ ✧ 🧬 ${p}deepseek
   ║ ✧ 🎨 ${p}imagine
   ║ ✧ 🖼️ ${p}remini
   ║ ✧ 🎥 ${p}sora

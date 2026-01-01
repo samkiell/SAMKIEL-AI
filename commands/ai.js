@@ -16,7 +16,7 @@ async function aiCommand(sock, chatId, message) {
       return await sock.sendMessage(
         chatId,
         {
-          text: `Please provide a question after ${p}gpt or ${p}gemini\n\nExample: ${p}gpt write a basic html code`,
+          text: `Please provide a question after ${p}gpt, ${p}gemini or ${p}deepseek\n\nExample: ${p}gpt write a basic html code`,
           ...global.channelInfo,
         },
         { quoted: message }
@@ -32,7 +32,7 @@ async function aiCommand(sock, chatId, message) {
       return await sock.sendMessage(
         chatId,
         {
-          text: `Please provide a question after ${p}gpt or ${p}gemini`,
+          text: `Please provide a question after ${p}gpt, ${p}gemini or ${p}deepseek`,
           ...global.channelInfo,
         },
         { quoted: message }
@@ -61,21 +61,13 @@ async function aiCommand(sock, chatId, message) {
       if (commandPart === "gpt") {
         // Array of GPT API endpoints
         const gptApis = [
-          `https://widipe.com/openai?text=${encodeURIComponent(query)}`,
-          `https://bk9.fun/ai/gpt4?q=${encodeURIComponent(query)}`,
-          `https://api.dark-yasiya-api.vercel.app/chat/gpt?query=${encodeURIComponent(
+          `https://api.siputzx.my.id/api/ai/llama33?prompt=Be+a+helpful+AI+Assistant&text=${encodeURIComponent(
+            query
+          )}`,
+          `https://api.siputzx.my.id/api/ai/gpt3?prompt=${encodeURIComponent(
             query
           )}`,
           `https://api.popcat.xyz/chatbot?owner=Samkiel&botname=SamkielAI&msg=${encodeURIComponent(
-            query
-          )}`,
-          `https://api.giftedtech.web.id/api/ai/ai?apikey=gifted&q=${encodeURIComponent(
-            query
-          )}`,
-          `https://api.giftedtech.web.id/api/ai/blackbox?apikey=gifted&q=${encodeURIComponent(
-            query
-          )}`,
-          `https://api.giftedtech.web.id/api/ai/gpt4o?apikey=gifted&q=${encodeURIComponent(
             query
           )}`,
         ];
@@ -132,13 +124,12 @@ async function aiCommand(sock, chatId, message) {
         return;
       } else if (commandPart === "gemini") {
         const geminiApis = [
-          `https://widipe.com/gemini?text=${encodeURIComponent(query)}`,
-          `https://api.nyxs.pw/ai/gemini-pro?text=${encodeURIComponent(query)}`,
-          `https://bk9.fun/ai/gemini?q=${encodeURIComponent(query)}`,
-          `https://api.giftedtech.my.id/api/ai/geminiai?apikey=gifted&q=${encodeURIComponent(
+          `https://api.siputzx.my.id/api/ai/gemini?text=${encodeURIComponent(
             query
           )}`,
-          `https://bk9.fun/ai/deepseek-r1?q=${encodeURIComponent(query)}`,
+          `https://api.giftedtech.web.id/api/ai/geminiai?apikey=gifted&q=${encodeURIComponent(
+            query
+          )}`,
         ];
 
         for (const api of geminiApis) {
@@ -183,6 +174,56 @@ async function aiCommand(sock, chatId, message) {
           chatId,
           {
             text: "❌ All Gemini APIs failed. Please try again later.",
+            ...global.channelInfo,
+          },
+          { quoted: message }
+        );
+        return;
+      } else if (commandPart === "deepseek" || commandPart === "ds") {
+        const deepseekApis = [
+          `https://api.siputzx.my.id/api/ai/llama33?prompt=You+are+DeepSeek+R1+thinking+AI&text=${encodeURIComponent(
+            query
+          )}`,
+          `https://api.shizo.top/api/ai/deepseek?apikey=𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋&q=${encodeURIComponent(
+            query
+          )}`,
+        ];
+
+        for (const api of deepseekApis) {
+          try {
+            const response = await fetch(api);
+            const data = await response.json();
+
+            const answer =
+              data.data ||
+              data.message ||
+              data.result ||
+              data.answer ||
+              data.BK9 ||
+              data.response;
+
+            if (answer) {
+              appendMessage(userId, "assistant", answer);
+              await sock.sendMessage(
+                chatId,
+                {
+                  text: answer,
+                  ...global.channelInfo,
+                },
+                { quoted: message }
+              );
+              return;
+            }
+          } catch (e) {
+            console.warn(`DeepSeek API failed: ${api}`, e.message);
+            continue;
+          }
+        }
+
+        await sock.sendMessage(
+          chatId,
+          {
+            text: "❌ All DeepSeek APIs failed. Please try again later.",
             ...global.channelInfo,
           },
           { quoted: message }
