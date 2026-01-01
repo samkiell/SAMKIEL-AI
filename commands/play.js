@@ -61,7 +61,7 @@ async function playCommand(sock, chatId, message) {
     const providers = [
       {
         name: "Keith",
-        url: `https://apis-keith.vercel.app/download/dlmp3?url=${urlYt}`,
+        url: `https://apiskeith.vercel.app/download/dlmp3?url=${urlYt}`,
         parse: (res) =>
           res.data?.result?.data?.downloadUrl || res.data?.result?.downloadUrl,
         getTitle: (res) =>
