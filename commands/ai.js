@@ -61,10 +61,10 @@ async function aiCommand(sock, chatId, message) {
       if (commandPart === "gpt") {
         // Array of GPT API endpoints
         const gptApis = [
-          `https://api.siputzx.my.id/api/ai/llama33?prompt=Be+a+helpful+AI+Assistant&text=${encodeURIComponent(
+          `https://api.siputzx.my.id/api/ai/llama33?prompt=You+are+AI+developed+by+SAMKIEL&text=${encodeURIComponent(
             query
           )}`,
-          `https://api.siputzx.my.id/api/ai/gpt3?prompt=${encodeURIComponent(
+          `https://api.siputzx.my.id/api/ai/gpt3?content=${encodeURIComponent(
             query
           )}`,
           `https://api.popcat.xyz/chatbot?owner=Samkiel&botname=SamkielAI&msg=${encodeURIComponent(
@@ -126,7 +126,7 @@ async function aiCommand(sock, chatId, message) {
         return;
       } else if (commandPart === "gemini") {
         const geminiApis = [
-          `https://api.siputzx.my.id/api/ai/gemini?text=${encodeURIComponent(
+          `https://api.siputzx.my.id/api/ai/llama33?prompt=You+are+Gemini+developed+by+Google&text=${encodeURIComponent(
             query
           )}`,
           `https://api.giftedtech.web.id/api/ai/geminiai?apikey=gifted&q=${encodeURIComponent(
