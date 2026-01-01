@@ -3,6 +3,7 @@ const yts = require("yt-search");
 const { ytmp4 } = require("ruhend-scraper");
 const fs = require("fs");
 const path = require("path");
+const { loadPrefix } = require("../lib/prefix");
 
 const AXIOS_DEFAULTS = {
   timeout: 60000,
@@ -108,11 +109,15 @@ async function videoCommand(sock, chatId, message) {
       message.message?.extendedTextMessage?.text;
     const searchQuery = text.split(" ").slice(1).join(" ").trim();
 
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
+
     if (!searchQuery) {
       await sock.sendMessage(
         chatId,
         {
-          text: "What video do you want to download? Usage: *video <search query or url>*",
+          text: `What video do you want to download? Usage: *${p}video <search query or url>*`,
+          ...global.channelInfo,
         },
         { quoted: message }
       );
@@ -137,7 +142,10 @@ async function videoCommand(sock, chatId, message) {
         if (!videos || videos.length === 0) {
           await sock.sendMessage(
             chatId,
-            { text: "❌ No videos found for your search!" },
+            {
+              text: "❌ No videos found for your search!",
+              ...global.channelInfo,
+            },
             { quoted: message }
           );
           return;
@@ -149,14 +157,14 @@ async function videoCommand(sock, chatId, message) {
         console.error("YTS Error:", err);
         await sock.sendMessage(
           chatId,
-          { text: "❌ Error searching YouTube." },
+          { text: "❌ Error searching YouTube.", ...global.channelInfo },
           { quoted: message }
         );
         return;
       }
     }
 
-      // Send thumbnail/status
+    // Send thumbnail/status
     try {
       const captionTitle = videoTitle || searchQuery;
       await sock.sendMessage(
@@ -164,6 +172,7 @@ async function videoCommand(sock, chatId, message) {
         {
           image: { url: videoThumbnail || "https://i.imgur.com/3Uq8b1L.jpeg" }, // Fallback image if no thumb
           caption: `*${captionTitle}*\n\n🔍 Found! Downloading video...`,
+          ...global.channelInfo,
         },
         { quoted: message }
       );
@@ -198,6 +207,7 @@ async function videoCommand(sock, chatId, message) {
         chatId,
         {
           text: "❌ Failed to download video from all sources. Please try again later.",
+          ...global.channelInfo,
         },
         { quoted: message }
       );
@@ -243,6 +253,7 @@ async function videoCommand(sock, chatId, message) {
           caption: `*${
             videoData.title || videoTitle || "Video"
           }*\n\n> *_Downloaded by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 _*`,
+          ...global.channelInfo,
         },
         { quoted: message }
       );
@@ -252,7 +263,10 @@ async function videoCommand(sock, chatId, message) {
         if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
       }, 120000); // 2 minutes delay
     } catch (downloadError) {
-      console.error("Temp download failed:", downloadError.message || String(downloadError));
+      console.error(
+        "Temp download failed:",
+        downloadError.message || String(downloadError)
+      );
       // Fallback to sending URL directly if file download fails
       await sock.sendMessage(
         chatId,
@@ -263,6 +277,7 @@ async function videoCommand(sock, chatId, message) {
           caption: `*${
             videoData.title || videoTitle || "Video"
           }*\n\n> *_Downloaded by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 _*`,
+          ...global.channelInfo,
         },
         { quoted: message }
       );
@@ -271,7 +286,10 @@ async function videoCommand(sock, chatId, message) {
     console.error("[VIDEO] Command Error:", error.message || String(error));
     await sock.sendMessage(
       chatId,
-      { text: "❌ Critical error: " + (error?.message || "Unknown error") },
+      {
+        text: "❌ Critical error: " + (error?.message || "Unknown error"),
+        ...global.channelInfo,
+      },
       { quoted: message }
     );
   }
