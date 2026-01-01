@@ -36,8 +36,7 @@ const settings = {
   description:
     "This is a bot for managing group commands and automating tasks.",
   version: "2.7.0",
-  updateZipUrl:
-    "https://github.com/samkiel488/SAMKIEL-AI/archive/refs/heads/main.zip",
+  updateZipUrl: "https://github.com/samkiell//archive/refs/heads/main.zip",
 };
 
 module.exports = settings;

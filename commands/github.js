@@ -2,7 +2,7 @@ async function githubCommand(sock, chatId) {
   const repoInfo = `*🤖SAMKIEL BOT*
 
 *📂 GitHub Repository:*
-https://github.com/samkiel488/SAMKIEL-AI 
+https://github.com/samkiell/ 
 
 _Star ⭐ the repository if you like the bot!_`;
 
