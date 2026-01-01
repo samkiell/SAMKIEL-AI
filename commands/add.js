@@ -67,43 +67,52 @@ async function addCommand(sock, chatId, senderId, message, args) {
   }
 
   // 5. Execute Add
+  console.log(
+    `Add Command: Trying to add ${usersToAdd.join(", ")} to ${chatId}`
+  );
+
   try {
     const response = await sock.groupParticipantsUpdate(
       chatId,
       usersToAdd,
       "add"
     );
+    console.log("Add Command Response:", response);
 
     // Analyze response (Baileys returns status for each JID)
     // 403: Forbidden (Privacy settings)
     // 408: Request Timeout
     // 409: Conflict (Already in group)
     // 200: Success
+    // 400: Invalid Request (Malformed JID often causes this)
 
     let successCount = 0;
     let privacyCount = 0;
     let existingCount = 0;
+    let invalidCount = 0;
 
-    // response is usually array of { status: '200', jid: '...' }
-    // or sometimes just null/void depending on version, but typically array.
-
-    if (response && response.length > 0) {
+    // response is typically array of { status: '200', jid: '...' }
+    if (response && Array.isArray(response)) {
       for (const res of response) {
         if (res.status === "200") {
           successCount++;
         } else if (res.status === "403") {
           console.log(`Failed to add ${res.jid} due to privacy settings.`);
           privacyCount++;
-          // Try to send invite link if privacy restricted?
-          // Optional enhancement
         } else if (res.status === "409") {
           existingCount++;
+        } else if (res.status === "400") {
+          invalidCount++;
+        } else if (res.status === "404") {
+          invalidCount++;
         }
       }
     } else {
-      // Assume success if no error thrown?
-      // Actually Baileys usually returns data.
-      successCount = usersToAdd.length;
+      // If response is not an array, it might be a silent success or weird state.
+      // But usually it returns data.
+      if (!response) {
+        console.warn("Add command: No response object returned.");
+      }
     }
 
     let msgText = "";
@@ -115,6 +124,19 @@ async function addCommand(sock, chatId, senderId, message, args) {
     }
     if (existingCount > 0) {
       msgText += `\nℹ️ ${existingCount} user(s) are already in the group.`;
+    }
+    if (invalidCount > 0) {
+      msgText += `\n❌ ${invalidCount} number(s) were invalid or not on WhatsApp.`;
+    }
+    // If we have users but 0 success/fail counts (e.g. empty response array), we should warn
+    if (
+      usersToAdd.length > 0 &&
+      successCount === 0 &&
+      privacyCount === 0 &&
+      existingCount === 0 &&
+      invalidCount === 0
+    ) {
+      msgText += `\n❓ Command executed but no specific status returned. (Possible success)`;
     }
 
     await sock.sendMessage(
