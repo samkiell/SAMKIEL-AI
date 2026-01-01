@@ -15,11 +15,15 @@ async function dareCommand(sock, chatId) {
     const dareMessage = json.result;
 
     // Send the dare message
-    await sock.sendMessage(chatId, { text: dareMessage });
+    await sock.sendMessage(chatId, {
+      text: dareMessage,
+      ...global.channelInfo,
+    });
   } catch (error) {
     console.error("Error in dare command:", error);
     await sock.sendMessage(chatId, {
       text: "❌ Failed to get dare. Please try again later!",
+      ...global.channelInfo,
     });
   }
 }
