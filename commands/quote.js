@@ -15,11 +15,15 @@ module.exports = async function quoteCommand(sock, chatId) {
     const quoteMessage = json.result;
 
     // Send the quote message
-    await sock.sendMessage(chatId, { text: quoteMessage });
+    await sock.sendMessage(chatId, {
+      text: quoteMessage,
+      ...global.channelInfo,
+    });
   } catch (error) {
     console.error("Error in quote command:", error);
     await sock.sendMessage(chatId, {
       text: "❌ Failed to get quote. Please try again later!",
+      ...global.channelInfo,
     });
   }
 };
