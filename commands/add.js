@@ -120,17 +120,19 @@ async function addCommand(sock, chatId, senderId, message, args) {
     await sock.sendMessage(
       chatId,
       {
-        text: msgText.trim(),
+        text: msgText.trim() || "❓ No changes made (Unknown status).",
         ...global.channelInfo,
       },
       { quoted: message }
     );
   } catch (error) {
     console.error("Error in add command:", error);
+    const errorMessage = error.message || String(error);
     await sock.sendMessage(
       chatId,
       {
-        text: "❌ Failed to add user(s). Ensure the number is correct and valid on WhatsApp.",
+        text: `❌ Failed to add user(s).\nError: ${errorMessage}`,
+        ...global.channelInfo,
       },
       { quoted: message }
     );
