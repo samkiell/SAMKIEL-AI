@@ -79,7 +79,8 @@ async function aiCommand(sock, chatId, message) {
 
             if (
               data &&
-              (data.message ||
+              (data.data ||
+                data.message ||
                 data.result ||
                 data.answer ||
                 data.prompt ||
@@ -88,6 +89,7 @@ async function aiCommand(sock, chatId, message) {
                 data.BK9)
             ) {
               const answer =
+                data.data ||
                 data.message ||
                 data.result ||
                 data.answer ||
@@ -138,16 +140,16 @@ async function aiCommand(sock, chatId, message) {
             const data = await response.json();
 
             if (
-              data.message ||
               data.data ||
+              data.message ||
               data.answer ||
               data.result ||
               data.BK9 ||
               data.response
             ) {
               const answer =
-                data.message ||
                 data.data ||
+                data.message ||
                 data.answer ||
                 data.result ||
                 data.BK9 ||
