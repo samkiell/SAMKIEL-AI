@@ -15,11 +15,15 @@ async function rosedayCommand(sock, chatId) {
     const rosedayMessage = json.result;
 
     // Send the roseday message
-    await sock.sendMessage(chatId, { text: rosedayMessage });
+    await sock.sendMessage(chatId, {
+      text: rosedayMessage,
+      ...global.channelInfo,
+    });
   } catch (error) {
     console.error("Error in roseday command:", error);
     await sock.sendMessage(chatId, {
       text: "❌ Failed to get roseday quote. Please try again later!",
+      ...global.channelInfo,
     });
   }
 }

@@ -116,6 +116,7 @@ async function stickerCommand(sock, chatId, message) {
     // Send the sticker
     await sock.sendMessage(chatId, {
       sticker: finalBuffer,
+      ...global.channelInfo,
     });
 
     // Cleanup temp files

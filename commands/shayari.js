@@ -28,11 +28,13 @@ async function shayariCommand(sock, chatId) {
       text: data.result,
       buttons: buttons,
       headerType: 1,
+      ...global.channelInfo,
     });
   } catch (error) {
     console.error("Error in shayari command:", error);
     await sock.sendMessage(chatId, {
       text: "❌ Failed to fetch shayari. Please try again later.",
+      ...global.channelInfo,
     });
   }
 }

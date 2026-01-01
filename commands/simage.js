@@ -25,6 +25,7 @@ const convertStickerToImage = async (sock, quotedMessage, chatId) => {
     if (!stickerMessage) {
       await sock.sendMessage(chatId, {
         text: "Reply to a sticker with .simage to convert it.",
+        ...global.channelInfo,
       });
       return;
     }
@@ -46,6 +47,7 @@ const convertStickerToImage = async (sock, quotedMessage, chatId) => {
     await sock.sendMessage(chatId, {
       image: imageBuffer,
       caption: "Here is the converted image!",
+      ...global.channelInfo,
     });
 
     scheduleFileDeletion(stickerFilePath);
@@ -54,6 +56,7 @@ const convertStickerToImage = async (sock, quotedMessage, chatId) => {
     console.error("Error converting sticker to image:", error);
     await sock.sendMessage(chatId, {
       text: "An error occurred while converting the sticker.",
+      ...global.channelInfo,
     });
   }
 };

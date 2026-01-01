@@ -53,6 +53,7 @@ async function soraCommand(sock, chatId, message) {
         video: { url: videoUrl },
         mimetype: "video/mp4",
         caption: `Prompt: ${input}`,
+        ...global.channelInfo,
       },
       { quoted: message }
     );
@@ -60,7 +61,10 @@ async function soraCommand(sock, chatId, message) {
     console.error("[SORA] error:", error?.message || error);
     await sock.sendMessage(
       chatId,
-      { text: "Failed to generate video. Try a different prompt later." },
+      {
+        text: "Failed to generate video. Try a different prompt later.",
+        ...global.channelInfo,
+      },
       { quoted: message }
     );
   }
