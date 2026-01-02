@@ -26,7 +26,7 @@ Some features include:
 - Anti-link, anti-badword protection
 - Fun utilities (stickers, meme, TTS, truth & dare)
 - Media tools (download TikTok, Reels, music)
-- Custom text effects, AI image generation, and more.
+- Custom text efffects, AI image generation, and more.
 
 ---
 
