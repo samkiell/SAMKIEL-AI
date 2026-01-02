@@ -13,7 +13,7 @@ const settings = {
 
   // Feature Toggles
   featureToggles: {
-    AUTO_STATUS_VIEW: "on", // Options: "off", "on" (view + download), "no-dl" (view only)
+    AUTO_STATUS_VIEW: "on", // Options: "off", "on" (view only), "no-dl" (view only) - Auto-download disabled to save space
     ENABLE_STATUS_REACTION: true, // Toggle for status reactions
     STATUS_VIEW_EMOJI: "👀",
     STATUS_VIEW_MSG: "off",

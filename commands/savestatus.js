@@ -1,6 +1,9 @@
 const { downloadMediaMessage } = require("@whiskeysockets/baileys");
+const fs = require("fs");
+const path = require("path");
 
 async function saveStatusCommand(sock, chatId, message, args) {
+  let filePath = null;
   try {
     const quotedMessage =
       message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
@@ -42,44 +45,63 @@ async function saveStatusCommand(sock, chatId, message, args) {
     );
 
     const caption = quotedMessage[messageType]?.caption || "";
-    const mimetype =
-      messageType === "imageMessage" ? "image/jpeg" : "video/mp4";
+    const ext = messageType === "imageMessage" ? "jpg" : "mp4";
+    const fileName = `temp_save_${Date.now()}.${ext}`;
+    const downloadDir = path.join(__dirname, "../data/status_downloads");
 
-    // Determine destination
-    const destination = args[0]?.toLowerCase() === "dm" ? chatId : chatId; // Default to chat where command is used. If in DM, it sends to DM.
+    // Ensure directory exists
+    if (!fs.existsSync(downloadDir)) {
+      fs.mkdirSync(downloadDir, { recursive: true });
+    }
 
-    // If user wants to save to "dm" specifically and they are in a group, we might want to send to their private chat.
-    // However, the request says "send it to the chat mor to persoanl dm".
-    // Let's implement logic:
-    // If sent in private DM: sends to that DM.
-    // If sent in group: sends to group.
-    // If specific arg "dm" is passed (e.g. .savestatus dm), sends to sender's DM even if in group.
+    filePath = path.join(downloadDir, fileName);
+
+    // 1. Save it to disk (per user request)
+    fs.writeFileSync(filePath, buffer);
+    console.log(`💾 Temporary status saved to: ${filePath}`);
 
     let targetJid = chatId;
     if (args[0]?.toLowerCase() === "dm") {
       targetJid = message.key.participant || message.key.remoteJid;
     }
 
+    // 2. Send it from disk/buffer
     if (messageType === "imageMessage") {
       await sock.sendMessage(
         targetJid,
-        { image: buffer, caption: caption },
+        { image: fs.readFileSync(filePath), caption: caption },
         { quoted: message }
       );
     } else if (messageType === "videoMessage") {
       await sock.sendMessage(
         targetJid,
-        { video: buffer, caption: caption, mimetype: "video/mp4" },
+        {
+          video: fs.readFileSync(filePath),
+          caption: caption,
+          mimetype: "video/mp4",
+        },
         { quoted: message }
       );
     }
+
+    console.log(`✅ Status sent to ${targetJid}`);
   } catch (error) {
     console.error("Error in saveStatusCommand:", error);
     await sock.sendMessage(
       chatId,
-      { text: "❌ Failed to savve status. Error: " + error.message },
+      { text: "❌ Failed to save status. Error: " + error.message },
       { quoted: message }
     );
+  } finally {
+    // 3. Delete it immediately (per user request)
+    if (filePath && fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+        console.log(`🧹 Deleted temporary status file: ${filePath}`);
+      } catch (e) {
+        console.error("🧹 Failed to delete temporary file:", e);
+      }
+    }
   }
 }
 
