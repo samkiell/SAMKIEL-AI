@@ -351,6 +351,12 @@ async function handleMessages(sock, messageUpdate, printLog) {
     }
 
     if (!modeData.isPublic && !message.key.fromMe && !isOwnerCheckDebug) {
+      // DEBUG: Notify user why they are ignored (Temporary for debugging)
+      if (!isGroup) {
+        await sock.sendMessage(chatId, {
+          text: `⛔ Access Denied. Bot is in Private Mode.\nYour ID: ${senderId}`,
+        });
+      }
       return;
     }
 
