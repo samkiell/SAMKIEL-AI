@@ -37,7 +37,11 @@ async function pdfCommand(sock, chatId, text, message) {
     doc.pipe(stream);
 
     // Add some styling or header if you want, but keep it simple for now
-    doc.fontSize(20).text("Generated PDF Document", { align: "center" });
+    doc
+      .fontSize(20)
+      .text("Generated PDF Document by SAMKIEL BOT ! www.samkielbot.app", {
+        align: "center",
+      });
     doc.moveDown();
     doc.fontSize(12).text(text, {
       align: "justify",
@@ -78,7 +82,7 @@ async function pdfCommand(sock, chatId, text, message) {
       chatId,
       {
         document: { url: pdfPath },
-        fileName: "samkiel-text.pdf",
+        fileName: `samkielbot-pdf_${message.pushName || "User"}.pdf`,
         mimetype: "application/pdf",
         caption: "✅ PDF Generated Successfully",
         contextInfo: global.channelInfo?.contextInfo || {},
