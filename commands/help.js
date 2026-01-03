@@ -25,18 +25,24 @@ async function helpCommand(sock, chatId, senderId, pushName, commandName) {
     const info = commandsData[cmd];
 
     if (info) {
-      const detailedHelp = `╭──〔 📖 *COMMAND INFO: ${cmd.toUpperCase()}* 〕──╮
-│
-│ 📝 *Description:* 
-│ ${info.description}
-│
-│ 🚀 *Usage:* 
-│ \`${p}${info.usage}\`
-│
-│ 📁 *Category:* ${info.category}
-│
-╰──────────────────────────────╯
-_Tip: Use ${p}help to see all commands_`;
+      const detailedHelp = `
+    ╭─❒ 📚 *COMMAND INFO* ❒
+    │ 
+    │ 🛠️ *Command:* ${cmd.toUpperCase()}
+    │ 📂 *Category:* ${info.category}
+    │
+    │ 📝 *Description:* 
+    │ ${info.description}
+    │
+    │ ⚙️ *Usage:* 
+    │ \`${p}${info.usage}\`
+    │
+    │ 💡 *Example:*
+    │ \`${p}${info.usage.split(" ")[0]} hello\`
+    │
+    ╰──────────────────❒
+    
+    > _Type ${p}help to see the full menu_`;
 
       return await sock.sendMessage(chatId, {
         text: detailedHelp,

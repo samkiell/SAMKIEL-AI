@@ -169,6 +169,7 @@ const anticallCommand = require("./commands/anticall");
 const pluginCommand = require("./commands/plugin");
 const saveStatusCommand = require("./commands/savestatus");
 const pdfCommand = require("./commands/pdf");
+const autoReadCommand = require("./commands/autoread");
 
 // Global settings
 global.packname = settings.featureToggles.PACKNAME;
@@ -1411,6 +1412,14 @@ You can explore all available commands below 👇`,
               ...channelInfo,
             });
           }
+        }
+
+        break;
+      case command.startsWith("autoread"):
+        if (await isOwner(senderId)) {
+          await autoReadCommand(sock, chatId, message);
+        } else {
+          await sock.sendMessage(chatId, { text: "❌ Owner only command!" });
         }
         break;
 
