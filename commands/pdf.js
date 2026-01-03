@@ -69,16 +69,23 @@ async function pdfCommand(sock, chatId, text, message) {
       addFooter(doc);
     });
 
+    // Add footer to the first page manually
+    addFooter(doc);
+
     // Add content
     doc.fontSize(12).text(text, {
       align: "justify",
       lineGap: 2,
     });
 
-    // Add footer to the first page manually (since pageAdded fires only on new pages)
-    addFooter(doc);
-
     function addFooter(doc) {
+      const oldBottomMargin = doc.page.margins.bottom;
+      doc.page.margins.bottom = 0;
+      const oldX = doc.x;
+      const oldY = doc.y;
+
+      doc.save();
+
       const bottom = doc.page.height - 50;
 
       doc
@@ -94,6 +101,11 @@ async function pdfCommand(sock, chatId, text, message) {
           link: "https://www.samkielbot.app",
           underline: true,
         });
+
+      doc.restore();
+      doc.x = oldX;
+      doc.y = oldY;
+      doc.page.margins.bottom = oldBottomMargin;
     }
 
     console.log("➡️ [PDF COMMAND] Finalizing document...");
