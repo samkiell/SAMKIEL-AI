@@ -343,20 +343,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
     }
 
     // Enforce Private Mode
-    const isOwnerCheckDebug = await isOwner(senderId);
-    if (!modeData.isPublic) {
-      console.log(
-        `[DEBUG PRIVATE MODE] Sender: ${senderId} | isOwner: ${isOwnerCheckDebug} | fromMe: ${message.key.fromMe}`
-      );
-    }
-
-    if (!modeData.isPublic && !message.key.fromMe && !isOwnerCheckDebug) {
-      // DEBUG: Notify user why they are ignored (Temporary for debugging)
-      if (!isGroup) {
-        await sock.sendMessage(chatId, {
-          text: `⛔ Access Denied. Bot is in Private Mode.\nYour ID: ${senderId}`,
-        });
-      }
+    if (
+      !modeData.isPublic &&
+      !message.key.fromMe &&
+      !(await isOwner(senderId))
+    ) {
       return;
     }
 
