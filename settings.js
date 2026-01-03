@@ -7,6 +7,7 @@
 const settings = {
   // --- IDENTITY ---
   botName: "SAMKIEL BOT", // String: Display name in greetings
+  prefix: ".", // String: Command prefix (e.g. ".", "!", or "off")
   botNumber: "", // String: Bot's number (e.g., "2348087357158"). Empty string allows internal resolution.
   ownerNumber: "2348087357158", // String: PURE NUMBER ONLY (No + or spaces). Critical for access control.
   ownerName: "SAMKIEL", // String: Owner display name
@@ -40,7 +41,7 @@ const settings = {
     // Configuration Strings
     STATUS_VIEW_EMOJI: "👀", // String
     ANTI_DELETE_TYPE: "group", // "group" | "dm"
-    COMMAND_MODE: "public", // "public" | "private"
+    COMMAND_MODE: "private", // "public" | "private"
 
     // Aliased from root for legacy support
     PACKNAME: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
