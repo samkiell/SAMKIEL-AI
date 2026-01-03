@@ -12,9 +12,52 @@ function formatUptime(s) {
   return `${h}h ${m}m ${s2}s`;
 }
 
-async function helpCommand(sock, chatId, senderId, pushName) {
+const commandsData = require("../lib/commandData");
+
+async function helpCommand(sock, chatId, senderId, pushName, commandName) {
   const uptime = formatUptime(process.uptime());
   const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
+
+  // Detailed Help Logic
+  if (commandName) {
+    const cmd = commandName.trim().toLowerCase();
+    const info = commandsData[cmd];
+
+    if (info) {
+      const detailedHelp = `╭──〔 📖 *COMMAND INFO: ${cmd.toUpperCase()}* 〕──╮
+│
+│ 📝 *Description:* 
+│ ${info.description}
+│
+│ 🚀 *Usage:* 
+│ \`${info.usage.replace(".", p)}\`
+│
+│ 📁 *Category:* ${info.category}
+│
+╰──────────────────────────────╯
+_Tip: Use ${p}help to see all commands_`;
+
+      return await sock.sendMessage(chatId, {
+        text: detailedHelp,
+        ...global.channelInfo,
+      });
+    } else {
+      // If command not explicitly in commandsData, check if the file exists
+      const commandsDir = path.join(__dirname, "../commands");
+      const files = fs.readdirSync(commandsDir);
+      const fileExists = files.some((f) => f.toLowerCase() === `${cmd}.js`);
+
+      if (fileExists) {
+        return await sock.sendMessage(chatId, {
+          text: `🔍 *Command:* \`${cmd}\`
+          
+No detailed description available for this command yet, but you can use it with: \`${p}${cmd}\``,
+          ...global.channelInfo,
+        });
+      }
+    }
+  }
 
   // Memory logic: RSS usage vs 300MB limit
   const usedMemory = process.memoryUsage().rss / 1024 / 1024;
@@ -47,8 +90,6 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   const totalCommands = fs.existsSync(commandsDir)
     ? fs.readdirSync(commandsDir).filter((file) => file.endsWith(".js")).length
     : 0;
-
-  const p = currentPrefix === "off" ? "" : currentPrefix;
 
   const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
 │ ⏱️ *Uptime:* ${uptime}
@@ -96,7 +137,6 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   ║ ✧ 🏷️ ${p}groupinfo
   ║ ✧ 👥 ${p}staff or ${p}admins 
   ║ ✧ 🆚 ${p}deyplay
-  ║ ✧ 💌 ${p}pair or ${p}rent
   ║ ✧ 🌍 ${p}trt <text> <lang>
   ║ ✧ 📸 ${p}ss <link>
   ║ ✧ 👁️ ${p}viewonce
@@ -211,7 +251,8 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   ╚═══════════════════╝
 
 ✉️ Join our community for updates:
-https://chat.whatsapp.com/GwVMsm7rRRE7cEIIsvojdd`;
+https://chat.whatsapp.com/GwVMsm7rRRE7cEIIsvojdd
+_Tip: Use ${p}help <command-name> for details (e.g., ${p}help play)_`;
 
   try {
     const imagePath = path.join(__dirname, "../assets/bot_image.jpg");
