@@ -22,7 +22,6 @@ const ytdl = require("ytdl-core");
 const path = require("path");
 const axios = require("axios");
 const ffmpeg = require("fluent-ffmpeg");
-const PDFDocument = require("pdfkit");
 const {
   addWelcome,
   delWelcome,
@@ -169,6 +168,7 @@ const deployCommand = require("./commands/deploy");
 const anticallCommand = require("./commands/anticall");
 const pluginCommand = require("./commands/plugin");
 const saveStatusCommand = require("./commands/savestatus");
+const pdfCommand = require("./commands/pdf");
 
 // Global settings
 global.packname = settings.packname;
@@ -817,7 +817,6 @@ You can explore all available commands below 👇`,
         await newsCommand(sock, chatId);
         break;
       case command.startsWith("pdf"): {
-        console.log("➡️ Starting PDF command...");
         let text = userMessage.trim().split(/\s+/).slice(1).join(" ");
 
         // Check for quoted message text if no direct text provided
@@ -829,7 +828,6 @@ You can explore all available commands below 👇`,
         }
 
         if (!text) {
-          console.log("❌ PDF command failed: No text provided.");
           await sock.sendMessage(
             chatId,
             {
@@ -841,70 +839,7 @@ You can explore all available commands below 👇`,
           return;
         }
 
-        let pdfPath = null;
-
-        try {
-          const tempDir = path.join(__dirname, "temp");
-          pdfPath = path.join(tempDir, `samkielbot-${Date.now()}.pdf`);
-
-          // Ensure temp directory exists
-          if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-          }
-
-          console.log(`📄 Generating PDF with ${text.length} characters...`);
-          const doc = new PDFDocument();
-          const stream = fs.createWriteStream(pdfPath);
-
-          doc.pipe(stream);
-          doc.text(text);
-          doc.end();
-
-          await new Promise((resolve, reject) => {
-            stream.on("finish", resolve);
-            stream.on("error", reject);
-          });
-
-          console.log(`✅ PDF generated at: ${pdfPath}`);
-
-          // Read file buffer
-          const pdfBuffer = fs.readFileSync(pdfPath);
-          console.log(`📦 Buffer read, size: ${pdfBuffer.length} bytes`);
-
-          console.log("📤 Sending PDF...");
-          await sock.sendMessage(
-            chatId,
-            {
-              document: pdfBuffer,
-              fileName: "samkiel-text.pdf",
-              mimetype: "application/pdf",
-              caption: "✅ PDF Generated Successfully",
-              ...channelInfo,
-            },
-            { quoted: message }
-          );
-          console.log("✅ PDF sent successfully.");
-        } catch (err) {
-          console.error("❌ Error in PDF command:", err);
-          await sock.sendMessage(
-            chatId,
-            {
-              text: "❌ Failed to generate/send PDF. " + err.message,
-              ...channelInfo,
-            },
-            { quoted: message }
-          );
-        } finally {
-          // Cleanup
-          if (pdfPath && fs.existsSync(pdfPath)) {
-            try {
-              fs.unlinkSync(pdfPath);
-              console.log("🧹 Cleanup successful");
-            } catch (e) {
-              console.error("🧹 Cleanup failed:", e);
-            }
-          }
-        }
+        await pdfCommand(sock, chatId, text, message);
         break;
       }
       case command.startsWith("ttt") || command.startsWith("tictactoe"):
