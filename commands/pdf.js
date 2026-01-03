@@ -14,6 +14,34 @@ async function pdfCommand(sock, chatId, text, message) {
   const tempDir = path.join(__dirname, "../temp");
 
   try {
+    // 1. Send initial message & start animation
+    const initialMsg = await sock.sendMessage(
+      chatId,
+      { text: "📑 Generating PDF..." },
+      { quoted: message }
+    );
+    const key = initialMsg.key;
+
+    // Loading animation
+    const loaders = [
+      "⬜⬜⬜⬜⬜ 0%",
+      "🟩⬜⬜⬜⬜ 20%",
+      "🟩🟩⬜⬜⬜ 40%",
+      "🟩🟩🟩⬜⬜ 60%",
+      "🟩🟩🟩🟩⬜ 80%",
+      "🟩🟩🟩🟩🟩 100%",
+    ];
+
+    let animationPromise = (async () => {
+      for (const loader of loaders) {
+        await new Promise((r) => setTimeout(r, 600)); // Delay for animation
+        await sock.sendMessage(chatId, {
+          text: `📑 Generating PDF...\n${loader}`,
+          edit: key,
+        });
+      }
+    })();
+
     console.log("➡️ [PDF COMMAND] Starting generation...");
     console.log(`➡️ [PDF COMMAND] Text length: ${text.length} characters`);
 
@@ -78,6 +106,12 @@ async function pdfCommand(sock, chatId, text, message) {
     if (stats.size === 0) {
       throw new Error("Generated PDF is empty (0 bytes).");
     }
+
+    // Ensure animation finishes visually
+    await animationPromise;
+
+    // Delete the loading message
+    await sock.sendMessage(chatId, { delete: key });
 
     console.log("➡️ [PDF COMMAND] Sending file via Baileys...");
     await sock.sendMessage(
