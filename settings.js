@@ -41,7 +41,7 @@ const settings = {
     // Configuration Strings
     STATUS_VIEW_EMOJI: "👀", // String
     ANTI_DELETE_TYPE: "group", // "group" | "dm"
-    COMMAND_MODE: "private", // "public" | "private"
+    COMMAND_MODE: "public", // "public" | "private"
 
     // Aliased from root for legacy support
     PACKNAME: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",

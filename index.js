@@ -28,6 +28,14 @@ const prefixData = {
   prefix: settings.prefix || ".",
 };
 fs.writeFileSync(prefixPath, JSON.stringify(prefixData, null, 2));
+
+// Force Sync mode.json from settings.js
+// This ensures that changing COMMAND_MODE in settings.js actually switches the bot's mode
+const modePath = path.join(DATA_DIR, "mode.json");
+const modeData = {
+  isPublic: settings.featureToggles.COMMAND_MODE === "public",
+};
+fs.writeFileSync(modePath, JSON.stringify(modeData, null, 2));
 // -------------------------------------------------------------
 
 const chalk = require("chalk");
