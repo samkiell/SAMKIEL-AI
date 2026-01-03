@@ -20,14 +20,19 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   const totalMemory = os.totalmem() / 1024 / 1024;
   const memStr = `${Math.round(usedMemory)}MB / ${Math.round(totalMemory)}MB`;
 
+  const commandsDir = path.join(__dirname, "../commands");
+  const totalCommands = fs.existsSync(commandsDir)
+    ? fs.readdirSync(commandsDir).filter((file) => file.endsWith(".js")).length
+    : 0;
+
   const p = currentPrefix === "off" ? "" : currentPrefix;
 
   const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
 │ ⏱️ *Uptime:* ${uptime}
-│ � *Memory:* ${memStr}
-│ �👤 *User:* ${pushName || "User"}
+│  *Memory:* ${memStr}
+│ 👤 *User:* ${pushName || "User"}
 │ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
-│ ⚙️ *Commands:* ${VALID_COMMANDS.length}
+│ ⚙️ *Commands:* ${totalCommands}
 │ 📌 *Prefix:* ${currentPrefix === "off" ? "None" : currentPrefix}
 │ 🌟 *Version:* ${settings.version || "3.7.2"}
 │ 🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
