@@ -343,6 +343,17 @@ async function startXeonBotInc() {
         )
       );
 
+      // Always Online feature
+      if (settings.featureToggles.ALWAYS_ONLINE) {
+        await XeonBotInc.sendPresenceUpdate("available");
+        // Keep it online
+        setInterval(async () => {
+          if (global.isConnected) {
+            await XeonBotInc.sendPresenceUpdate("available").catch(() => {});
+          }
+        }, 30000); // Every 30 seconds
+      }
+
       // Send connected message to bot's own number
       const botNumber = XeonBotInc.user.id.split(":")[0] + "@s.whatsapp.net";
 
