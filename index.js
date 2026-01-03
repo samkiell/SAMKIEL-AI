@@ -206,8 +206,19 @@ async function startXeonBotInc() {
 
   // Message handling
   XeonBotInc.ev.on("messages.upsert", async (chatUpdate) => {
+    console.log(
+      `[RAW_DEBUG] messages.upsert fired. Type: ${chatUpdate.type}, Count: ${chatUpdate.messages?.length}`
+    );
     try {
       const mek = chatUpdate.messages[0];
+      if (!mek) return;
+
+      console.log(
+        `[RAW_DEBUG] Msg Data: ID=${mek.key?.id}, JID=${
+          mek.key?.remoteJid
+        }, HasMessage=${!!mek.message}`
+      );
+
       if (!mek.message) return;
 
       console.log(
