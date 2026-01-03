@@ -20,7 +20,15 @@ const configPath = path.join(__dirname, "../data/antiDelete.json");
 if (!fs.existsSync(configPath)) {
   fs.writeFileSync(
     configPath,
-    JSON.stringify({ enabled: false, mode: "group", allowedGroups: [] })
+    JSON.stringify(
+      {
+        enabled: settings.featureToggles.ANTI_DELETE ?? false,
+        mode: settings.featureToggles.ANTI_DELETE_TYPE || "group",
+        allowedGroups: [],
+      },
+      null,
+      2
+    )
   );
 }
 
@@ -88,7 +96,7 @@ async function copyNForward(
 async function storeMessage(message) {
   try {
     // Check local config first
-    let config = { enabled: false };
+    let config = { enabled: settings.featureToggles.ANTI_DELETE ?? false };
     try {
       if (fs.existsSync(configPath)) {
         config = JSON.parse(fs.readFileSync(configPath));
@@ -96,7 +104,7 @@ async function storeMessage(message) {
     } catch (e) {}
 
     // Only store if anti-delete is enabled globally
-    if (!config.enabled && !settings.featureToggles.ANTI_DELETE) return;
+    if (!config.enabled) return;
 
     if (!message?.key?.id || !message?.message) return;
 
