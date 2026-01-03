@@ -157,6 +157,7 @@ async function aiCommand(sock, chatId, message) {
           }
         }
 
+        await stopAnimation();
         await sock.sendMessage(
           chatId,
           {
@@ -193,6 +194,7 @@ async function aiCommand(sock, chatId, message) {
           if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
             const answer = response.data.candidates[0].content.parts[0].text;
             appendMessage(userId, "assistant", answer);
+            await stopAnimation();
             await sock.sendMessage(
               chatId,
               {
@@ -261,6 +263,7 @@ async function aiCommand(sock, chatId, message) {
           }
         }
 
+        await stopAnimation();
         await sock.sendMessage(
           chatId,
           {
@@ -312,6 +315,7 @@ async function aiCommand(sock, chatId, message) {
           }
         }
 
+        await stopAnimation();
         await sock.sendMessage(
           chatId,
           {
@@ -324,6 +328,7 @@ async function aiCommand(sock, chatId, message) {
       }
     } catch (error) {
       console.error("API Error:", error);
+      await stopAnimation();
       await sock.sendMessage(
         chatId,
         {

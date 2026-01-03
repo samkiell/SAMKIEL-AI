@@ -30,17 +30,46 @@ async function imagineCommand(sock, chatId, message) {
       return;
     }
 
-    // Send processing message
-    await sock.sendMessage(
+    // Send processing message with animation
+    const initialMsg = await sock.sendMessage(
       chatId,
       {
-        text: "🎨 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 is Generating your image... Please wait.",
+        text: "🎨 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 is Generating your image...",
         ...global.channelInfo,
       },
-      {
-        quoted: message,
-      }
+      { quoted: message }
     );
+    const key = initialMsg.key;
+
+    const loaders = [
+      "⬜⬜⬜⬜⬜ 0%",
+      "🟩⬜⬜⬜⬜ 20%",
+      "🟩🟩⬜⬜⬜ 40%",
+      "🟩🟩🟩⬜⬜ 60%",
+      "🟩🟩🟩🟩⬜ 80%",
+      "🟩🟩🟩🟩🟩 100%",
+    ];
+
+    let loading = true;
+    const animateLoading = async () => {
+      while (loading) {
+        for (const loader of loaders) {
+          if (!loading) break;
+          await new Promise((r) => setTimeout(r, 600));
+          await sock.sendMessage(chatId, {
+            text: `🎨 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 is Generating your image...\n${loader}`,
+            edit: key,
+          });
+        }
+      }
+    };
+    const animationPromise = animateLoading();
+
+    const stopAnimation = async () => {
+      loading = false;
+      await animationPromise;
+      await sock.sendMessage(chatId, { delete: key }).catch(() => {});
+    };
 
     // Enhance the prompt with quality keywords
     const enhancedPrompt = enhancePrompt(imagePrompt);
@@ -61,6 +90,7 @@ async function imagineCommand(sock, chatId, message) {
     }
 
     // Send the generated image
+    await stopAnimation();
     await sock.sendMessage(
       chatId,
       {
@@ -81,6 +111,7 @@ async function imagineCommand(sock, chatId, message) {
       errorMessage = "❌ Request timed out. Please try again.";
     }
 
+    await stopAnimation();
     await sock.sendMessage(
       chatId,
       {
