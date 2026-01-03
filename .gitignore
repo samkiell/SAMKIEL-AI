@@ -4,3 +4,4 @@ temp/
 tmp/
 TODO.md
 data/status_downloads/
+.agent/
