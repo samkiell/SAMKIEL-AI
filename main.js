@@ -343,11 +343,14 @@ async function handleMessages(sock, messageUpdate, printLog) {
     }
 
     // Enforce Private Mode
-    if (
-      !modeData.isPublic &&
-      !message.key.fromMe &&
-      !(await isOwner(senderId))
-    ) {
+    const isOwnerCheckDebug = await isOwner(senderId);
+    if (!modeData.isPublic) {
+      console.log(
+        `[DEBUG PRIVATE MODE] Sender: ${senderId} | isOwner: ${isOwnerCheckDebug} | fromMe: ${message.key.fromMe}`
+      );
+    }
+
+    if (!modeData.isPublic && !message.key.fromMe && !isOwnerCheckDebug) {
       return;
     }
 
