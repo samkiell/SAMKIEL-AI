@@ -158,7 +158,6 @@ let phoneNumber = "2348087357158";
 global.botname = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
 global.themeemoji = "•";
 
-const settings = require("./settings");
 const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code");
 const useMobile = process.argv.includes("--mobile");
 
