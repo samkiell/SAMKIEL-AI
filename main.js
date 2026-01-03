@@ -171,7 +171,7 @@ const saveStatusCommand = require("./commands/savestatus");
 const pdfCommand = require("./commands/pdf");
 
 // Global settings
-global.packname = settings.packname;
+global.packname = settings.featureToggles.PACKNAME;
 global.author = settings.author;
 global.channelLink = "https://whatsapp.com/channel/0029VbAhWo3C6Zvf2t4Rne0h";
 global.ytch = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
@@ -227,6 +227,12 @@ async function handleMessages(sock, messageUpdate, printLog) {
     chatId = message.key.remoteJid;
     const senderId = message.key.participant || message.key.remoteJid;
     const isGroup = chatId.endsWith("@g.us");
+
+    // Handle PERSONAL_MESSAGE feature (Private Chat Only)
+    if (settings.featureToggles.PERSONAL_MESSAGE && isGroup) {
+      return;
+    }
+
     const isSudoUser = await isSudo(senderId);
 
     // Initialize admin status variables
@@ -260,6 +266,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
         );
         // Set recording state for commands
         try {
+          // Handle SEND_READ feature (Auto-read)
+          if (settings.featureToggles.SEND_READ) {
+            await sock.readMessages([message.key]);
+          }
+
           await sock.sendPresenceUpdate("recording", chatId);
           // Global command reaction
           await addCommandReaction(sock, message, command);
@@ -288,7 +299,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
       if (!fs.existsSync("./data/mode.json")) {
         fs.writeFileSync(
           "./data/mode.json",
-          JSON.stringify({ isPublic: true })
+          JSON.stringify({
+            isPublic: settings.featureToggles.COMMAND_MODE === "public",
+          })
         );
       }
       modeData = JSON.parse(fs.readFileSync("./data/mode.json"));

@@ -167,7 +167,14 @@ async function handleMessageRevocation(sock, revocationMessage) {
 
     // 2. Group Whitelist Check
     if (isGroup) {
-      if (!config.allowedGroups.includes(remoteJid)) return;
+      // If whitelist is populated, strictly follow it.
+      // If whitelist is empty BUT enabled is true, assume it works everywhere.
+      if (
+        config.allowedGroups.length > 0 &&
+        !config.allowedGroups.includes(remoteJid)
+      ) {
+        return;
+      }
     } else {
       // For private chats, maybe strict enable? Or just allow all?
       // User focused on groups. Let's allow private by default if enabled globally?

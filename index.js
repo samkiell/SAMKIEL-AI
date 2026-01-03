@@ -393,18 +393,20 @@ async function startXeonBotInc() {
         `🔌 *Anti-Call:* ${isAntiCallEnabled ? "On" : "Off"}`,
       ].join("\n");
 
-      await XeonBotInc.sendMessage(botNumber, {
-        text: `🤖 *Bot Connected Successfully!*\n\n⏰ *Time:* ${new Date().toLocaleString()}\n✅ *Status:* Online and Ready!\n📌 *Prefix:* ${p}\n\n*🔌 Plugins Status:*\n${pluginList}\n\n📺 Make sure to join our channel for updates!`,
-        contextInfo: {
-          forwardingScore: 1,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363400862271383@newsletter",
-            newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
-            serverMessageId: -1,
+      if (!settings.featureToggles.DISABLE_START_MESSAGE) {
+        await XeonBotInc.sendMessage(botNumber, {
+          text: `🤖 *Bot Connected Successfully!*\n\n⏰ *Time:* ${new Date().toLocaleString()}\n✅ *Status:* Online and Ready!\n📌 *Prefix:* ${p}\n\n*🔌 Plugins Status:*\n${pluginList}\n\n📺 Make sure to join our channel for updates!`,
+          contextInfo: {
+            forwardingScore: 1,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+              newsletterJid: "120363400862271383@newsletter",
+              newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
+              serverMessageId: -1,
+            },
           },
-        },
-      });
+        });
+      }
 
       await delay(1999);
       console.log(
