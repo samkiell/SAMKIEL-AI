@@ -29,7 +29,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
 
   const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
 │ ⏱️ *Uptime:* ${uptime}
-│  *Memory:* ${memStr}
+│ 🧠 *Memory:* ${memStr}
 │ 👤 *User:* ${pushName || "User"}
 │ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
 │ ⚙️ *Commands:* ${totalCommands}
