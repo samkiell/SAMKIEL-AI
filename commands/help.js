@@ -194,6 +194,8 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🚫 ${p}disablebot
   ║ ✧ ✅ ${p}enablebot
   ║ ✧ 📞 ${p}anticall on/off
+  ║ ✧ ✔️ ${p}autoread on/off
+  ║ ✧ 📢 ${p}togglestart on/off
   ╚═══════════════════╝
 
   ╔═══════════════════╗
@@ -246,7 +248,6 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 💜 ${p}purple <text>
   ║ ✧ ⚡ ${p}thunder <text>
   ║ ✧ 🍃 ${p}leaves <text>
-  ║ ✧ 🎞️ ${p}1917 <text>
   ║ ✧ 🎞️ ${p}1917 <text>
   ║ ✧ 🛡️ ${p}arena <text>
   ║ ✧ 🖥️ ${p}hacker <text>
