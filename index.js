@@ -20,14 +20,14 @@ if (!fs.existsSync(ownerPath)) {
   fs.writeFileSync(ownerPath, JSON.stringify(defaultOwnerData, null, 2));
 }
 
-// Preserve/Create prefix.json
+// Force Sync prefix.json from settings.js
+// This ensures deployment configuration changes (settings.js) always take precedence
+// over previous state for the prefix, resolving the "deploy with + but got ." issue.
 const prefixPath = path.join(DATA_DIR, "prefix.json");
-if (!fs.existsSync(prefixPath)) {
-  const defaultPrefixData = {
-    prefix: settings.prefix || ".",
-  };
-  fs.writeFileSync(prefixPath, JSON.stringify(defaultPrefixData, null, 2));
-}
+const prefixData = {
+  prefix: settings.prefix || ".",
+};
+fs.writeFileSync(prefixPath, JSON.stringify(prefixData, null, 2));
 // -------------------------------------------------------------
 
 const chalk = require("chalk");
