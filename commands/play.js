@@ -56,7 +56,7 @@ async function playCommand(sock, chatId, message) {
           image: { url: video.thumbnail },
           caption: `*${video.title}*\n\n*Duration:* ${
             video.timestamp
-          }\n*Views:* ${video.views.toLocaleString()}\n\n *DOWNLOAD BY 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋*`,
+          }\n*Views:* ${video.views.toLocaleString()}\n\n *𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 is Downloading Audio for you, _Please wait..._*`,
           contextInfo: channelInfo.contextInfo,
         },
         { quoted: message }
