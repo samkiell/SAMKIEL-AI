@@ -19,6 +19,15 @@ if (!fs.existsSync(ownerPath)) {
   };
   fs.writeFileSync(ownerPath, JSON.stringify(defaultOwnerData, null, 2));
 }
+
+// Preserve/Create prefix.json
+const prefixPath = path.join(DATA_DIR, "prefix.json");
+if (!fs.existsSync(prefixPath)) {
+  const defaultPrefixData = {
+    prefix: settings.prefix || ".",
+  };
+  fs.writeFileSync(prefixPath, JSON.stringify(defaultPrefixData, null, 2));
+}
 // -------------------------------------------------------------
 
 const chalk = require("chalk");
