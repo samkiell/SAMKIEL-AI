@@ -345,13 +345,23 @@ async function startXeonBotInc() {
 
       // Always Online feature
       if (settings.featureToggles.ALWAYS_ONLINE) {
-        await XeonBotInc.sendPresenceUpdate("available");
-        // Keep it online
-        setInterval(async () => {
+        console.log("✅ Always Online Mode Active");
+        // Initial set
+        await XeonBotInc.sendPresenceUpdate("available").catch(() => {});
+
+        // Keep it online with a dedicated interval
+        // Clear any existing interval to prevent duplicates
+        if (global.onlineInterval) clearInterval(global.onlineInterval);
+
+        global.onlineInterval = setInterval(async () => {
           if (global.isConnected) {
-            await XeonBotInc.sendPresenceUpdate("available").catch(() => {});
+            try {
+              await XeonBotInc.sendPresenceUpdate("available");
+            } catch (e) {
+              // Ignore transient errors
+            }
           }
-        }, 30000); // Every 30 seconds
+        }, 15000); // Send every 15 seconds to be safe (WhatsApp timeout is ~25s)
       }
 
       // Send connected message to bot's own number
