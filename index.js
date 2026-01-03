@@ -1,38 +1,9 @@
 require("./settings");
 const { Boom } = require("@hapi/boom");
 const fs = require("fs");
-const path = require("path");
-const settings = require("./settings");
-
-// --- BOOTSTRAP: Ensure Data Directory & Critical Files Exist ---
-const DATA_DIR = path.join(__dirname, "data");
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-// Preserve/Create owner.json
-const ownerPath = path.join(DATA_DIR, "owner.json");
-if (!fs.existsSync(ownerPath)) {
-  const defaultOwnerData = {
-    superOwner: [settings.ownerNumber],
-    owners: [],
-  };
-  fs.writeFileSync(ownerPath, JSON.stringify(defaultOwnerData, null, 2));
-}
-
-// Force Sync prefix.json from settings.js
-// This ensures deployment configuration changes (settings.js) always take precedence
-// over previous state for the prefix, resolving the "deploy with + but got ." issue.
-const prefixPath = path.join(DATA_DIR, "prefix.json");
-const prefixData = {
-  prefix: settings.prefix || ".",
-};
-fs.writeFileSync(prefixPath, JSON.stringify(prefixData, null, 2));
-// -------------------------------------------------------------
-
 const chalk = require("chalk");
 const FileType = require("file-type");
-// path already required above
+const path = require("path");
 const axios = require("axios");
 const {
   handleMessages,
@@ -152,12 +123,12 @@ const store = {
 };
 
 let phoneNumber = "2348087357158";
-// owner.json is loaded dynamically where needed or handled by main.js
-// let owner = ... removed to prevent crash
+let owner = JSON.parse(fs.readFileSync("./data/owner.json"));
 
 global.botname = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
 global.themeemoji = "•";
 
+const settings = require("./settings");
 const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code");
 const useMobile = process.argv.includes("--mobile");
 
@@ -206,43 +177,21 @@ async function startXeonBotInc() {
 
   // Message handling
   XeonBotInc.ev.on("messages.upsert", async (chatUpdate) => {
-    console.log(
-      `[RAW_DEBUG] messages.upsert fired. Type: ${chatUpdate.type}, Count: ${chatUpdate.messages?.length}`
-    );
     try {
       const mek = chatUpdate.messages[0];
-      if (!mek) return;
-
-      console.log(
-        `[RAW_DEBUG] Msg Data: ID=${mek.key?.id}, JID=${
-          mek.key?.remoteJid
-        }, HasMessage=${!!mek.message}`
-      );
-
       if (!mek.message) return;
-
-      console.log(
-        `[DEBUG_INDEX] Received message: ID=${mek.key.id}, RemoteJid=${mek.key.remoteJid}, FromMe=${mek.key.fromMe}`
-      );
-
       mek.message =
         Object.keys(mek.message)[0] === "ephemeralMessage"
           ? mek.message.ephemeralMessage.message
           : mek.message;
-
       if (mek.key && mek.key.remoteJid === "status@broadcast") {
         await handleStatus(XeonBotInc, chatUpdate);
         return;
       }
-
-      // if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === "notify") return;
-
-      if (mek.key.id.startsWith("BAE5") && mek.key.id.length === 16) {
-        console.log("[DEBUG_INDEX] Ignored BAE5 message");
+      if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === "notify")
         return;
-      }
+      if (mek.key.id.startsWith("BAE5") && mek.key.id.length === 16) return;
 
-      console.log("[DEBUG_INDEX] Passing message to handleMessages");
       try {
         await handleMessages(XeonBotInc, chatUpdate, true);
       } catch (err) {
@@ -324,16 +273,7 @@ async function startXeonBotInc() {
     );
   };
 
-  try {
-    if (fs.existsSync("./data/mode.json")) {
-      const mode = JSON.parse(fs.readFileSync("./data/mode.json"));
-      XeonBotInc.public = mode.isPublic;
-    } else {
-      XeonBotInc.public = settings.featureToggles.COMMAND_MODE === "public";
-    }
-  } catch (e) {
-    XeonBotInc.public = settings.featureToggles.COMMAND_MODE === "public";
-  }
+  XeonBotInc.public = true;
 
   XeonBotInc.serializeM = (m) => smsg(XeonBotInc, m, store);
 
