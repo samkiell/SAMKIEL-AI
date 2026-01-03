@@ -404,8 +404,32 @@ async function startXeonBotInc() {
       ].join("\n");
 
       if (!settings.featureToggles.DISABLE_START_MESSAGE) {
+        const uptime = process.uptime();
+        const startMsg = `
+    ╭─❒ 🚀 *SYSTEM ONLINE* ❒
+    │
+    │ 🤖 *Bot:* ${global.botname || "SAMKIEL BOT"}
+    │ 🟢 *Status:* Operational
+    │ 📌 *Prefix:* ${p}
+    │ 🖥️ *Platform:* ${process.platform}
+    │ 🧠 *Ram:* ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)} MB
+    │ ⏰ *Time:* ${new Date().toLocaleTimeString()}
+    │
+    │ 🔌 *Active Plugins:*
+    │ ${pluginList.replace(/🔌 /g, "│ ◦ ")}
+    │
+    ╰──────────────────❒
+    
+    ╭─❒ 🌐 *COMMUNITY* ❒
+    │ Join our official group for updates,
+    │ support, and new features!
+    │
+    │ 🔗 *Link:*
+    │ https://chat.whatsapp.com/Jgrc79greN63Omt5T7LTzs
+    ╰──────────────────❒`;
+
         await XeonBotInc.sendMessage(botNumber, {
-          text: `🤖 *Bot Connected Successfully!*\n\n⏰ *Time:* ${new Date().toLocaleString()}\n✅ *Status:* Online and Ready!\n📌 *Prefix:* ${p}\n\n*🔌 Plugins Status:*\n${pluginList}\n\n📺 Make sure to join our channel for updates!`,
+          text: startMsg,
           contextInfo: {
             forwardingScore: 1,
             isForwarded: true,
