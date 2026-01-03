@@ -48,19 +48,44 @@ async function playCommand(sock, chatId, message) {
     const urlYt = video.url;
     console.log("First video URL:", urlYt);
 
-    // Send preview message with thumbnail, title, duration, views and custom download message
+    // Send preview message with thumbnail and start animation
+    let key;
     try {
-      await sock.sendMessage(
+      const initialMsg = await sock.sendMessage(
         chatId,
         {
           image: { url: video.thumbnail },
           caption: `*${video.title}*\n\n*Duration:* ${
             video.timestamp
-          }\n*Views:* ${video.views.toLocaleString()}\n\n *𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 is Downloading Audio for you, _Please wait..._*`,
+          }\n*Views:* ${video.views.toLocaleString()}\n\n⏳ *Downloading Audio... 0%*`,
           contextInfo: channelInfo.contextInfo,
         },
         { quoted: message }
       );
+      key = initialMsg.key;
+
+      // Animation logic
+      const loaders = [
+        "⬜⬜⬜⬜⬜ 0%",
+        "🟩⬜⬜⬜⬜ 20%",
+        "🟩🟩⬜⬜⬜ 40%",
+        "🟩🟩🟩⬜⬜ 60%",
+        "🟩🟩🟩🟩⬜ 80%",
+        "🟩🟩🟩🟩🟩 100%",
+      ];
+
+      (async () => {
+        for (const loader of loaders) {
+          await new Promise((r) => setTimeout(r, 1000));
+          await sock.sendMessage(chatId, {
+            edit: key,
+            caption: `*${video.title}*\n\n*Duration:* ${
+              video.timestamp
+            }\n*Views:* ${video.views.toLocaleString()}\n\n⏳ *Downloading Audio...*\n${loader}`,
+            text: "", // Required for some baileys versions when editing image captions
+          });
+        }
+      })();
     } catch (e) {
       console.log("Failed to send preview image:", e);
     }
