@@ -390,6 +390,26 @@ async function startXeonBotInc() {
 
       const isAntiCallEnabled = await getAntiCall();
 
+      // Disk usage logic for start message
+      let usedDisk = 0;
+      try {
+        const getDirSize = (dirPath) => {
+          let size = 0;
+          const files = fs.readdirSync(dirPath);
+          for (const file of files) {
+            try {
+              const filePath = path.join(dirPath, file);
+              const stats = fs.statSync(filePath);
+              if (stats.isDirectory()) size += getDirSize(filePath);
+              else size += stats.size;
+            } catch (e) {}
+          }
+          return size;
+        };
+        usedDisk = getDirSize(process.cwd()) / 1024 / 1024;
+      } catch (e) {}
+      const diskStr = `${Math.round(usedDisk)}MB`;
+
       const pluginList = [
         `🔌 *Auto Status View:* ${settings.featureToggles.AUTO_STATUS_VIEW}`,
         `🔌 *Always Online:* ${
@@ -401,18 +421,20 @@ async function startXeonBotInc() {
         `🔌 *Auto Reaction:* ${isAutoReactGlobal ? "On" : "Off"}`,
         `🔌 *Ranking:* ${isRankGlobal ? "On" : "Off"}`,
         `🔌 *Anti-Call:* ${isAntiCallEnabled ? "On" : "Off"}`,
+        `🔌 *Auto Read:* ${settings.featureToggles.SEND_READ ? "On" : "Off"}`,
+        `🔌 *Private Mode:* ${
+          settings.featureToggles.PERSONAL_MESSAGE ? "On" : "Off"
+        }`,
       ].join("\n");
 
       if (!settings.featureToggles.DISABLE_START_MESSAGE) {
         const uptime = process.uptime();
         const startMsg = `
-    ╭─❒ 🚀 *SYSTEM ONLINE* ❒
+    ╭─❒ 🤖 *SAMKIEL BOT* ❒
     │
-    │ 🤖 *Bot:* ${global.botname || "SAMKIEL BOT"}
-    │ 🟢 *Status:* Operational
     │ 📌 *Prefix:* ${p}
-    │ 🖥️ *Platform:* ${process.platform}
-    │ 🧠 *Ram:* ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)} MB
+    │ 🧠 *RAM:* ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)} MB
+    │ 💾 *Disk:* ${diskStr}
     │ ⏰ *Time:* ${new Date().toLocaleTimeString()}
     │
     │ 🔌 *Active Plugins:*
@@ -420,13 +442,9 @@ async function startXeonBotInc() {
     │
     ╰──────────────────❒
     
-    ╭─❒ 🌐 *COMMUNITY* ❒
-    │ Join our official group for updates,
-    │ support, and new features!
-    │
-    │ 🔗 *Link:*
-    │ https://chat.whatsapp.com/Jgrc79greN63Omt5T7LTzs
-    ╰──────────────────❒`;
+    🌐 *COMMUNITY*
+    Join our official group for updates, support and new features!
+    https://chat.whatsapp.com/Jgrc79greN63Omt5T7LTzs`;
 
         await XeonBotInc.sendMessage(botNumber, {
           text: startMsg,
