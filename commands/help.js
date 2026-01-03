@@ -31,7 +31,7 @@ async function helpCommand(sock, chatId, senderId, pushName, commandName) {
 │ ${info.description}
 │
 │ 🚀 *Usage:* 
-│ \`${info.usage.replace(".", p)}\`
+│ \`${p}${info.usage}\`
 │
 │ 📁 *Category:* ${info.category}
 │
