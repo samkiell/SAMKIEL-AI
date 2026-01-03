@@ -30,6 +30,12 @@ async function pluginCommand(sock, chatId, message) {
       settings.featureToggles.ALWAYS_ONLINE ? "On" : "Off"
     }`,
     `🔌 *Anti Delete:* ${settings.featureToggles.ANTI_DELETE ? "On" : "Off"}`,
+    `🔌 *Auto Read (Blue Tick):* ${
+      settings.featureToggles.SEND_READ ? "On" : "Off"
+    }`,
+    `🔌 *Private Mode (DM Only):* ${
+      settings.featureToggles.PERSONAL_MESSAGE ? "On" : "Off"
+    }`,
     `🔌 *Auto Reaction:* ${isAutoReactGlobal ? "On" : "Off"}`,
     `🔌 *Ranking:* ${isRankGlobal ? "On" : "Off"}`,
     `🔌 *Anti-Call:* ${isAntiCallEnabled ? "On" : "Off"}`,

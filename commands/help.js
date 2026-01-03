@@ -68,21 +68,31 @@ No detailed description available for this command yet, but you can use it with:
   let usedDisk = 0;
   try {
     const getDirSize = (dirPath) => {
-      const files = fs.readdirSync(dirPath);
       let size = 0;
-      for (const file of files) {
-        const filePath = path.join(dirPath, file);
-        const stats = fs.statSync(filePath);
-        if (stats.isDirectory()) {
-          size += getDirSize(filePath);
-        } else {
-          size += stats.size;
+      try {
+        const files = fs.readdirSync(dirPath);
+        for (const file of files) {
+          try {
+            const filePath = path.join(dirPath, file);
+            const stats = fs.statSync(filePath);
+            if (stats.isDirectory()) {
+              size += getDirSize(filePath);
+            } else {
+              size += stats.size;
+            }
+          } catch (e) {
+            // Ignore individual file access errors
+          }
         }
+      } catch (e) {
+        // Ignore directory access errors
       }
       return size;
     };
     usedDisk = getDirSize(process.cwd()) / 1024 / 1024;
-  } catch (e) {}
+  } catch (e) {
+    console.error("Help Command Disk Calc Error:", e);
+  }
   const totalDisk = 500; // Bot limit
   const diskStr = `${Math.round(usedDisk)}MB / ${totalDisk}MB`;
 

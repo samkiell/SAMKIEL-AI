@@ -1,4 +1,6 @@
 const os = require("os");
+const fs = require("fs");
+const path = require("path");
 const settings = require("../settings.js");
 const { performance } = require("perf_hooks");
 
@@ -70,21 +72,31 @@ async function pingCommand(sock, chatId, message) {
     let usedDisk = 0;
     try {
       const getDirSize = (dirPath) => {
-        const files = fs.readdirSync(dirPath);
         let size = 0;
-        for (const file of files) {
-          const filePath = path.join(dirPath, file);
-          const stats = fs.statSync(filePath);
-          if (stats.isDirectory()) {
-            size += getDirSize(filePath);
-          } else {
-            size += stats.size;
+        try {
+          const files = fs.readdirSync(dirPath);
+          for (const file of files) {
+            try {
+              const filePath = path.join(dirPath, file);
+              const stats = fs.statSync(filePath);
+              if (stats.isDirectory()) {
+                size += getDirSize(filePath);
+              } else {
+                size += stats.size;
+              }
+            } catch (e) {
+              // Ignore individual file permission errors
+            }
           }
+        } catch (e) {
+          // Ignore directory access errors
         }
         return size;
       };
       usedDisk = getDirSize(process.cwd()) / 1024 / 1024;
-    } catch (e) {}
+    } catch (e) {
+      console.error("Disk Calc Error:", e);
+    }
     const totalDiskLimit = 500;
     const diskStr = `${Math.round(usedDisk)}MB / ${totalDiskLimit}MB`;
 
