@@ -16,9 +16,32 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   const uptime = formatUptime(process.uptime());
   const currentPrefix = loadPrefix();
 
+  // Memory logic: RSS usage vs 300MB limit
   const usedMemory = process.memoryUsage().rss / 1024 / 1024;
-  const totalMemory = os.totalmem() / 1024 / 1024;
-  const memStr = `${Math.round(usedMemory)}MB / ${Math.round(totalMemory)}MB`;
+  const totalMemory = 300; // Bot limit
+  const memStr = `${Math.round(usedMemory)}MB / ${totalMemory}MB`;
+
+  // Directory size logic (Disk): Current folder vs 500MB limit
+  let usedDisk = 0;
+  try {
+    const getDirSize = (dirPath) => {
+      const files = fs.readdirSync(dirPath);
+      let size = 0;
+      for (const file of files) {
+        const filePath = path.join(dirPath, file);
+        const stats = fs.statSync(filePath);
+        if (stats.isDirectory()) {
+          size += getDirSize(filePath);
+        } else {
+          size += stats.size;
+        }
+      }
+      return size;
+    };
+    usedDisk = getDirSize(process.cwd()) / 1024 / 1024;
+  } catch (e) {}
+  const totalDisk = 500; // Bot limit
+  const diskStr = `${Math.round(usedDisk)}MB / ${totalDisk}MB`;
 
   const commandsDir = path.join(__dirname, "../commands");
   const totalCommands = fs.existsSync(commandsDir)
@@ -30,6 +53,7 @@ async function helpCommand(sock, chatId, senderId, pushName) {
   const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
 │ ⏱️ *Uptime:* ${uptime}
 │ 🧠 *Memory:* ${memStr}
+│ 💾 *Disk:* ${diskStr}
 │ 👤 *User:* ${pushName || "User"}
 │ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
 │ ⚙️ *Commands:* ${totalCommands}

@@ -60,16 +60,43 @@ async function pingCommand(sock, chatId, message) {
     const end = performance.now();
     const ping = (end - start).toFixed(2);
     const uptime = formatTime(process.uptime());
-    const ramUsage = formatBytes(process.memoryUsage().rss);
-    const totalMem = formatBytes(os.totalmem());
+
+    // Memory logic: RSS usage vs 300MB limit
+    const usedMemory = process.memoryUsage().rss / 1024 / 1024;
+    const totalMemoryLimit = 300;
+    const ramStr = `${Math.round(usedMemory)}MB / ${totalMemoryLimit}MB`;
+
+    // Directory size logic (Disk): Current folder vs 500MB limit
+    let usedDisk = 0;
+    try {
+      const getDirSize = (dirPath) => {
+        const files = fs.readdirSync(dirPath);
+        let size = 0;
+        for (const file of files) {
+          const filePath = path.join(dirPath, file);
+          const stats = fs.statSync(filePath);
+          if (stats.isDirectory()) {
+            size += getDirSize(filePath);
+          } else {
+            size += stats.size;
+          }
+        }
+        return size;
+      };
+      usedDisk = getDirSize(process.cwd()) / 1024 / 1024;
+    } catch (e) {}
+    const totalDiskLimit = 500;
+    const diskStr = `${Math.round(usedDisk)}MB / ${totalDiskLimit}MB`;
+
     const platform = os.platform();
 
     const finalMessage = `
-┏━━〔 🤖 *𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋* 〕━━┓
+┏━━〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕━━┓
 ┃
 ┃ 🚀 *Speed*    : ${ping} ms
 ┃ ⏱️ *Uptime*   : ${uptime}
-┃ 💻 *RAM*      : ${ramUsage} / ${totalMem}
+┃ 🧠 *RAM*      : ${ramStr}
+┃ 💾 *Disk*     : ${diskStr}
 ┃ 🖥️ *Platform* : ${platform}
 ┃ 🏷️ *Version*  : v${settings.version}
 ┃
