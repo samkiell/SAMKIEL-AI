@@ -182,18 +182,44 @@ async function videoCommand(sock, chatId, message) {
       }
     }
 
-    // Send thumbnail/status
+    // Send thumbnail/status with animation
+    let key;
     try {
       const captionTitle = videoTitle || searchQuery;
-      await sock.sendMessage(
+      const initialMsg = await sock.sendMessage(
         chatId,
         {
           image: { url: videoThumbnail || "https://i.imgur.com/3Uq8b1L.jpeg" }, // Fallback image if no thumb
-          caption: `*${captionTitle}*\n\n🔍 Found! Downloading video...`,
+          caption: `*${captionTitle}*\n\n⏳ Found! Downloading video... 0%`,
           ...global.channelInfo,
         },
         { quoted: message }
       );
+      key = initialMsg.key;
+
+      const loaders = [
+        "⬜⬜⬜⬜⬜ 0%",
+        "🟩⬜⬜⬜⬜ 20%",
+        "🟩🟩⬜⬜⬜ 40%",
+        "🟩🟩🟩⬜⬜ 60%",
+        "🟩🟩🟩🟩⬜ 80%",
+        "🟩🟩🟩🟩🟩 100%",
+      ];
+
+      (async () => {
+        for (const loader of loaders) {
+          await new Promise((r) => setTimeout(r, 1500));
+          // Only edit if key exists
+          if (key) {
+            await sock.sendMessage(chatId, {
+              edit: key,
+              caption: `*${captionTitle}*\n\n⏳ Found! Downloading video...\n${loader}`,
+              text: "",
+              ...global.channelInfo,
+            });
+          }
+        }
+      })();
     } catch (e) {
       console.log("Thumb send error (non-fatal):", e.message);
     }
