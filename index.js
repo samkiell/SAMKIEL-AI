@@ -209,17 +209,29 @@ async function startXeonBotInc() {
     try {
       const mek = chatUpdate.messages[0];
       if (!mek.message) return;
+
+      console.log(
+        `[DEBUG_INDEX] Received message: ID=${mek.key.id}, RemoteJid=${mek.key.remoteJid}, FromMe=${mek.key.fromMe}`
+      );
+
       mek.message =
         Object.keys(mek.message)[0] === "ephemeralMessage"
           ? mek.message.ephemeralMessage.message
           : mek.message;
+
       if (mek.key && mek.key.remoteJid === "status@broadcast") {
         await handleStatus(XeonBotInc, chatUpdate);
         return;
       }
-      // if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === "notify") return;
-      if (mek.key.id.startsWith("BAE5") && mek.key.id.length === 16) return;
 
+      // if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === "notify") return;
+
+      if (mek.key.id.startsWith("BAE5") && mek.key.id.length === 16) {
+        console.log("[DEBUG_INDEX] Ignored BAE5 message");
+        return;
+      }
+
+      console.log("[DEBUG_INDEX] Passing message to handleMessages");
       try {
         await handleMessages(XeonBotInc, chatUpdate, true);
       } catch (err) {
