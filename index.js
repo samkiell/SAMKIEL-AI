@@ -217,8 +217,7 @@ async function startXeonBotInc() {
         await handleStatus(XeonBotInc, chatUpdate);
         return;
       }
-      if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === "notify")
-        return;
+      // if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === "notify") return;
       if (mek.key.id.startsWith("BAE5") && mek.key.id.length === 16) return;
 
       try {
@@ -302,7 +301,16 @@ async function startXeonBotInc() {
     );
   };
 
-  XeonBotInc.public = true;
+  try {
+    if (fs.existsSync("./data/mode.json")) {
+      const mode = JSON.parse(fs.readFileSync("./data/mode.json"));
+      XeonBotInc.public = mode.isPublic;
+    } else {
+      XeonBotInc.public = settings.featureToggles.COMMAND_MODE === "public";
+    }
+  } catch (e) {
+    XeonBotInc.public = settings.featureToggles.COMMAND_MODE === "public";
+  }
 
   XeonBotInc.serializeM = (m) => smsg(XeonBotInc, m, store);
 
