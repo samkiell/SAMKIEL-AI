@@ -40,10 +40,46 @@ async function aiCommand(sock, chatId, message) {
     }
 
     try {
-      // Show processing message
-      await sock.sendMessage(chatId, {
-        react: { text: "🤖", key: message.key },
-      });
+      // Show processing message with animation
+      const initialMsg = await sock.sendMessage(
+        chatId,
+        {
+          text: "🧠 Thinking...",
+        },
+        { quoted: message }
+      );
+      const key = initialMsg.key;
+
+      const loaders = [
+        "⬜⬜⬜⬜⬜ 0%",
+        "🟩⬜⬜⬜⬜ 20%",
+        "🟩🟩⬜⬜⬜ 40%",
+        "🟩🟩🟩⬜⬜ 60%",
+        "🟩🟩🟩🟩⬜ 80%",
+        "🟩🟩🟩🟩🟩 100%",
+      ];
+
+      let loading = true;
+      const animateLoading = async () => {
+        while (loading) {
+          for (const loader of loaders) {
+            if (!loading) break;
+            await new Promise((r) => setTimeout(r, 600));
+            await sock.sendMessage(chatId, {
+              text: `🧠 Thinking...\n${loader}`,
+              edit: key,
+            });
+          }
+        }
+      };
+      const animationPromise = animateLoading();
+
+      // Helper to stop animation
+      const stopAnimation = async () => {
+        loading = false;
+        await animationPromise; // Wait for loop to exit
+        await sock.sendMessage(chatId, { delete: key }).catch(() => {});
+      };
 
       const userId = message.key.participant || message.key.remoteJid;
       appendMessage(userId, "user", query);
