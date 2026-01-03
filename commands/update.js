@@ -371,6 +371,60 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     // Actually the main handler passes arguments strangely.
     // Assuming if zipOverride string allows arguments.
 
+    if (isForce) {
+      console.log(
+        "[UPDATE] Force sync requested. Resetting data files to settings.js defaults..."
+      );
+      const settings = require("../settings");
+
+      // Sync Prefix
+      const { savePrefix } = require("../lib/prefix");
+      savePrefix(settings.prefix || ".");
+
+      // Sync Anti-Delete
+      const antiDeletePath = path.join(process.cwd(), "data/antiDelete.json");
+      if (fs.existsSync(antiDeletePath)) {
+        const adConfig = JSON.parse(fs.readFileSync(antiDeletePath, "utf8"));
+        adConfig.enabled = settings.featureToggles.ANTI_DELETE ?? false;
+        adConfig.mode = settings.featureToggles.ANTI_DELETE_TYPE || "group";
+        fs.writeFileSync(antiDeletePath, JSON.stringify(adConfig, null, 2));
+      }
+
+      // Sync Auto Status
+      const autoStatusPath = path.join(process.cwd(), "data/autoStatus.json");
+      if (fs.existsSync(autoStatusPath)) {
+        const asConfig = JSON.parse(fs.readFileSync(autoStatusPath, "utf8"));
+        asConfig.enabled = settings.featureToggles.AUTO_STATUS_VIEW !== "off";
+        asConfig.reactOn =
+          settings.featureToggles.ENABLE_STATUS_REACTION ?? false;
+        asConfig.emoji = settings.featureToggles.STATUS_VIEW_EMOJI || "👀";
+        asConfig.msgEnabled = settings.featureToggles.STATUS_VIEW_MSG === "on";
+        fs.writeFileSync(autoStatusPath, JSON.stringify(asConfig, null, 2));
+      }
+
+      // Sync Ranking
+      const rankPath = path.join(process.cwd(), "data/rankConfig.json");
+      if (fs.existsSync(rankPath)) {
+        const rankConfig = JSON.parse(fs.readFileSync(rankPath, "utf8"));
+        rankConfig.global = settings.featureToggles.RANKING ?? false;
+        fs.writeFileSync(rankPath, JSON.stringify(rankConfig, null, 2));
+      }
+
+      // Sync Auto-Reaction and Anti-Call
+      const userDataPath = path.join(process.cwd(), "data/userGroupData.json");
+      if (fs.existsSync(userDataPath)) {
+        const userData = JSON.parse(fs.readFileSync(userDataPath, "utf8"));
+        userData.autoReaction = settings.featureToggles.AUTO_REACTION ?? false;
+        if (!userData.anticall) userData.anticall = {};
+        userData.anticall["global"] = {
+          enabled: settings.featureToggles.REJECT_CALL ?? false,
+        };
+        fs.writeFileSync(userDataPath, JSON.stringify(userData, null, 2));
+      }
+
+      console.log("[UPDATE] Force sync completed.");
+    }
+
     if (hasGit) {
       const { oldRev, newRev, alreadyUpToDate, commits, files } =
         await updateViaGit();
@@ -385,7 +439,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
             text: `✅ *Already up to date* \nCurrent Version: \`${newRev.substring(
               0,
               7
-            )}\`\n\nUse \`${p}update --force\` to reinstall anyway.`,
+            )}\`\n\nUse \`${p}update --force\` to reinstall and sync settings anyway.`,
             ...global.channelInfo,
           },
           { quoted: message }
@@ -398,7 +452,9 @@ async function updateCommand(sock, chatId, message, zipOverride) {
       // So falling through here is correct for "force" behavior in git mode too.
 
       // Format Git Report
-      updateReport += `✅ *Update Completed Successfully!* \n\n`;
+      updateReport += `✅ *Update Completed Successfully!* ${
+        isForce ? "(Settings Synced)" : ""
+      }\n\n`;
       updateReport += `🚀 *Version:* \`${oldRev.substring(
         0,
         7
@@ -454,7 +510,9 @@ async function updateCommand(sock, chatId, message, zipOverride) {
       }
 
       // Format Zip Report
-      updateReport += `✅ *Update Installed Successfully* \n\n`; // Simplified title
+      updateReport += `✅ *Update Installed Successfully* ${
+        isForce ? "(Settings Synced)" : ""
+      }\n\n`; // Simplified title
 
       if (commitMsg) {
         updateReport += `📝 *Latest Commit:*\n${commitMsg}\n`;
