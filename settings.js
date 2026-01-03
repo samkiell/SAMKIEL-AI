@@ -24,12 +24,12 @@ const settings = {
   // --- FEATURE TOGGLES ---
   featureToggles: {
     // ⚠️ CRITICAL: LOGIC REQUIRES STRINGS FOR THESE TWO
-    AUTO_STATUS_VIEW: "off", // "on" | "off" (Boolean FALSE will force this ON)
+    AUTO_STATUS_VIEW: "on", // "on" | "off" (Boolean FALSE will force this ON)
     STATUS_VIEW_MSG: "off", // "on" | "off" (Boolean TRUE will force this OFF)
 
     // Standard Booleans
-    ENABLE_STATUS_REACTION: false, // Boolean
-    ANTI_DELETE: false, // Boolean
+    ENABLE_STATUS_REACTION: true, // Boolean
+    ANTI_DELETE: true, // Boolean
     SEND_READ: false, // Boolean (Blue ticks)
     ALWAYS_ONLINE: true, // Boolean
     REJECT_CALL: false, // Boolean
