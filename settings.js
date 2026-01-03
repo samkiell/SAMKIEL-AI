@@ -1,12 +1,12 @@
-const botName = "sonia";
+const botName = "SAMKIEL BOT";
 
 const settings = {
   // Core Foundationn
   botName: botName,
   prefix: ".",
-  botNumber: "1111111111111",
+  botNumber: " ",
   ownerNumber: "2348087357158",
-  ownerName: "Admin 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
+  ownerName: "SAMKIEL",
   developer: "ѕαмкιєℓ.∂єν",
   portfolio: "https://samkiel.dev",
   website: "https://samkielbot.app",
