@@ -1,9 +1,29 @@
 require("./settings");
 const { Boom } = require("@hapi/boom");
 const fs = require("fs");
+const path = require("path");
+const settings = require("./settings");
+
+// --- BOOTSTRAP: Ensure Data Directory & Critical Files Exist ---
+const DATA_DIR = path.join(__dirname, "data");
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Preserve/Create owner.json
+const ownerPath = path.join(DATA_DIR, "owner.json");
+if (!fs.existsSync(ownerPath)) {
+  const defaultOwnerData = {
+    superOwner: [settings.ownerNumber],
+    owners: [],
+  };
+  fs.writeFileSync(ownerPath, JSON.stringify(defaultOwnerData, null, 2));
+}
+// -------------------------------------------------------------
+
 const chalk = require("chalk");
 const FileType = require("file-type");
-const path = require("path");
+// path already required above
 const axios = require("axios");
 const {
   handleMessages,
@@ -123,7 +143,8 @@ const store = {
 };
 
 let phoneNumber = "2348087357158";
-let owner = JSON.parse(fs.readFileSync("./data/owner.json"));
+// owner.json is loaded dynamically where needed or handled by main.js
+// let owner = ... removed to prevent crash
 
 global.botname = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
 global.themeemoji = "•";

@@ -192,7 +192,20 @@ const channelInfo = {
 };
 global.channelInfo = channelInfo;
 const { jidNormalizedUser } = require("@whiskeysockets/baileys");
-const ownerData = JSON.parse(fs.readFileSync("./data/owner.json"));
+// Safely load owner data
+let ownerData;
+try {
+  if (fs.existsSync("./data/owner.json")) {
+    ownerData = JSON.parse(fs.readFileSync("./data/owner.json"));
+  } else {
+    throw new Error("File not found");
+  }
+} catch (e) {
+  ownerData = {
+    superOwner: [settings.ownerNumber],
+    owners: [],
+  };
+}
 const rawOwners = [
   ...(Array.isArray(ownerData.superOwner)
     ? ownerData.superOwner
