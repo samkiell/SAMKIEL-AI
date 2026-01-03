@@ -1,7 +1,7 @@
 const botName = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
 
 const settings = {
-  // Core Foundation
+  // Core Foundationn
   botName: botName,
   prefix: ".",
   botNumber: "",
