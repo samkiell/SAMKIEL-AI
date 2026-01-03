@@ -585,11 +585,14 @@ You can explore all available commands below 👇`,
         const args = userMessage.trim().split(/\s+/).slice(1);
         await anticallCommand(sock, chatId, message, args);
         break;
-      case command === "help" ||
-        command === "menu" ||
-        command === "bot" ||
-        command === "list":
-        await helpCommand(sock, chatId, senderId, message.pushName);
+      case command.startsWith("help") ||
+        command.startsWith("menu") ||
+        command.startsWith("bot") ||
+        command.startsWith("list"):
+        {
+          const helpArgs = command.split(/\s+/).slice(1).join(" ");
+          await helpCommand(sock, chatId, senderId, message.pushName, helpArgs);
+        }
         break;
       case command === "channel":
         await channelCommand(sock, chatId, message);
