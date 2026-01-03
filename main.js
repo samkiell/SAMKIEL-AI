@@ -170,6 +170,7 @@ const pluginCommand = require("./commands/plugin");
 const saveStatusCommand = require("./commands/savestatus");
 const pdfCommand = require("./commands/pdf");
 const autoReadCommand = require("./commands/autoread");
+const toggleStartMsgCommand = require("./commands/togglestart");
 
 // Global settings
 global.packname = settings.featureToggles.PACKNAME;
@@ -1418,6 +1419,13 @@ You can explore all available commands below 👇`,
       case command.startsWith("autoread"):
         if (await isOwner(senderId)) {
           await autoReadCommand(sock, chatId, message);
+        } else {
+          await sock.sendMessage(chatId, { text: "❌ Owner only command!" });
+        }
+        break;
+      case command.startsWith("togglestart"):
+        if (await isOwner(senderId)) {
+          await toggleStartMsgCommand(sock, chatId, message);
         } else {
           await sock.sendMessage(chatId, { text: "❌ Owner only command!" });
         }
