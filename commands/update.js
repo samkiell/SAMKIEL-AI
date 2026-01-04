@@ -28,7 +28,7 @@ async function hasGitRepo() {
   }
 }
 
-async function updateViaGit() {
+async function updateViaGit(isForce = false) {
   // Safe-guard: Ensure we are fetching from the correct source
   try {
     await run(
@@ -40,9 +40,14 @@ async function updateViaGit() {
     await run("git rev-parse HEAD").catch(() => "unknown")
   ).trim();
 
-  // 1. Fetch explicitly from origin main
-  console.log("➡️ [UPDATE] Fetching origin main...");
-  await run("git fetch origin main");
+  // 1. Fetch
+  if (isForce) {
+    console.log("➡️ [UPDATE] Force update detected. Fetching all...");
+    await run("git fetch --all --prune");
+  } else {
+    console.log("➡️ [UPDATE] Fetching origin main...");
+    await run("git fetch origin main");
+  }
 
   // 2. Identify the target commit
   const newRev = (await run("git rev-parse origin/main")).trim();
@@ -50,29 +55,47 @@ async function updateViaGit() {
 
   const alreadyUpToDate = oldRev === newRev;
 
-  // 3. Force switch to main branch and reset
-  console.log("➡️ [UPDATE] Resetting to origin/main...");
-  await run("git checkout -B main origin/main");
-  await run(`git reset --hard ${newRev}`);
-
-  const commits = alreadyUpToDate
-    ? ""
-    : await run(
-        `git log --pretty=format:"%h %s (%an)" ${oldRev}..${newRev}`
-      ).catch(() => "");
-  const files = alreadyUpToDate
-    ? ""
-    : await run(`git diff --name-status ${oldRev} ${newRev}`).catch(() => "");
-
-  try {
-    await run("git clean -fd -e data -e session -e .env");
-  } catch (e) {
-    console.log(
-      "Warning: git clean failed, possibly due to locked files:",
-      e.message
-    );
+  // 3. Check for early exit (only if NOT forced)
+  if (!isForce && alreadyUpToDate) {
+    return { oldRev, newRev, alreadyUpToDate: true };
   }
-  return { oldRev, newRev, alreadyUpToDate, commits, files };
+
+  // 4. Reset & Clean Logic
+  console.log("➡️ [UPDATE] Resetting to origin/main...");
+
+  if (isForce) {
+    // FORCE: Destructive reset as requested
+    await run("git reset --hard origin/main");
+    try {
+      await run("git clean -fd");
+    } catch (e) {
+      console.log("Warning: git clean failed:", e.message);
+    }
+  } else {
+    // NORMAL: Update safely
+    await run("git checkout -B main origin/main");
+    await run(`git reset --hard ${newRev}`);
+    try {
+      // Preserve data/session/.env in normal updates
+      await run("git clean -fd -e data -e session -e .env");
+    } catch (e) {
+      console.log("Warning: git clean failed:", e.message);
+    }
+  }
+
+  const commits =
+    alreadyUpToDate && isForce
+      ? ""
+      : await run(
+          `git log --pretty=format:"%h %s (%an)" ${oldRev}..${newRev}`
+        ).catch(() => "");
+  const files =
+    alreadyUpToDate && isForce
+      ? ""
+      : await run(`git diff --name-status ${oldRev} ${newRev}`).catch(() => "");
+
+  // Return alreadyUpToDate: false so the caller knows we performed an action (reinstall/update)
+  return { oldRev, newRev, alreadyUpToDate: false, commits, files };
 }
 
 function getGithubParams(zipUrl) {
@@ -438,7 +461,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     if (hasGit) {
       // 3. Run Git Update
       const { oldRev, newRev, alreadyUpToDate, commits, files } =
-        await updateViaGit();
+        await updateViaGit(isForce);
 
       // 4. Handle Results
       if (alreadyUpToDate && !isForce) {
