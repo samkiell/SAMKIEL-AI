@@ -27,14 +27,6 @@ async function tagCommand(sock, chatId, senderId, messageText, replyMessage) {
   const isCreator = await isOwner(senderId);
   const isSuper = isSuperOwner(senderId);
 
-  if (!isBotAdmin && !isSuper) {
-    await sock.sendMessage(chatId, {
-      text: "Please make the bot an admin first.",
-      ...global.channelInfo,
-    });
-    return;
-  }
-
   if (!isSenderAdmin && !isCreator && !isSuper) {
     const stickerPath = "./assets/sticktag.webp";
     if (fs.existsSync(stickerPath)) {

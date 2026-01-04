@@ -239,9 +239,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
     // Handle PERSONAL_MESSAGE feature (Private Chat Only)
     if (settings.featureToggles.PERSONAL_MESSAGE && isGroup) {
-      console.log(
-        `[DEBUG_MAIN] Ignored due to PERSONAL_MESSAGE toggle. IsGroup=${isGroup}`
-      );
       return;
     }
 
@@ -276,10 +273,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
     const currentPrefix = loadPrefix();
     const p = currentPrefix === "off" ? "" : currentPrefix;
 
-    console.log(
-      `[DEBUG_MAIN] Prefix="${currentPrefix}", UserMessage="${userMessage}"`
-    );
-
     // Get command without prefix
     const command = getCommand(userMessage);
 
@@ -301,17 +294,14 @@ async function handleMessages(sock, messageUpdate, printLog) {
           await addCommandReaction(sock, message, command);
         } catch (e) {}
       } else {
-        console.log(
-          `[DEBUG_MAIN] Command "${command}" not found in VALID_COMMANDS.`
-        );
+        // Log suppressed
       }
     } else {
-      console.log(`[DEBUG_MAIN] isCommand returned false for "${userMessage}"`);
+      // Log suppressed
     }
 
     // Check if bot is disabled in this chat
     if (isBotDisabled(chatId) && command !== "enablebot") {
-      console.log(`[DEBUG_MAIN] Bot is disabled in this chat: ${chatId}`);
       return;
     }
     if (isBanned(senderId) && command !== "unban") {
@@ -337,10 +327,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
         );
       }
       modeData = JSON.parse(fs.readFileSync("./data/mode.json"));
-      console.log(`[DEBUG_MAIN] Mode loaded: ${JSON.stringify(modeData)}`);
     } catch {
       modeData = { isPublic: true };
-      console.log(`[DEBUG_MAIN] Mode failed to load, defaulted to public.`);
     }
 
     // Enforce Private Mode
@@ -348,9 +336,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
     const isOwnerUser = (await isOwner(senderId)) || message.key.fromMe;
 
     if (!modeData.isPublic && !isOwnerUser) {
-      console.log(
-        `[DEBUG_MAIN] Private Mode Active. Ignored non-owner: ${senderId}`
-      );
       return;
     }
 
