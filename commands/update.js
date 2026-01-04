@@ -353,8 +353,23 @@ async function restartProcess(sock, chatId, message) {
 
 async function updateCommand(sock, chatId, message, zipOverride) {
   try {
+    // 1. Parsing and Robust isForce Detection
+    const rawText =
+      message.message?.conversation ||
+      message.message?.extendedTextMessage?.text ||
+      "";
+    const lowerText = rawText.toLowerCase();
+    const isForce =
+      lowerText.includes("--force") ||
+      lowerText.includes("-f") ||
+      lowerText.includes(" force");
+
+    console.log(`[UPDATE] Force Enabled: ${isForce}`);
+
     // Check if update is possible
     const hasGit = await hasGitRepo();
+
+    // Fallback logic for zipUrl if git is not used
     const zipOverrideStr = typeof zipOverride === "string" ? zipOverride : "";
     const hasZipUrl = (
       (zipOverrideStr.startsWith("http") ? zipOverrideStr : "") ||
@@ -367,7 +382,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
       await sock.sendMessage(
         chatId,
         {
-          text: '❌ Update not configured!\n\nTo enable updates:\n• Set up a Git repository, OR\n• Configure updateZipUrl in settings.js, OR\n• Set UPDATE_ZIP_URL environment variable\n\nExample: updateZipUrl: "https://example.com/bot-update.zip"',
+          text: "❌ Update not configured!\n\nTo enable updates:\n• Set up a Git repository, OR\n• Configure updateZipUrl in settings.js, OR\n• Set UPDATE_ZIP_URL environment variable",
           ...global.channelInfo,
         },
         { quoted: message }
@@ -375,91 +390,64 @@ async function updateCommand(sock, chatId, message, zipOverride) {
       return;
     }
 
-    // Minimal UX
+    // UX: Notify user
     await sock.sendMessage(
       chatId,
-      { text: "🔄 Updating the bot, please wait…", ...global.channelInfo },
+      {
+        text: isForce
+          ? "🔄 Force-updating from main branch..."
+          : "🔄 Checking for updates...",
+        ...global.channelInfo,
+      },
       { quoted: message }
     );
 
     let updateReport = "";
 
-    const isForce =
-      typeof zipOverride === "string" && zipOverride.includes("force");
-    console.log(`[UPDATE] isForce: ${isForce}`);
-    // Also check if user typed "--force" in the command message, currently passed as zipOverride if typed manually
-    // Actually the main handler passes arguments strangely.
-    // Assuming if zipOverride string allows arguments.
-
+    // 2. Perform Special Actions if Force
     if (isForce) {
       console.log(
-        "[UPDATE] Force sync requested. Resetting data files to settings.js defaults..."
+        "[UPDATE] Force sync requested. Resetting config defaults..."
       );
-      const settings = require("../settings");
+      try {
+        const settings = require("../settings");
+        // Sync Prefix
+        const { savePrefix } = require("../lib/prefix");
+        savePrefix(settings.prefix || ".");
 
-      // Sync Prefix
-      const { savePrefix } = require("../lib/prefix");
-      savePrefix(settings.prefix || ".");
+        // Sync Anti-Delete
+        const antiDeletePath = path.join(process.cwd(), "data/antiDelete.json");
+        if (fs.existsSync(antiDeletePath)) {
+          try {
+            fs.unlinkSync(antiDeletePath);
+          } catch {}
+        }
 
-      // Sync Anti-Delete
-      const antiDeletePath = path.join(process.cwd(), "data/antiDelete.json");
-      if (fs.existsSync(antiDeletePath)) {
-        const adConfig = JSON.parse(fs.readFileSync(antiDeletePath, "utf8"));
-        adConfig.enabled = settings.featureToggles.ANTI_DELETE ?? false;
-        adConfig.mode = settings.featureToggles.ANTI_DELETE_TYPE || "group";
-        fs.writeFileSync(antiDeletePath, JSON.stringify(adConfig, null, 2));
+        // Sync Auto Status
+        const autoStatusPath = path.join(process.cwd(), "data/autoStatus.json");
+        if (fs.existsSync(autoStatusPath)) {
+          try {
+            fs.unlinkSync(autoStatusPath);
+          } catch {}
+        }
+      } catch (e) {
+        console.error("Force config reset error:", e);
       }
-
-      // Sync Auto Status
-      const autoStatusPath = path.join(process.cwd(), "data/autoStatus.json");
-      if (fs.existsSync(autoStatusPath)) {
-        const asConfig = JSON.parse(fs.readFileSync(autoStatusPath, "utf8"));
-        asConfig.enabled = settings.featureToggles.AUTO_STATUS_VIEW !== "off";
-        asConfig.reactOn =
-          settings.featureToggles.ENABLE_STATUS_REACTION ?? false;
-        asConfig.emoji = settings.featureToggles.STATUS_VIEW_EMOJI || "👀";
-        asConfig.msgEnabled = settings.featureToggles.STATUS_VIEW_MSG === "on";
-        fs.writeFileSync(autoStatusPath, JSON.stringify(asConfig, null, 2));
-      }
-
-      // Sync Ranking
-      const rankPath = path.join(process.cwd(), "data/rankConfig.json");
-      if (fs.existsSync(rankPath)) {
-        const rankConfig = JSON.parse(fs.readFileSync(rankPath, "utf8"));
-        rankConfig.global = settings.featureToggles.RANKING ?? false;
-        fs.writeFileSync(rankPath, JSON.stringify(rankConfig, null, 2));
-      }
-
-      // Sync Auto-Reaction and Anti-Call
-      const userDataPath = path.join(process.cwd(), "data/userGroupData.json");
-      if (fs.existsSync(userDataPath)) {
-        const userData = JSON.parse(fs.readFileSync(userDataPath, "utf8"));
-        userData.autoReaction = settings.featureToggles.AUTO_REACTION ?? false;
-        if (!userData.anticall) userData.anticall = {};
-        userData.anticall["global"] = {
-          enabled: settings.featureToggles.REJECT_CALL ?? false,
-        };
-        fs.writeFileSync(userDataPath, JSON.stringify(userData, null, 2));
-      }
-
-      console.log("[UPDATE] Force sync completed.");
     }
 
     if (hasGit) {
+      // 3. Run Git Update
       const { oldRev, newRev, alreadyUpToDate, commits, files } =
         await updateViaGit();
 
+      // 4. Handle Results
       if (alreadyUpToDate && !isForce) {
         const currentPrefix = loadPrefix();
-        const p = currentPrefix === "off" ? "." : currentPrefix; // Default to . if off for instructions? Or empty? "Use update --force". Safest is to use p or dot.
-
+        const p = currentPrefix === "off" ? "." : currentPrefix;
         await sock.sendMessage(
           chatId,
           {
-            text: `✅ *Already up to date* \nCurrent Version: \`${newRev.substring(
-              0,
-              7
-            )}\`\n\nUse \`${p}update --force\` to reinstall and sync settings anyway.`,
+            text: `✅ *Already up to date*\n\nUse \`${p}update --force\` to force reinstall.`,
             ...global.channelInfo,
           },
           { quoted: message }
@@ -467,14 +455,13 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         return;
       }
 
-      // If force, we proceed to report and npm install even if git didn't pull new changes (or maybe we should force reset?)
-      // updateViaGit ALREADY does a hard reset to origin/main. So running it essentially forces the file state to match remote.
-      // So falling through here is correct for "force" behavior in git mode too.
+      // Generate Report
+      if (isForce) {
+        updateReport += `✅ *Force Reinstalled from Main Branch*\n\n`;
+      } else {
+        updateReport += `✅ *Update Completed Successfully!*\n\n`;
+      }
 
-      // Format Git Report
-      updateReport += `✅ *Update Completed Successfully!* ${
-        isForce ? "(Settings Synced)" : ""
-      }\n\n`;
       updateReport += `🚀 *Version:* \`${oldRev.substring(
         0,
         7
@@ -482,78 +469,40 @@ async function updateCommand(sock, chatId, message, zipOverride) {
 
       if (commits) {
         const commitList = commits.split("\n").filter(Boolean);
-        const recentCommits = commitList.slice(0, 5); // Show max 5
-        updateReport += `📝 *Recent Changes:*\n`;
-        updateReport += recentCommits.map((c) => `• ${c}`).join("\n");
+        const recentCommits = commitList.slice(0, 5);
+        updateReport +=
+          `📝 *Recent Changes:*\n` +
+          recentCommits.map((c) => `• ${c}`).join("\n");
         if (commitList.length > 5)
-          updateReport += `\n...and ${commitList.length - 5} more commits`;
+          updateReport += `\n...and ${commitList.length - 5} more`;
         updateReport += `\n\n`;
       }
 
-      if (files) {
-        const fileList = files.split("\n").filter(Boolean);
-        const changedFiles = fileList.slice(0, 5); // Show max 5
-        updateReport += `📂 *Modified Files:*\n`;
-        updateReport += changedFiles.map((f) => `• ${f}`).join("\n");
-        if (fileList.length > 5)
-          updateReport += `\n...and ${fileList.length - 5} more files`;
-      }
-
-      // Silent install
+      // Always reinstall dependencies if force or if changes detected
       await run("npm install --no-audit --no-fund");
     } else {
+      // Zip Fallback
       const { copiedFiles } = await updateViaZip(
         sock,
         chatId,
         message,
-        zipOverride
+        hasZipUrl
       );
-
-      // Try to fetch latest commit info if it's a GitHub URL
-      let commitMsg = null;
-      let commitAuthor = null;
-      try {
-        const repoParams = getGithubParams(hasZipUrl);
-        if (repoParams) {
-          const commitData = await fetchLatestCommit(
-            repoParams.owner,
-            repoParams.repo
-          );
-          if (commitData) {
-            commitMsg = commitData.commit.message;
-            commitAuthor = commitData.commit.author.name;
-          }
-        }
-      } catch (err) {
-        // Ignore API errors, fallback to file count
-        console.log("Failed to fetch commit info:", err.message);
-      }
-
-      // Format Zip Report
-      updateReport += `✅ *Update Installed Successfully* ${
-        isForce ? "(Settings Synced)" : ""
-      }\n\n`; // Simplified title
-
-      if (commitMsg) {
-        updateReport += `📝 *Latest Commit:*\n${commitMsg}\n`;
-        if (commitAuthor) updateReport += `_by ${commitAuthor}_\n`;
-        updateReport += `\n`;
-      }
-
+      updateReport += `✅ *Update Installed Successfully* (Zip)\n\n`;
       updateReport += `📂 *Files Updated:* ${copiedFiles.length}\n`;
-      // Removed the detailed file list to reduce spam as requested
     }
 
-    // Send the detailed report
+    // Send final report
     await sock.sendMessage(
       chatId,
       { text: updateReport, ...global.channelInfo },
       { quoted: message }
     );
 
+    // Restart
     try {
       await sock.sendMessage(chatId, {
-        text: `🔄 Restarting to apply changes...`,
+        text: `🔄 Restarting...`,
         ...global.channelInfo,
       });
     } catch {}
@@ -570,9 +519,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         },
         { quoted: message }
       );
-    } catch (e) {
-      console.warn("Could not send update failure message:", e.message);
-    }
+    } catch (e) {}
   }
 }
 
