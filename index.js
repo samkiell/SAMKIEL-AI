@@ -188,8 +188,8 @@ async function startXeonBotInc() {
         await handleStatus(XeonBotInc, chatUpdate);
         return;
       }
-      if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === "notify")
-        return;
+      // Access control logic moved to main.js handleMessages
+
       if (mek.key.id.startsWith("BAE5") && mek.key.id.length === 16) return;
 
       try {
