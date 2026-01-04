@@ -152,6 +152,7 @@ async function handleMessageRevocation(sock, revocationMessage) {
       config = JSON.parse(fs.readFileSync(configPath));
     }
 
+    // Global toggle check
     if (!config.enabled) return;
 
     const protocolMsg = revocationMessage.message?.protocolMessage;
@@ -162,67 +163,89 @@ async function handleMessageRevocation(sock, revocationMessage) {
 
     if (!original) return;
 
+    // 2. Sender check (Never forward bot's own messages)
+    if (original.key.fromMe) return;
+
     const remoteJid = original.remoteJid;
     const isGroup = remoteJid.endsWith("@g.us");
 
-    // 2. Group Whitelist Check
+    // 3. Group Eligibility Check
     if (isGroup) {
-      // If whitelist is populated, strictly follow it.
-      // If whitelist is empty BUT enabled is true, assume it works everywhere.
-      if (
-        config.allowedGroups.length > 0 &&
-        !config.allowedGroups.includes(remoteJid)
-      ) {
+      if (!config.allowedGroups || config.allowedGroups.length === 0) {
+        // "If allowedGroups is empty, treat anti-delete as disabled for groups"
         return;
       }
-    } else {
-      // For private chats, maybe strict enable? Or just allow all?
-      // User focused on groups. Let's allow private by default if enabled globally?
-      // Or maybe strictly follow "specific to a certain group".
-      // Let's assume private chats are always allowed if globally enabled,
-      // UNLESS user logic was purely group focused.
-      // Usually "anti-delete" on private chat is default behavior for many bots.
-      // Let's keep private chat working if enabled globally.
+      if (!config.allowedGroups.includes(remoteJid)) {
+        return;
+      }
     }
-
-    // 3. Sender check
-    if (original.key.fromMe) return;
 
     const deleter =
       revocationMessage.key.participant || revocationMessage.key.remoteJid;
     const sender = original.participant;
+    const botNumberJid = sock.user.id.split(":")[0] + "@s.whatsapp.net";
+    const ownerNumberJid = settings.ownerNumber + "@s.whatsapp.net";
 
-    console.log(`♻️ Anti-delete triggered for ${targetId} in ${remoteJid}`);
+    let destinations = [];
+    const contextHeader = isGroup ? "Group Chat" : "Private Chat";
 
-    // 4. Determine destination
-    let destJid = remoteJid;
-    let contextHeader = isGroup ? "Group Chat" : "Private Chat";
-
-    // Mode: "dm" -> send to owner
+    // 4. Mode-Based Routing Logic
     if (config.mode === "dm") {
-      destJid = settings.ownerNumber + "@s.whatsapp.net";
-      contextHeader += ` (Forwarded from ${remoteJid})`;
+      // Mode: "dm"
+      // Send to Bot (Self) as Primary Log
+      destinations.push(botNumberJid);
+
+      // Fallback/Secondary: Send to Owner DM (if different from bot)
+      if (ownerNumberJid !== botNumberJid) {
+        destinations.push(ownerNumberJid);
+      }
+
+      // Notes:
+      // - If deleted in Group: Do NOT send to group, do NOT send to user.
+      // - If deleted in Private: Sent to Bot/Owner DM only.
+    } else if (config.mode === "group") {
+      // Mode: "group"
+      if (isGroup) {
+        // Send to Group
+        destinations.push(remoteJid);
+        // Send to Deleter's DM
+        if (deleter) destinations.push(deleter);
+      } else {
+        // If deleted in private chat in "group" mode -> Do nothing
+        return;
+      }
     }
 
-    // 5. Construct Report
+    // Deduplicate destinations
+    destinations = [...new Set(destinations)];
+
+    if (destinations.length === 0) return;
+
+    console.log(
+      `♻️ Anti-delete triggered for ${targetId} in ${remoteJid}. Mode: ${config.mode}`
+    );
+
+    // 5. Construct Report Header
     const header =
       `*🔰 ANTI-DELETE SYSTEM 🔰*\n\n` +
       `*👤 Deleted by:* @${deleter.split("@")[0]}\n` +
       `*👤 Sent by:* @${sender.split("@")[0]}\n` +
       `*🕒 Context:* ${contextHeader}\n` +
+      (isGroup ? `*📍 Group:* ${remoteJid}\n` : "") +
       `━━━━━━━━━━━━━━━━━━━`;
 
-    // 6. Send Header
-    await sock.sendMessage(destJid, {
-      text: header,
-      mentions: [deleter, sender],
-      ...global.channelInfo,
-    });
+    // 6. Send to all destinations
+    for (const dest of destinations) {
+      await sock.sendMessage(dest, {
+        text: header,
+        mentions: [deleter, sender],
+        ...global.channelInfo,
+      });
 
-    // 7. Resend Content
-    await copyNForward(sock, destJid, original, true);
+      await copyNForward(sock, dest, original, true);
+    }
 
-    // 8. Cleanup
+    // 7. Cleanup
     messageStore.delete(targetId);
   } catch (err) {
     console.error("Error in handleMessageRevocation:", err);
