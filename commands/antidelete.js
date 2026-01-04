@@ -226,12 +226,28 @@ async function handleMessageRevocation(sock, revocationMessage) {
     );
 
     // 5. Construct Report Header
+    // 5. Construct Report Header
+    let groupName = "";
+    if (isGroup) {
+      if (destinations.includes(remoteJid)) {
+        // If sending strictly to the group itself, we don't need to fetch metadata (saves API call)
+        // But if sending to DM, we want the name.
+        // Let's just fetch it if we can.
+      }
+      try {
+        const metadata = await sock.groupMetadata(remoteJid);
+        groupName = metadata.subject;
+      } catch {
+        groupName = "Unknown Group";
+      }
+    }
+
     const header =
       `*🔰 ANTI-DELETE SYSTEM 🔰*\n\n` +
       `*👤 Deleted by:* @${deleter.split("@")[0]}\n` +
       `*👤 Sent by:* @${sender.split("@")[0]}\n` +
       `*🕒 Context:* ${contextHeader}\n` +
-      (isGroup ? `*📍 Group:* ${remoteJid}\n` : "") +
+      (isGroup ? `*📍 Group:* ${groupName}\n` : "") +
       `━━━━━━━━━━━━━━━━━━━`;
 
     // 6. Send to all destinations
@@ -239,7 +255,7 @@ async function handleMessageRevocation(sock, revocationMessage) {
       await sock.sendMessage(dest, {
         text: header,
         mentions: [deleter, sender],
-        ...global.channelInfo,
+        // global.channelInfo removed to ensure delivery to DM/Self
       });
 
       await copyNForward(sock, dest, original, true);
