@@ -32,7 +32,8 @@ async function updateViaGit() {
   const oldRev = (
     await run("git rev-parse HEAD").catch(() => "unknown")
   ).trim();
-  await run("git fetch --all --prune");
+  // Force fetch from main branch only
+  await run("git fetch origin main");
   const newRev = (await run("git rev-parse origin/main")).trim();
   const alreadyUpToDate = oldRev === newRev;
   const commits = alreadyUpToDate
