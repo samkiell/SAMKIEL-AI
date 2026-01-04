@@ -350,13 +350,12 @@ async function handleMessages(sock, messageUpdate, printLog) {
     }
 
     // Enforce Private Mode
-    if (
-      !modeData.isPublic &&
-      !message.key.fromMe &&
-      !(await isOwner(senderId))
-    ) {
+    // Strict Owner Check: Owner (from owner.json) OR Bot itself
+    const isOwnerUser = (await isOwner(senderId)) || message.key.fromMe;
+
+    if (!modeData.isPublic && !isOwnerUser) {
       console.log(
-        `[DEBUG_MAIN] Enforcing Private Mode. FromMe=${message.key.fromMe}, Sender=${senderId}`
+        `[DEBUG_MAIN] Private Mode Active. Ignored non-owner: ${senderId}`
       );
       return;
     }
@@ -1193,8 +1192,11 @@ You can explore all available commands below 👇`,
         await stickerTelegramCommand(sock, chatId, message);
         break;
 
-      case command === "deyplay":
-        await viewOnceCommand(sock, chatId, message);
+      case command === "deyplay" || command === "vv":
+        await viewOnceCommand(sock, chatId, message, false);
+        break;
+      case command === "deyplaydm":
+        await viewOnceCommand(sock, chatId, message, true);
         break;
       case command === "clearsession" || command === "clearsesi":
         await clearSessionCommand(sock, chatId, message);
