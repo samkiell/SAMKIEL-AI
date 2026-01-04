@@ -57,7 +57,7 @@ async function playCommand(sock, chatId, message) {
           image: { url: video.thumbnail },
           caption: `*${video.title}*\n\n*Duration:* ${
             video.timestamp
-          }\n*Views:* ${video.views.toLocaleString()}\n\n⏳ *Downloading Audio... 0%*`,
+          }\n*Views:* ${video.views.toLocaleString()}\n\n⏳ *Downloading Audio...*`,
           contextInfo: channelInfo.contextInfo,
         },
         { quoted: message }
