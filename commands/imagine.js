@@ -68,7 +68,9 @@ async function imagineCommand(sock, chatId, message) {
     const stopAnimation = async () => {
       loading = false;
       await animationPromise;
-      await sock.sendMessage(chatId, { delete: key }).catch(() => {});
+      await sock
+        .sendMessage(chatId, { text: "✅ Generated!", edit: key })
+        .catch(() => {});
     };
 
     // Enhance the prompt with quality keywords

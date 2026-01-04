@@ -78,7 +78,9 @@ async function aiCommand(sock, chatId, message) {
       const stopAnimation = async () => {
         loading = false;
         await animationPromise; // Wait for loop to exit
-        await sock.sendMessage(chatId, { delete: key }).catch(() => {});
+        await sock
+          .sendMessage(chatId, { text: "✅ Generated!", edit: key })
+          .catch(() => {});
       };
 
       const userId = message.key.participant || message.key.remoteJid;
