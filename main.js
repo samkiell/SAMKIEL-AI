@@ -260,15 +260,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
       message.message?.buttonsResponseMessage?.selectedButtonId?.trim() ||
       "";
 
-    // DEBUG: Trace incoming messages
-    if (userMessage) {
-      console.log(
-        `[DEBUG] Received Message in ${
-          isGroup ? "Group" : "Private"
-        }: "${userMessage}"`
-      );
-    }
-
     // Initialize dynamic prefix helper
     const currentPrefix = loadPrefix();
     const p = currentPrefix === "off" ? "" : currentPrefix;
