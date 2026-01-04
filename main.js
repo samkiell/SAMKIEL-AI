@@ -1192,12 +1192,12 @@ You can explore all available commands below 👇`,
         await stickerTelegramCommand(sock, chatId, message);
         break;
 
-      case command === "deyplay" || command === "vv" || command === "dplay":
-        await viewOnceCommand(sock, chatId, message, false);
+      case command === "deyplay" || command === "vv" || command === "dplay": {
+        const args = userMessage.trim().split(/\s+/).slice(1);
+        const isDm = args[0]?.toLowerCase() === "dm";
+        await viewOnceCommand(sock, chatId, message, isDm);
         break;
-      case command === "deyplaydm" || command === "dplaydm":
-        await viewOnceCommand(sock, chatId, message, true);
-        break;
+      }
       case command === "clearsession" || command === "clearsesi":
         await clearSessionCommand(sock, chatId, message);
         break;
