@@ -4,9 +4,14 @@ async function tagAllCommand(sock, chatId, senderId) {
   try {
     const { isSenderAdmin, isBotAdmin } = await isAdmin(sock, chatId, senderId);
 
-    if (!isSenderAdmin && !isBotAdmin) {
+    const { isOwner } = require("../lib/isOwner");
+
+    // Check if sender is admin or owner
+    const isUserOwner = await isOwner(senderId);
+
+    if (!isSenderAdmin && !isUserOwner) {
       await sock.sendMessage(chatId, {
-        text: "🚫 *Only admins can use the .tagall command.*",
+        text: "🚫 *Only admins or the bot owner can use the .tagall command.*",
         ...global.channelInfo,
       });
       return;
