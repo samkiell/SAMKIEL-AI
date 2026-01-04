@@ -372,13 +372,6 @@ async function startXeonBotInc() {
       const p = currentPrefix === "off" ? "None" : currentPrefix;
 
       // Read dynamic setttings
-      let isRankGlobal = settings.featureToggles.RANKING; // Default from settings
-      try {
-        if (fs.existsSync("./data/rankConfig.json")) {
-          const d = JSON.parse(fs.readFileSync("./data/rankConfig.json"));
-          if (d.global !== undefined) isRankGlobal = d.global;
-        }
-      } catch (e) {}
 
       let isAutoReactGlobal = settings.featureToggles.AUTO_REACTION; // Default from settings
       try {
@@ -419,7 +412,7 @@ async function startXeonBotInc() {
           settings.featureToggles.ANTI_DELETE ? "On" : "Off"
         }`,
         `🔌 *Auto Reaction:* ${isAutoReactGlobal ? "On" : "Off"}`,
-        `🔌 *Ranking:* ${isRankGlobal ? "On" : "Off"}`,
+
         `🔌 *Anti-Call:* ${isAntiCallEnabled ? "On" : "Off"}`,
         `🔌 *Auto Read:* ${settings.featureToggles.SEND_READ ? "On" : "Off"}`,
         `🔌 *Private Mode:* ${

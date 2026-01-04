@@ -35,7 +35,7 @@ const settings = {
     REJECT_CALL: false, // Boolean
     PERSONAL_MESSAGE: false, // Boolean (If true, bot ignores groups)
     DISABLE_START_MESSAGE: false, // Boolean
-    RANKING: false, // Boolean
+
     AUTO_REACTION: false, // Boolean
 
     // Configuration Strings
