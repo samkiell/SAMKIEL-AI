@@ -29,13 +29,32 @@ async function hasGitRepo() {
 }
 
 async function updateViaGit() {
+  // Safe-guard: Ensure we are fetching from the correct source
+  try {
+    await run(
+      "git remote set-url origin https://github.com/samkiell/SAMKIEL-AI.git"
+    );
+  } catch (e) {}
+
   const oldRev = (
     await run("git rev-parse HEAD").catch(() => "unknown")
   ).trim();
-  // Force fetch from main branch only
+
+  // 1. Fetch explicitly from origin main
+  console.log("➡️ [UPDATE] Fetching origin main...");
   await run("git fetch origin main");
+
+  // 2. Identify the target commit
   const newRev = (await run("git rev-parse origin/main")).trim();
+  console.log(`➡️ [UPDATE] Target revision: ${newRev}`);
+
   const alreadyUpToDate = oldRev === newRev;
+
+  // 3. Force switch to main branch and reset
+  console.log("➡️ [UPDATE] Resetting to origin/main...");
+  await run("git checkout -B main origin/main");
+  await run(`git reset --hard ${newRev}`);
+
   const commits = alreadyUpToDate
     ? ""
     : await run(
@@ -44,7 +63,7 @@ async function updateViaGit() {
   const files = alreadyUpToDate
     ? ""
     : await run(`git diff --name-status ${oldRev} ${newRev}`).catch(() => "");
-  await run(`git reset --hard ${newRev}`);
+
   try {
     await run("git clean -fd -e data -e session -e .env");
   } catch (e) {
