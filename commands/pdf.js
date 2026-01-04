@@ -161,8 +161,11 @@ async function pdfCommand(sock, chatId, text, message) {
     // Ensure animation finishes visually
     await animationPromise;
 
-    // Delete the loading message
-    await sock.sendMessage(chatId, { delete: key });
+    // Update message to show completion
+    await sock.sendMessage(chatId, {
+      text: "✅ Generated!",
+      edit: key,
+    });
 
     console.log("➡️ [PDF COMMAND] Sending file via Baileys...");
     await sock.sendMessage(
