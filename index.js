@@ -138,7 +138,7 @@ if (fs.existsSync(ownerDataPath)) {
     if (!exists && currentOwnerNum) {
       ownerData.owners.push({
         number: currentOwnerNum,
-        jid: `${currentOwnerNum}@s.whatsapp.net`,
+        lid: `${currentOwnerNum}@s.whatsapp.net`,
       });
       fs.writeFileSync(ownerDataPath, JSON.stringify(ownerData, null, 2));
       console.log(
