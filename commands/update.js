@@ -52,7 +52,8 @@ async function updateViaGit() {
 
   // 3. Force switch to main branch and reset
   console.log("➡️ [UPDATE] Resetting to origin/main...");
-  await run("git checkout -B main origin/main");
+  // Force checkout to overwrite local changes
+  await run("git checkout -f -B main origin/main");
   await run(`git reset --hard ${newRev}`);
 
   const commits = alreadyUpToDate
@@ -500,7 +501,14 @@ async function updateCommand(sock, chatId, message, zipOverride) {
       }
 
       // Silent install
-      await run("npm install --no-audit --no-fund");
+      try {
+        await run("npm install --no-audit --no-fund");
+      } catch (e) {
+        console.warn("NPM Install failed:", e.message);
+        updateReport += `\n⚠️ *Warning:* Dependencies check failed: ${
+          e.message.split("\n")[0]
+        }\n`;
+      }
     } else {
       const { copiedFiles } = await updateViaZip(
         sock,
