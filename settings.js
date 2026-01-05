@@ -49,7 +49,8 @@ const settings = {
 
   // --- INTERNAL ---
   giphyApiKey: "qnl7ssQChTdPjsKta2Ax2LMaGXz303tq",
-  updateZipUrl: "https://github.com/samkiell//archive/refs/heads/main.zip",
+  updateZipUrl:
+    "https://github.com/samkiell/SAMKIEL-AI/archive/refs/heads/main.zip",
 };
 
 module.exports = settings;
