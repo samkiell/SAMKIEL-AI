@@ -1,7 +1,7 @@
 const settings = {
   // --- IDENTITY ---
   botName: "Sammy's bot",
-  prefix: ".",
+  prefix: "!",
   botNumber: "2349156199485",
   ownerNumber: "2349156199485",
   ownerName: "Samuel Chibuzor",
