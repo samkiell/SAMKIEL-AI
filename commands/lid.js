@@ -1,79 +1,98 @@
-// ✅ Authorized LIDs list
-const AUTHORIZED_LIDS = new Set([
-    '43581469397148@lid', // Max (bot)
-    '2349019593175@s.whatsapp.net',
-    '210720037851177@lid', // Me (bot owner)
-    //italy
-    '205321096179894@lid',
-    '393273904169@s.whatsapp.net',
-    //2K27 AIR FORCE
-
-    //Danny
-
-'2349012555196@lid',
-
-'145054299635779@lid',
-    //mubh
-
-     '178954661011643@lid',
-
-      '2348134650142@lid',
-    //Ghanaian
-
-'233542230589@lid',
-
-'272761108856940@lid',
-    //FF guy
-' 33509938831517@lid',
-
-'2348078842327@lid',
-]);
-
 module.exports = async function lidCommand(sock, chatId, senderId, message) {
-    console.log('\n=== .LID COMMAND STARTED ===');
-    console.log('📌 Chat ID:', chatId);
-    console.log('📌 Sender ID:', senderId);
+  try {
+    // 1. Extract the text content to find arguments
+    const text =
+      message.message?.conversation ||
+      message.message?.extendedTextMessage?.text ||
+      "";
+    const args = text.trim().split(/\s+/);
 
-    try {
-        // Step 1 - Check for mentioned user
-        const mentioned = message.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
-        console.log('[1] Mentioned JID:', mentioned);
+    let targetJid = null;
 
-        // Step 2 - Determine target
-        const targetId = mentioned || senderId;
-        console.log('[2] Target JID:', targetId);
-
-        // Step 3 - Convert to LID format
-        const normalizeToLid = (jid) => {
-            if (jid.endsWith('@lid')) return jid;
-            if (jid.endsWith('@s.whatsapp.net')) {
-                return jid.replace('@s.whatsapp.net', '@lid');
-            }
-            return jid;
-        };
-
-        const lidFormat = normalizeToLid(targetId);
-        console.log('[3] Normalized LID:', lidFormat);
-
-        // Step 4 - Check if authorized
-        const isAuthorized = AUTHORIZED_LIDS.has(lidFormat);
-        console.log('[4] Authorized:', isAuthorized);
-
-        // Step 5 - Send result
-        console.log('[5] Sending result message...');
-        await sock.sendMessage(chatId, {
-            text: `🔍 *LID Check Result*  
-👤 User: @${targetId.split('@')[0]}  
-🆔 LID: ${lidFormat}  
-✅ Authorized: ${isAuthorized ? 'Yes' : 'No'}`,
-            mentions: [targetId]
-        });
-
-        console.log('✅ Message sent.');
-        console.log('=== .LID COMMAND COMPLETE ===\n');
-
-    } catch (err) {
-        console.error('❌ LID check error:', err);
-        await sock.sendMessage(chatId, { text: '❌ Error checking LID' });
+    // 2. Determine target
+    // Case A: Quoted Message
+    const quotedContext = message.message?.extendedTextMessage?.contextInfo;
+    if (quotedContext?.participant) {
+      targetJid = quotedContext.participant;
     }
+    // Case B: Explicit Number in arguments (e.g. .lid 23480...)
+    else if (args.length > 1) {
+      // Remove symbols and ensure format
+      const potentialNum = args[1].replace(/[^0-9]/g, "");
+      if (potentialNum) {
+        targetJid = potentialNum + "@s.whatsapp.net";
+      }
+    }
+    // Case C: Mentions
+    else if (
+      quotedContext?.mentionedJid &&
+      quotedContext.mentionedJid.length > 0
+    ) {
+      targetJid = quotedContext.mentionedJid[0];
+    }
+    // Case D: Fallback to sender
+    else {
+      targetJid = senderId;
+    }
+
+    if (!targetJid) {
+      await sock.sendMessage(
+        chatId,
+        { text: "❌ Could not determine target user." },
+        { quoted: message }
+      );
+      return;
+    }
+
+    // 3. Query WhatsApp for LID details
+    // onWhatsApp returns [{ jid, exists, lid }]
+    const result = await sock.onWhatsApp(targetJid);
+
+    if (!result || result.length === 0) {
+      await sock.sendMessage(
+        chatId,
+        {
+          text: `❌ usage: .lid 2348087357158 \n\nThe number @${
+            targetJid.split("@")[0]
+          } is not registered on WhatsApp.`,
+          mentions: [targetJid],
+        },
+        { quoted: message }
+      );
+      return;
+    }
+
+    const userData = result[0]; // Take the first match
+    if (!userData.lid) {
+      // Sometimes just doesn't return it?
+      await sock.sendMessage(
+        chatId,
+        {
+          text: `❌ Could not fetch LID for @${targetJid.split("@")[0]}.`,
+          mentions: [targetJid],
+        },
+        { quoted: message }
+      );
+      return;
+    }
+
+    // 4. Send Response
+    await sock.sendMessage(
+      chatId,
+      {
+        text: `🔍 *LID Lookup*\n\n👤 *User:* @${
+          targetJid.split("@")[0]
+        }\n🆔 *LID:* \`${userData.lid}\``,
+        mentions: [targetJid],
+      },
+      { quoted: message }
+    );
+  } catch (err) {
+    console.error("Error in lid command:", err);
+    await sock.sendMessage(
+      chatId,
+      { text: "❌ An error occurred while fetching the LID." },
+      { quoted: message }
+    );
+  }
 };
