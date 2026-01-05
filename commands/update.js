@@ -43,6 +43,7 @@ async function updateViaGit(isForce = false) {
   // 1. Fetch
   if (isForce) {
     console.log("➡️ [UPDATE] Force update detected. Fetching all...");
+    await run("git fetch origin main");
     await run("git fetch --all --prune");
   } else {
     console.log("➡️ [UPDATE] Fetching origin main...");
@@ -65,7 +66,7 @@ async function updateViaGit(isForce = false) {
 
   if (isForce) {
     // FORCE: Destructive reset as requested
-    await run("git reset --hard origin/main");
+    await run("git checkout -B main origin/main");
     try {
       await run("git clean -fd");
     } catch (e) {
