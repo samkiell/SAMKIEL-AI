@@ -22,7 +22,7 @@ const settings = {
     ANTI_DELETE: true,
     SEND_READ: false,
     ALWAYS_ONLINE: true,
-    REJECT_CALL: true,
+    REJECT_CALL: false,
     PERSONAL_MESSAGE: false,
     DISABLE_START_MESSAGE: false,
     RANKING: false,
