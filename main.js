@@ -1528,9 +1528,11 @@ async function handleGroupParticipantUpdate(sock, update) {
 ┃ 📛 *Welcome to* ${groupName}
 ┃ 👥 *Members:* ${memberCount}
 ┃ 🕒 *Joined:* ${new Date().toLocaleTimeString()}
+Join our channel here:
+${global.channelLink}`.trim();
 ╰━━━━━━━━━━━━━━━━━━━┈⊷
 
-${customMessage}`.trim();
+
 
           await sock.sendMessage(id, {
             image: { url: ppUrl },
