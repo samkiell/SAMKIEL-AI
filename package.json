@@ -1,6 +1,6 @@
 {
   "name": "samkielbot",
-  "version": "3.1.8",
+  "version": "2.1.0",
   "description": "WhatsApp Bot",
   "main": "index.js",
   "scripts": {

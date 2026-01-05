@@ -1,4 +1,4 @@
-require("./settings");
+const settings = require("./settings");
 const { Boom } = require("@hapi/boom");
 const fs = require("fs");
 const chalk = require("chalk");
@@ -123,12 +123,40 @@ const store = {
 };
 
 let phoneNumber = "2348087357158";
+// Automatically sync owner from settings to owner.json
+const ownerDataPath = "./data/owner.json";
+if (fs.existsSync(ownerDataPath)) {
+  try {
+    const ownerData = JSON.parse(fs.readFileSync(ownerDataPath));
+    const currentOwnerNum = settings.ownerNumber;
+
+    if (!Array.isArray(ownerData.owners)) {
+      ownerData.owners = [];
+    }
+
+    const exists = ownerData.owners.some((o) => o.number === currentOwnerNum);
+    if (!exists && currentOwnerNum) {
+      ownerData.owners.push({
+        number: currentOwnerNum,
+        jid: `${currentOwnerNum}@s.whatsapp.net`,
+      });
+      fs.writeFileSync(ownerDataPath, JSON.stringify(ownerData, null, 2));
+      console.log(
+        chalk.green(
+          `Automatically added owner ${currentOwnerNum} to owner.json`
+        )
+      );
+    }
+  } catch (err) {
+    console.error("Failed to sync owner.json from settings:", err);
+  }
+}
+
 let owner = JSON.parse(fs.readFileSync("./data/owner.json"));
 
 global.botname = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
 global.themeemoji = "•";
 
-const settings = require("./settings");
 const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code");
 const useMobile = process.argv.includes("--mobile");
 
