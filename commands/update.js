@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const https = require("https");
 const settings = require("../settings");
-const { loadPrefix } = require("../lib/prefix");
+const { isOwner: checkOwner } = require("../lib/isOwner");
 
 function run(cmd) {
   return new Promise((resolve, reject) => {
@@ -29,33 +29,12 @@ async function hasGitRepo() {
 }
 
 async function updateViaGit() {
-  // Safe-guard: Ensure we are fetching from the correct source
-  try {
-    await run(
-      "git remote set-url origin https://github.com/samkiell/SAMKIEL-AI.git"
-    );
-  } catch (e) {}
-
   const oldRev = (
     await run("git rev-parse HEAD").catch(() => "unknown")
   ).trim();
-
-  // 1. Fetch explicitly from origin main
-  console.log("➡️ [UPDATE] Fetching origin main...");
-  await run("git fetch origin main");
-
-  // 2. Identify the target commit
+  await run("git fetch --all --prune");
   const newRev = (await run("git rev-parse origin/main")).trim();
-  console.log(`➡️ [UPDATE] Target revision: ${newRev}`);
-
   const alreadyUpToDate = oldRev === newRev;
-
-  // 3. Force switch to main branch and reset
-  console.log("➡️ [UPDATE] Resetting to origin/main...");
-  // Force checkout to overwrite local changes
-  await run("git checkout -f -B main origin/main");
-  await run(`git reset --hard ${newRev}`);
-
   const commits = alreadyUpToDate
     ? ""
     : await run(
@@ -64,66 +43,9 @@ async function updateViaGit() {
   const files = alreadyUpToDate
     ? ""
     : await run(`git diff --name-status ${oldRev} ${newRev}`).catch(() => "");
-
-  try {
-    await run("git clean -fd -e data -e session -e .env");
-  } catch (e) {
-    console.log(
-      "Warning: git clean failed, possibly due to locked files:",
-      e.message
-    );
-  }
+  await run(`git reset --hard ${newRev}`);
+  await run("git clean -fd");
   return { oldRev, newRev, alreadyUpToDate, commits, files };
-}
-
-function getGithubParams(zipUrl) {
-  // Extract owner and repo from: https://github.com/OWNER/REPO/archive/...
-  const regex = /github\.com\/([^/]+)\/([^/]+)/;
-  const match = zipUrl.match(regex);
-  if (match) {
-    return { owner: match[1], repo: match[2] };
-  }
-  return null;
-}
-
-function fetchLatestCommit(owner, repo) {
-  return new Promise((resolve) => {
-    const url = `https://api.github.com/repos/${owner}/${repo}/commits/main`;
-    const client = require("https");
-    const req = client.get(
-      url,
-      {
-        headers: {
-          "User-Agent": "SAMKIEL-BOT",
-          Accept: "application/vnd.github.v3+json",
-        },
-      },
-      (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
-          try {
-            if (res.statusCode === 200) {
-              const json = JSON.parse(data);
-              resolve(json);
-            } else {
-              resolve(null);
-            }
-          } catch {
-            resolve(null);
-          }
-        });
-      }
-    );
-
-    req.on("error", () => resolve(null));
-
-    // Add timeout to prevent hanging
-    req.setTimeout(5000, () => {
-      req.destroy();
-      resolve(null);
-    });
-  });
 }
 
 function downloadFile(url, dest, visited = new Set()) {
@@ -141,7 +63,7 @@ function downloadFile(url, dest, visited = new Set()) {
         url,
         {
           headers: {
-            "User-Agent": "SAMKIEL BOT-Updater/1.0",
+            "User-Agent": "KnightBot-Updater/1.0",
             Accept: "*/*",
           },
         },
@@ -175,15 +97,8 @@ function downloadFile(url, dest, visited = new Set()) {
           });
         }
       );
-
       req.on("error", (err) => {
         fs.unlink(dest, () => reject(err));
-      });
-
-      // Add timeout for download
-      req.setTimeout(20000, () => {
-        req.destroy();
-        fs.unlink(dest, () => reject(new Error("Download timed out")));
       });
     } catch (e) {
       reject(e);
@@ -239,9 +154,8 @@ function copyRecursive(src, dest, ignore = [], relative = "", outList = []) {
 }
 
 async function updateViaZip(sock, chatId, message, zipOverride) {
-  const zipOverrideStr = typeof zipOverride === "string" ? zipOverride : "";
   const zipUrl = (
-    (zipOverrideStr.startsWith("http") ? zipOverrideStr : "") ||
+    zipOverride ||
     settings.updateZipUrl ||
     process.env.UPDATE_ZIP_URL ||
     ""
@@ -275,19 +189,6 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
     "temp",
     "data",
     "baileys_store.json",
-    // Preserve local configuration files
-    "settings.js",
-    "config.js",
-    "lib/prefix.js", // Often contains default prefix logic, but prefix.json is in data/
-    // If the user modified these source files locally and wants to keep them:
-    // But usually updates SHOULD overwrite code.
-    // The user specifically asked to keep "configurations" like welcome message state.
-    // Those are stored in data/userGroupData.json which is inside 'data' folder
-    // 'data' folder is ALREADY ignored above (line 254), so userGroupData.json is safe.
-
-    // However, the user said "settings like welcome message".
-    // If they mean settings.js (the file), we should ignore it if it exists.
-    "settings.js",
   ];
   const copied = [];
   // Preserve ownerNumber from existing settings.js if present
@@ -300,8 +201,8 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
         ? String(currentSettings.ownerNumber)
         : null;
     preservedBotOwner =
-      currentSettings && currentSettings.ownerName
-        ? String(currentSettings.ownerName)
+      currentSettings && currentSettings.botOwner
+        ? String(currentSettings.botOwner)
         : null;
   } catch {}
   copyRecursive(srcRoot, process.cwd(), ignore, "", copied);
@@ -316,8 +217,8 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
         );
         if (preservedBotOwner) {
           text = text.replace(
-            /ownerName:\s*'[^']*'/,
-            `ownerName: '${preservedBotOwner}'`
+            /botOwner:\s*'[^']*'/,
+            `botOwner: '${preservedBotOwner}'`
           );
         }
         fs.writeFileSync(settingsPath, text);
@@ -338,7 +239,7 @@ async function restartProcess(sock, chatId, message) {
   try {
     await sock.sendMessage(
       chatId,
-      { text: "✅ Update complete! Restarting…", ...global.channelInfo },
+      { text: "✅ Update complete! Restarting…" },
       { quoted: message }
     );
   } catch {}
@@ -349,166 +250,42 @@ async function restartProcess(sock, chatId, message) {
   } catch {}
   // Panels usually auto-restart when the process exits.
   // Exit after a short delay to allow the above message to flush.
-  setTimeout(() => process.exit(0), 1000);
+  setTimeout(() => {
+    process.exit(0);
+  }, 500);
 }
 
 async function updateCommand(sock, chatId, message, zipOverride) {
+  const senderId = message.key.participant || message.key.remoteJid;
+  const isOwner = await checkOwner(senderId);
+
+  if (!message.key.fromMe && !isOwner) {
+    await sock.sendMessage(
+      chatId,
+      { text: "Only bot owner or sudo can use .update" },
+      { quoted: message }
+    );
+    return;
+  }
   try {
-    // Check if update is possible
-    const hasGit = await hasGitRepo();
-    const zipOverrideStr = typeof zipOverride === "string" ? zipOverride : "";
-    const hasZipUrl = (
-      (zipOverrideStr.startsWith("http") ? zipOverrideStr : "") ||
-      settings.updateZipUrl ||
-      process.env.UPDATE_ZIP_URL ||
-      ""
-    ).trim();
-
-    if (!hasGit && !hasZipUrl) {
-      await sock.sendMessage(
-        chatId,
-        {
-          text: '❌ Update not configured!\n\nTo enable updates:\n• Set up a Git repository, OR\n• Configure updateZipUrl in settings.js, OR\n• Set UPDATE_ZIP_URL environment variable\n\nExample: updateZipUrl: "https://example.com/bot-update.zip"',
-          ...global.channelInfo,
-        },
-        { quoted: message }
-      );
-      return;
-    }
-
     // Minimal UX
     await sock.sendMessage(
       chatId,
-      { text: "🔄 Updating the bot, please wait…", ...global.channelInfo },
+      { text: "🔄 Updating the bot, please wait…" },
       { quoted: message }
     );
 
-    let updateReport = "";
-
-    const isForce =
-      typeof zipOverride === "string" && zipOverride.includes("force");
-    console.log(`[UPDATE] isForce: ${isForce}`);
-    // Also check if user typed "--force" in the command message, currently passed as zipOverride if typed manually
-    // Actually the main handler passes arguments strangely.
-    // Assuming if zipOverride string allows arguments.
-
-    if (isForce) {
-      console.log(
-        "[UPDATE] Force sync requested. Resetting data files to settings.js defaults..."
-      );
-      const settings = require("../settings");
-
-      // Sync Prefix
-      const { savePrefix } = require("../lib/prefix");
-      savePrefix(settings.prefix || ".");
-
-      // Sync Anti-Delete
-      const antiDeletePath = path.join(process.cwd(), "data/antiDelete.json");
-      if (fs.existsSync(antiDeletePath)) {
-        const adConfig = JSON.parse(fs.readFileSync(antiDeletePath, "utf8"));
-        adConfig.enabled = settings.featureToggles.ANTI_DELETE ?? false;
-        adConfig.mode = settings.featureToggles.ANTI_DELETE_TYPE || "group";
-        fs.writeFileSync(antiDeletePath, JSON.stringify(adConfig, null, 2));
-      }
-
-      // Sync Auto Status
-      const autoStatusPath = path.join(process.cwd(), "data/autoStatus.json");
-      if (fs.existsSync(autoStatusPath)) {
-        const asConfig = JSON.parse(fs.readFileSync(autoStatusPath, "utf8"));
-        asConfig.enabled = settings.featureToggles.AUTO_STATUS_VIEW !== "off";
-        asConfig.reactOn =
-          settings.featureToggles.ENABLE_STATUS_REACTION ?? false;
-        asConfig.emoji = settings.featureToggles.STATUS_VIEW_EMOJI || "👀";
-        asConfig.msgEnabled = settings.featureToggles.STATUS_VIEW_MSG === "on";
-        fs.writeFileSync(autoStatusPath, JSON.stringify(asConfig, null, 2));
-      }
-
-      // Sync Ranking
-      const rankPath = path.join(process.cwd(), "data/rankConfig.json");
-      if (fs.existsSync(rankPath)) {
-        const rankConfig = JSON.parse(fs.readFileSync(rankPath, "utf8"));
-        rankConfig.global = settings.featureToggles.RANKING ?? false;
-        fs.writeFileSync(rankPath, JSON.stringify(rankConfig, null, 2));
-      }
-
-      // Sync Auto-Reaction and Anti-Call
-      const userDataPath = path.join(process.cwd(), "data/userGroupData.json");
-      if (fs.existsSync(userDataPath)) {
-        const userData = JSON.parse(fs.readFileSync(userDataPath, "utf8"));
-        userData.autoReaction = settings.featureToggles.AUTO_REACTION ?? false;
-        if (!userData.anticall) userData.anticall = {};
-        userData.anticall["global"] = {
-          enabled: settings.featureToggles.REJECT_CALL ?? false,
-        };
-        fs.writeFileSync(userDataPath, JSON.stringify(userData, null, 2));
-      }
-
-      console.log("[UPDATE] Force sync completed.");
-    }
-
-    if (hasGit) {
+    if (await hasGitRepo()) {
+      // silent
       const { oldRev, newRev, alreadyUpToDate, commits, files } =
         await updateViaGit();
-
-      if (alreadyUpToDate && !isForce) {
-        const currentPrefix = loadPrefix();
-        const p = currentPrefix === "off" ? "." : currentPrefix; // Default to . if off for instructions? Or empty? "Use update --force". Safest is to use p or dot.
-
-        await sock.sendMessage(
-          chatId,
-          {
-            text: `✅ *Already up to date* \nCurrent Version: \`${newRev.substring(
-              0,
-              7
-            )}\`\n\nUse \`${p}update --force\` to reinstall and sync settings anyway.`,
-            ...global.channelInfo,
-          },
-          { quoted: message }
-        );
-        return;
-      }
-
-      // If force, we proceed to report and npm install even if git didn't pull new changes (or maybe we should force reset?)
-      // updateViaGit ALREADY does a hard reset to origin/main. So running it essentially forces the file state to match remote.
-      // So falling through here is correct for "force" behavior in git mode too.
-
-      // Format Git Report
-      updateReport += `✅ *Update Completed Successfully!* ${
-        isForce ? "(Settings Synced)" : ""
-      }\n\n`;
-      updateReport += `🚀 *Version:* \`${oldRev.substring(
-        0,
-        7
-      )}\` ➔ \`${newRev.substring(0, 7)}\`\n\n`;
-
-      if (commits) {
-        const commitList = commits.split("\n").filter(Boolean);
-        const recentCommits = commitList.slice(0, 5); // Show max 5
-        updateReport += `📝 *Recent Changes:*\n`;
-        updateReport += recentCommits.map((c) => `• ${c}`).join("\n");
-        if (commitList.length > 5)
-          updateReport += `\n...and ${commitList.length - 5} more commits`;
-        updateReport += `\n\n`;
-      }
-
-      if (files) {
-        const fileList = files.split("\n").filter(Boolean);
-        const changedFiles = fileList.slice(0, 5); // Show max 5
-        updateReport += `📂 *Modified Files:*\n`;
-        updateReport += changedFiles.map((f) => `• ${f}`).join("\n");
-        if (fileList.length > 5)
-          updateReport += `\n...and ${fileList.length - 5} more files`;
-      }
-
-      // Silent install
-      try {
-        await run("npm install --no-audit --no-fund");
-      } catch (e) {
-        console.warn("NPM Install failed:", e.message);
-        updateReport += `\n⚠️ *Warning:* Dependencies check failed: ${
-          e.message.split("\n")[0]
-        }\n`;
-      }
+      // Short message only: version info
+      const summary = alreadyUpToDate
+        ? `✅ Already up to date: ${newRev}`
+        : `✅ Updated to ${newRev}`;
+      console.log("[update] summary generated");
+      // silent
+      await run("npm install --no-audit --no-fund");
     } else {
       const { copiedFiles } = await updateViaZip(
         sock,
@@ -516,71 +293,32 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         message,
         zipOverride
       );
-
-      // Try to fetch latest commit info if it's a GitHub URL
-      let commitMsg = null;
-      let commitAuthor = null;
-      try {
-        const repoParams = getGithubParams(hasZipUrl);
-        if (repoParams) {
-          const commitData = await fetchLatestCommit(
-            repoParams.owner,
-            repoParams.repo
-          );
-          if (commitData) {
-            commitMsg = commitData.commit.message;
-            commitAuthor = commitData.commit.author.name;
-          }
-        }
-      } catch (err) {
-        // Ignore API errors, fallback to file count
-        console.log("Failed to fetch commit info:", err.message);
-      }
-
-      // Format Zip Report
-      updateReport += `✅ *Update Installed Successfully* ${
-        isForce ? "(Settings Synced)" : ""
-      }\n\n`; // Simplified title
-
-      if (commitMsg) {
-        updateReport += `📝 *Latest Commit:*\n${commitMsg}\n`;
-        if (commitAuthor) updateReport += `_by ${commitAuthor}_\n`;
-        updateReport += `\n`;
-      }
-
-      updateReport += `📂 *Files Updated:* ${copiedFiles.length}\n`;
-      // Removed the detailed file list to reduce spam as requested
+      // silent
     }
-
-    // Send the detailed report
-    await sock.sendMessage(
-      chatId,
-      { text: updateReport, ...global.channelInfo },
-      { quoted: message }
-    );
-
     try {
-      await sock.sendMessage(chatId, {
-        text: `🔄 Restarting to apply changes...`,
-        ...global.channelInfo,
-      });
-    } catch {}
-
-    await restartProcess(sock, chatId, message);
-  } catch (err) {
-    console.error("Update failed:", err);
-    try {
+      const v = require("../settings").version || "";
+      await sock.sendMessage(
+        chatId,
+        { text: `✅ Update done. Restarting…` },
+        { quoted: message }
+      );
+    } catch {
       await sock.sendMessage(
         chatId,
         {
-          text: `❌ Update failed:\n${String(err.message || err)}`,
-          ...global.channelInfo,
+          text: "✅ Restared Successfully\n Type .ping to check latest version.",
         },
         { quoted: message }
       );
-    } catch (e) {
-      console.warn("Could not send update failure message:", e.message);
     }
+    await restartProcess(sock, chatId, message);
+  } catch (err) {
+    console.error("Update failed:", err);
+    await sock.sendMessage(
+      chatId,
+      { text: `❌ Update failed:\n${String(err.message || err)}` },
+      { quoted: message }
+    );
   }
 }
 
