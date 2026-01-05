@@ -110,7 +110,7 @@ async function pingCommand(sock, chatId, message) {
 ┃ 🧠 *RAM*      : ${ramStr}
 ┃ 💾 *Disk*     : ${diskStr}
 ┃ 🖥️ *Platform* : ${platform}
-┃ 🏷️ *Version*  : vsamkiel
+┃ 🏷️ *Version*  : v${settings.version}
 ┃
 ┗━━━━━━━━━━━━━━━━━━━┛`.trim();
 
