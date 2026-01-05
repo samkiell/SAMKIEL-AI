@@ -3,7 +3,6 @@ const fs = require("fs");
 const path = require("path");
 const https = require("https");
 const settings = require("../settings");
-const { loadPrefix } = require("../lib/prefix");
 
 function run(cmd) {
   return new Promise((resolve, reject) => {
@@ -28,79 +27,44 @@ async function hasGitRepo() {
   }
 }
 
-async function updateViaGit(isForce = false) {
-  // Safe-guard: Ensure we are fetching from the correct source
-  try {
-    await run(
-      "git remote set-url origin https://github.com/samkiell/SAMKIEL-AI.git"
-    );
-  } catch (e) {}
-
+async function updateViaGit() {
   const oldRev = (
     await run("git rev-parse HEAD").catch(() => "unknown")
   ).trim();
 
-  // 1. Fetch
-  if (isForce) {
-    console.log("➡️ [UPDATE] Force update detected. Fetching all...");
-    await run("git fetch origin main");
-    await run("git fetch --all --prune");
-  } else {
-    console.log("➡️ [UPDATE] Fetching origin main...");
-    await run("git fetch origin main");
-  }
+  // Explicitly fetch origin main to ensure we have the target
+  await run("git fetch origin main");
+  await run("git fetch --all --prune");
 
-  // 2. Identify the target commit
   const newRev = (await run("git rev-parse origin/main")).trim();
-  console.log(`➡️ [UPDATE] Target revision: ${newRev}`);
-
   const alreadyUpToDate = oldRev === newRev;
 
-  // 3. Check for early exit (only if NOT forced)
-  if (!isForce && alreadyUpToDate) {
-    return { oldRev, newRev, alreadyUpToDate: true };
+  const commits = alreadyUpToDate
+    ? ""
+    : await run(
+        `git log --pretty=format:"%h %s (%an)" ${oldRev}..${newRev}`
+      ).catch(() => "");
+  const files = alreadyUpToDate
+    ? ""
+    : await run(`git diff --name-status ${oldRev} ${newRev}`).catch(() => "");
+
+  // CRITICAL FIX: Force switch to 'main' branch and reset to origin/main
+  // This ensures we are not stuck on a deployment branch like 'deploy-123'
+  await run("git checkout -B main origin/main");
+
+  try {
+    // Clean but preserve critical data
+    await run("git clean -fd -e data -e session -e .env");
+  } catch (e) {
+    console.log(
+      "Warning: git clean failed, possibly due to locked files:",
+      e.message
+    );
   }
-
-  // 4. Reset & Clean Logic
-  console.log("➡️ [UPDATE] Resetting to origin/main...");
-
-  if (isForce) {
-    // FORCE: Destructive reset as requested
-    await run("git checkout -B main origin/main");
-    try {
-      await run("git clean -fd");
-    } catch (e) {
-      console.log("Warning: git clean failed:", e.message);
-    }
-  } else {
-    // NORMAL: Update safely
-    await run("git checkout -B main origin/main");
-    await run(`git reset --hard ${newRev}`);
-    try {
-      // Preserve data/session/.env in normal updates
-      await run("git clean -fd -e data -e session -e .env");
-    } catch (e) {
-      console.log("Warning: git clean failed:", e.message);
-    }
-  }
-
-  const commits =
-    alreadyUpToDate && isForce
-      ? ""
-      : await run(
-          `git log --pretty=format:"%h %s (%an)" ${oldRev}..${newRev}`
-        ).catch(() => "");
-  const files =
-    alreadyUpToDate && isForce
-      ? ""
-      : await run(`git diff --name-status ${oldRev} ${newRev}`).catch(() => "");
-
-  // Return alreadyUpToDate: false so the caller knows we performed an action (reinstall/update)
-  return { oldRev, newRev, alreadyUpToDate: false, commits, files };
+  return { oldRev, newRev, alreadyUpToDate, commits, files };
 }
 
 function getGithubParams(zipUrl) {
-  // Extract owner and repo from: https://github.com/OWNER/REPO/archive/...
   const regex = /github\.com\/([^/]+)\/([^/]+)/;
   const match = zipUrl.match(regex);
   if (match) {
@@ -138,10 +102,7 @@ function fetchLatestCommit(owner, repo) {
         });
       }
     );
-
     req.on("error", () => resolve(null));
-
-    // Add timeout to prevent hanging
     req.setTimeout(5000, () => {
       req.destroy();
       resolve(null);
@@ -152,7 +113,6 @@ function fetchLatestCommit(owner, repo) {
 function downloadFile(url, dest, visited = new Set()) {
   return new Promise((resolve, reject) => {
     try {
-      // Avoid infinite redirect loops
       if (visited.has(url) || visited.size > 5) {
         return reject(new Error("Too many redirects"));
       }
@@ -169,7 +129,6 @@ function downloadFile(url, dest, visited = new Set()) {
           },
         },
         (res) => {
-          // Handle redirects
           if ([301, 302, 303, 307, 308].includes(res.statusCode)) {
             const location = res.headers.location;
             if (!location)
@@ -182,11 +141,9 @@ function downloadFile(url, dest, visited = new Set()) {
               .then(resolve)
               .catch(reject);
           }
-
           if (res.statusCode !== 200) {
             return reject(new Error(`HTTP ${res.statusCode}`));
           }
-
           const file = fs.createWriteStream(dest);
           res.pipe(file);
           file.on("finish", () => file.close(resolve));
@@ -198,12 +155,9 @@ function downloadFile(url, dest, visited = new Set()) {
           });
         }
       );
-
       req.on("error", (err) => {
         fs.unlink(dest, () => reject(err));
       });
-
-      // Add timeout for download
       req.setTimeout(20000, () => {
         req.destroy();
         fs.unlink(dest, () => reject(new Error("Download timed out")));
@@ -215,7 +169,6 @@ function downloadFile(url, dest, visited = new Set()) {
 }
 
 async function extractZip(zipPath, outDir) {
-  // Try to use platform tools; no extra npm modules required
   if (process.platform === "win32") {
     const cmd = `powershell -NoProfile -Command "Expand-Archive -Path '${zipPath}' -DestinationPath '${outDir.replace(
       /\\/g,
@@ -224,7 +177,6 @@ async function extractZip(zipPath, outDir) {
     await run(cmd);
     return;
   }
-  // Linux/mac: try unzip, else 7z, else busybox unzip
   try {
     await run("command -v unzip");
     await run(`unzip -o '${zipPath}' -d '${outDir}'`);
@@ -240,9 +192,7 @@ async function extractZip(zipPath, outDir) {
     await run(`busybox unzip -o '${zipPath}' -d '${outDir}'`);
     return;
   } catch {}
-  throw new Error(
-    "No system unzip tool found (unzip/7z/busybox). Git mode is recommended on this panel."
-  );
+  throw new Error("No system unzip tool found (unzip/7z/busybox).");
 }
 
 function copyRecursive(src, dest, ignore = [], relative = "", outList = []) {
@@ -264,7 +214,7 @@ function copyRecursive(src, dest, ignore = [], relative = "", outList = []) {
 async function updateViaZip(sock, chatId, message, zipOverride) {
   const zipOverrideStr = typeof zipOverride === "string" ? zipOverride : "";
   const zipUrl = (
-    (zipOverrideStr.startsWith("http") ? zipOverrideStr : "") ||
+    zipOverrideStr ||
     settings.updateZipUrl ||
     process.env.UPDATE_ZIP_URL ||
     ""
@@ -283,12 +233,10 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
     fs.rmSync(extractTo, { recursive: true, force: true });
   await extractZip(zipPath, extractTo);
 
-  // Find the top-level extracted folder (GitHub zips create REPO-branch folder)
   const [root] = fs.readdirSync(extractTo).map((n) => path.join(extractTo, n));
   const srcRoot =
     fs.existsSync(root) && fs.lstatSync(root).isDirectory() ? root : extractTo;
 
-  // Copy over while preserving runtime dirs/files
   const ignore = [
     "node_modules",
     ".git",
@@ -298,36 +246,23 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
     "temp",
     "data",
     "baileys_store.json",
-    // Preserve local configuration files
-    "settings.js",
-    "config.js",
-    "lib/prefix.js", // Often contains default prefix logic, but prefix.json is in data/
-    // If the user modified these source files locally and wants to keep them:
-    // But usually updates SHOULD overwrite code.
-    // The user specifically asked to keep "configurations" like welcome message state.
-    // Those are stored in data/userGroupData.json which is inside 'data' folder
-    // 'data' folder is ALREADY ignored above (line 254), so userGroupData.json is safe.
-
-    // However, the user said "settings like welcome message".
-    // If they mean settings.js (the file), we should ignore it if it exists.
-    "settings.js",
   ];
   const copied = [];
-  // Preserve ownerNumber from existing settings.js if present
   let preservedOwner = null;
   let preservedBotOwner = null;
   try {
     const currentSettings = require("../settings");
-    preservedOwner =
-      currentSettings && currentSettings.ownerNumber
-        ? String(currentSettings.ownerNumber)
-        : null;
-    preservedBotOwner =
-      currentSettings && currentSettings.ownerName
-        ? String(currentSettings.ownerName)
-        : null;
+    preservedOwner = currentSettings?.ownerNumber
+      ? String(currentSettings.ownerNumber)
+      : null;
+    preservedBotOwner = currentSettings?.ownerName
+      ? String(currentSettings.ownerName)
+      : null;
   } catch {}
+
   copyRecursive(srcRoot, process.cwd(), ignore, "", copied);
+
+  // Restore owner info to settings.js if it was overwritten
   if (preservedOwner) {
     try {
       const settingsPath = path.join(process.cwd(), "settings.js");
@@ -347,7 +282,6 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
       }
     } catch {}
   }
-  // Cleanup extracted directory
   try {
     fs.rmSync(extractTo, { recursive: true, force: true });
   } catch {}
@@ -366,41 +300,29 @@ async function restartProcess(sock, chatId, message) {
     );
   } catch {}
   try {
-    // Preferred: PM2
     await run("pm2 restart all");
     return;
   } catch {}
-  // Panels usually auto-restart when the process exits.
-  // Exit after a short delay to allow the above message to flush.
   setTimeout(() => process.exit(0), 1000);
 }
 
 async function updateCommand(sock, chatId, message, zipOverride) {
   try {
-    // 1. Parsing and Robust isForce Detection
-    const rawText =
-      message.message?.conversation ||
-      message.message?.extendedTextMessage?.text ||
-      "";
-    const lowerText = rawText.toLowerCase();
-    const isForce =
-      lowerText.includes("--force") ||
-      lowerText.includes("-f") ||
-      lowerText.includes(" force");
-
-    console.log(`[UPDATE] Force Enabled: ${isForce}`);
-
-    // Check if update is possible
     const hasGit = await hasGitRepo();
-
-    // Fallback logic for zipUrl if git is not used
     const zipOverrideStr = typeof zipOverride === "string" ? zipOverride : "";
     const hasZipUrl = (
-      (zipOverrideStr.startsWith("http") ? zipOverrideStr : "") ||
+      zipOverrideStr ||
       settings.updateZipUrl ||
       process.env.UPDATE_ZIP_URL ||
       ""
     ).trim();
+
+    // Check for --force flag
+    const rawText =
+      message.message?.conversation ||
+      message.message?.extendedTextMessage?.text ||
+      "";
+    const isForce = rawText.toLowerCase().includes("--force");
 
     if (!hasGit && !hasZipUrl) {
       await sock.sendMessage(
@@ -414,64 +336,27 @@ async function updateCommand(sock, chatId, message, zipOverride) {
       return;
     }
 
-    // UX: Notify user
     await sock.sendMessage(
       chatId,
-      {
-        text: isForce
-          ? "🔄 Force-updating from main branch..."
-          : "🔄 Checking for updates...",
-        ...global.channelInfo,
-      },
+      { text: "🔄 Check for updates...", ...global.channelInfo },
       { quoted: message }
     );
 
     let updateReport = "";
 
-    // 2. Perform Special Actions if Force
-    if (isForce) {
-      console.log(
-        "[UPDATE] Force sync requested. Resetting config defaults..."
-      );
-      try {
-        const settings = require("../settings");
-        // Sync Prefix
-        const { savePrefix } = require("../lib/prefix");
-        savePrefix(settings.prefix || ".");
-
-        // Sync Anti-Delete
-        const antiDeletePath = path.join(process.cwd(), "data/antiDelete.json");
-        if (fs.existsSync(antiDeletePath)) {
-          try {
-            fs.unlinkSync(antiDeletePath);
-          } catch {}
-        }
-
-        // Sync Auto Status
-        const autoStatusPath = path.join(process.cwd(), "data/autoStatus.json");
-        if (fs.existsSync(autoStatusPath)) {
-          try {
-            fs.unlinkSync(autoStatusPath);
-          } catch {}
-        }
-      } catch (e) {
-        console.error("Force config reset error:", e);
-      }
-    }
-
     if (hasGit) {
-      // 3. Run Git Update
       const { oldRev, newRev, alreadyUpToDate, commits, files } =
-        await updateViaGit(isForce);
+        await updateViaGit();
 
-      // 4. Handle Results
+      // If already up to date and NOT forcing, return early
       if (alreadyUpToDate && !isForce) {
-        const currentPrefix = loadPrefix();
-        const p = currentPrefix === "off" ? "." : currentPrefix;
         await sock.sendMessage(
           chatId,
           {
-            text: `✅ *Already up to date*\n\nUse \`${p}update --force\` to force reinstall.`,
+            text: `✅ *Already up to date* \nCurrent Version: \`${newRev.substring(
+              0,
+              7
+            )}\`\nUse *update --force* to reinstall.`,
             ...global.channelInfo,
           },
           { quoted: message }
@@ -479,13 +364,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         return;
       }
 
-      // Generate Report
-      if (isForce) {
-        updateReport += `✅ *Force Reinstalled from Main Branch*\n\n`;
-      } else {
-        updateReport += `✅ *Update Completed Successfully!*\n\n`;
-      }
-
+      updateReport += `✅ *Update Completed Successfully!* \n\n`;
       updateReport += `🚀 *Version:* \`${oldRev.substring(
         0,
         7
@@ -494,36 +373,53 @@ async function updateCommand(sock, chatId, message, zipOverride) {
       if (commits) {
         const commitList = commits.split("\n").filter(Boolean);
         const recentCommits = commitList.slice(0, 5);
-        updateReport +=
-          `📝 *Recent Changes:*\n` +
-          recentCommits.map((c) => `• ${c}`).join("\n");
+        updateReport += `📝 *Recent Changes:*\n`;
+        updateReport += recentCommits.map((c) => `• ${c}`).join("\n");
         if (commitList.length > 5)
-          updateReport += `\n...and ${commitList.length - 5} more`;
+          updateReport += `\n...and ${commitList.length - 5} more commits`;
         updateReport += `\n\n`;
       }
 
-      // Always reinstall dependencies if force or if changes detected
+      if (files) {
+        const fileList = files.split("\n").filter(Boolean);
+        const changedFiles = fileList.slice(0, 5);
+        updateReport += `📂 *Modified Files:*\n`;
+        updateReport += changedFiles.map((f) => `• ${f}`).join("\n");
+        if (fileList.length > 5)
+          updateReport += `\n...and ${fileList.length - 5} more files`;
+      }
+
       await run("npm install --no-audit --no-fund");
     } else {
-      // Zip Fallback
       const { copiedFiles } = await updateViaZip(
         sock,
         chatId,
         message,
-        hasZipUrl
+        zipOverride
       );
+
+      let commitMsg = null;
+      try {
+        const repoParams = getGithubParams(hasZipUrl);
+        if (repoParams) {
+          const commitData = await fetchLatestCommit(
+            repoParams.owner,
+            repoParams.repo
+          );
+          if (commitData) commitMsg = commitData.commit.message;
+        }
+      } catch (err) {}
+
       updateReport += `✅ *Update Installed Successfully* (Zip)\n\n`;
+      if (commitMsg) updateReport += `📝 *Latest Commit:*\n${commitMsg}\n\n`;
       updateReport += `📂 *Files Updated:* ${copiedFiles.length}\n`;
     }
 
-    // Send final report
     await sock.sendMessage(
       chatId,
       { text: updateReport, ...global.channelInfo },
       { quoted: message }
     );
-
-    // Restart
     try {
       await sock.sendMessage(chatId, {
         text: `🔄 Restarting...`,
