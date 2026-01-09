@@ -4,7 +4,7 @@ const settings = {
   prefix: ".",
   botNumber: "2348145039024",
   ownerNumber: "2348145039024",
-  ownerName: "Samuel",
+  ownerName: "Ohikhuai ",
 
   // --- BRANDING ---
   packname: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
@@ -22,7 +22,7 @@ const settings = {
     ANTI_DELETE: true,
     SEND_READ: false,
     ALWAYS_ONLINE: true,
-    REJECT_CALL: true,
+    REJECT_CALL: false,
     PERSONAL_MESSAGE: false,
     DISABLE_START_MESSAGE: false,
     RANKING: false,
