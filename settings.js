@@ -24,7 +24,7 @@ const settings = {
     ALWAYS_ONLINE: true,
     REJECT_CALL: false,
     PERSONAL_MESSAGE: false,
-    DISABLE_START_MESSAGE: true,
+    DISABLE_START_MESSAGE: false,
     RANKING: false,
     AUTO_REACTION: false,
 
