@@ -4,7 +4,7 @@ const settings = {
   prefix: "+",
   botNumber: "2348131906438",
   ownerNumber: "2348131906438",
-  ownerName: "π.ᐟ",
+  ownerName: "π.ᐟ ",
 
   // --- BRANDING ---
   packname: "live, laugh, love Pii. ",
