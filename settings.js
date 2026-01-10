@@ -4,7 +4,7 @@ const settings = {
   prefix: ",",
   botNumber: "2348137209619",
   ownerNumber: "2348137209619",
-  ownerName: "Daramola Oluwasemiloore ",
+  ownerName: "D.O.V",
 
   // --- BRANDING ---
   packname: "UNKNOWN ",
@@ -15,20 +15,20 @@ const settings = {
 
   // --- FEATURE TOGGLES ---
   featureToggles: {
-    AUTO_STATUS_VIEW: "on",     // ⚠️ STRING ONLY
+    AUTO_STATUS_VIEW: "off",     // ⚠️ STRING ONLY
     STATUS_VIEW_MSG: "off",       // ⚠️ STRING ONLY
 
-    ENABLE_STATUS_REACTION: true, // Using autoReaction for status reaction too? Or false? "ENABLE_STATUS_REACTION: Boolean" from prompt. Let's map it to autoReaction or false if distinct. User requested AUTO_REACTION: Boolean to be present. I will assume ENABLE_STATUS_REACTION follows standard or autoReaction. Let's stick to safeBool(features.AUTO_REACTION) or false. The previous code mapped "ENABLE_STATUS_REACTION" to "false" (forced internal). I'll stick to forced false if distinct, OR map to autoReaction. Prompt says: "ENABLE_STATUS_REACTION: Boolean" and "AUTO_REACTION: Boolean". I'll default ENABLE_STATUS_REACTION to false for now unless specified. Actually, typically "Auto Reaction" implies status. I'll map it to AUTO_REACTION for consistency with previous implicit behavior, or false. Let's use false for ENABLE_STATUS_REACTION based on previous code having it false/internal.
+    ENABLE_STATUS_REACTION: false, // Using autoReaction for status reaction too? Or false? "ENABLE_STATUS_REACTION: Boolean" from prompt. Let's map it to autoReaction or false if distinct. User requested AUTO_REACTION: Boolean to be present. I will assume ENABLE_STATUS_REACTION follows standard or autoReaction. Let's stick to safeBool(features.AUTO_REACTION) or false. The previous code mapped "ENABLE_STATUS_REACTION" to "false" (forced internal). I'll stick to forced false if distinct, OR map to autoReaction. Prompt says: "ENABLE_STATUS_REACTION: Boolean" and "AUTO_REACTION: Boolean". I'll default ENABLE_STATUS_REACTION to false for now unless specified. Actually, typically "Auto Reaction" implies status. I'll map it to AUTO_REACTION for consistency with previous implicit behavior, or false. Let's use false for ENABLE_STATUS_REACTION based on previous code having it false/internal.
     ANTI_DELETE: true,
     SEND_READ: false,
     ALWAYS_ONLINE: true,
-    REJECT_CALL: true,
+    REJECT_CALL: false,
     PERSONAL_MESSAGE: false,
     DISABLE_START_MESSAGE: false,
     RANKING: false,
-    AUTO_REACTION: true,
+    AUTO_REACTION: false,
 
-    STATUS_VIEW_EMOJI: "👍",
+    STATUS_VIEW_EMOJI: "👀",
     ANTI_DELETE_TYPE: "dm",
     COMMAND_MODE: "private",
     PACKNAME: "UNKNOWN "
