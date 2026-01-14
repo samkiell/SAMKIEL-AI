@@ -1,5 +1,6 @@
 const yts = require("yt-search");
 const axios = require("axios");
+
 // Channel Info
 const channelInfo = {
   contextInfo: {
@@ -12,6 +13,80 @@ const channelInfo = {
     },
   },
 };
+
+const AXIOS_DEFAULTS = {
+  timeout: 60000,
+  headers: {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    Accept: "application/json, text/plain, */*",
+  },
+};
+
+async function tryRequest(getter, attempts = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await getter();
+    } catch (err) {
+      lastError = err;
+      if (attempt < attempts) {
+        await new Promise((r) => setTimeout(r, 1000 * attempt));
+      }
+    }
+  }
+  throw lastError;
+}
+
+async function getIzumiDownloadByUrl(youtubeUrl) {
+  const apiUrl = `https://izumiiiiiiii.dpdns.org/downloader/youtube?url=${encodeURIComponent(
+    youtubeUrl
+  )}&format=mp3`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  if (res?.data?.result?.download) return res.data.result;
+  throw new Error("Izumi youtube?url returned no download");
+}
+
+async function getIzumiDownloadByQuery(query) {
+  const apiUrl = `https://izumiiiiiiii.dpdns.org/downloader/youtube-play?query=${encodeURIComponent(
+    query
+  )}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  if (res?.data?.result?.download) return res.data.result;
+  throw new Error("Izumi youtube-play returned no download");
+}
+
+async function getOkatsuDownloadByUrl(youtubeUrl) {
+  const apiUrl = `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp3?url=${encodeURIComponent(
+    youtubeUrl
+  )}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  // Okatsu response shape: { status, creator, title, format, thumb, duration, cached, dl }
+  if (res?.data?.dl) {
+    return {
+      download: res.data.dl,
+      title: res.data.title,
+      thumbnail: res.data.thumb,
+    };
+  }
+  throw new Error("Okatsu ytmp3 returned no download");
+}
+
+async function getAsithaAudio(youtubeUrl) {
+  const apiKey =
+    "0c97d662e61301ae4fa667fbb8001051e00c02f8369c756c10a1404a95fe0edb";
+  const apiUrl = `https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/ytapi?url=${encodeURIComponent(
+    youtubeUrl
+  )}&fo=2&qu=128&apiKey=${apiKey}`;
+  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+  if (res?.data?.downloadData?.url) {
+    return {
+      url: res.data.downloadData.url,
+      title: null,
+    };
+  }
+  throw new Error("Asitha API returned no download");
+}
 
 async function playCommand(sock, chatId, message) {
   try {
@@ -90,26 +165,53 @@ async function playCommand(sock, chatId, message) {
       console.log("Failed to send preview image:", e);
     }
 
-    // Fetch audio data from API
-    const apiKey =
-      "0c97d662e61301ae4fa667fbb8001051e00c02f8369c756c10a1404a95fe0edb";
-    const apiUrl = `https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/ytapi?url=${encodeURIComponent(
-      urlYt
-    )}&fo=2&qu=128&apiKey=${apiKey}`;
+    // Try providers with fallback
+    let audioData;
+    let success = false;
 
-    const response = await axios.get(apiUrl);
-    console.log("API response:", response.data);
-    const data = response.data;
+    // 1) Primary: Asitha API
+    try {
+      console.log("Trying Asitha API...");
+      audioData = await getAsithaAudio(urlYt);
+      success = true;
+    } catch (e) {
+      console.log("Asitha API failed:", e.message);
+      // 2) Secondary: Izumi by URL
+      try {
+        console.log("Trying Izumi (URL)...");
+        audioData = await getIzumiDownloadByUrl(urlYt);
+        success = true;
+      } catch (e) {
+        console.log("Izumi (URL) failed:", e.message);
+        // 3) Tertiary: Izumi by Query
+        try {
+          console.log("Trying Izumi (Query)...");
+          const query = video.title || searchQuery;
+          audioData = await getIzumiDownloadByQuery(query);
+          success = true;
+        } catch (e) {
+          console.log("Izumi (Query) failed:", e.message);
+          // 4) Fallback: Okatsu
+          try {
+            console.log("Trying Okatsu...");
+            audioData = await getOkatsuDownloadByUrl(urlYt);
+            success = true;
+          } catch (e) {
+            console.log("Okatsu failed:", e.message);
+          }
+        }
+      }
+    }
 
-    if (!data || !data.downloadData || !data.downloadData.url) {
-      console.log("API did not return valid data");
+    if (!success || !audioData) {
+      console.log("All APIs failed");
       return await sock.sendMessage(chatId, {
-        text: "Failed to fetch audio from the API. Please try again later.",
+        text: "Failed to fetch audio from all sources. Please try again later.",
       });
     }
 
-    const audioUrl = data.downloadData.url;
-    const title = video.title || "Audio";
+    const audioUrl = audioData.download || audioData.dl || audioData.url;
+    const title = audioData.title || video.title || "Audio";
     console.log("Audio URL:", audioUrl, "Title:", title);
 
     // Send the audio
@@ -124,7 +226,7 @@ async function playCommand(sock, chatId, message) {
       { quoted: message }
     );
   } catch (error) {
-    console.error("Error in song2 command:", error);
+    console.error("Error in play command:", error);
     await sock.sendMessage(chatId, {
       text: "Download failed. Please try again later.",
     });
