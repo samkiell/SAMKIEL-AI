@@ -138,7 +138,8 @@ if (fs.existsSync(ownerDataPath)) {
     if (!exists && currentOwnerNum) {
       ownerData.owners.push({
         number: currentOwnerNum,
-        lid: `${currentOwnerNum}@s.whatsapp.net`,
+        jid: `${currentOwnerNum}@s.whatsapp.net`,
+        lid: currentOwnerNum,
       });
       fs.writeFileSync(ownerDataPath, JSON.stringify(ownerData, null, 2));
       console.log(
@@ -394,6 +395,7 @@ async function startXeonBotInc() {
 
       // Send connected message to bot's own number
       const botNumber = XeonBotInc.user.id.split(":")[0] + "@s.whatsapp.net";
+      global.botUserJid = botNumber;
 
       // Allow time for file reads
       const currentPrefix = loadPrefix();
