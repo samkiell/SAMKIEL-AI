@@ -2,6 +2,11 @@ const settings = require("../settings");
 const { addSudo, removeSudo, getSudoList } = require("../lib/index");
 const { isOwner } = require("../lib/isOwner");
 
+function normalizeToNumber(id) {
+  if (!id) return "";
+  return String(id).split(":")[0].split("@")[0].replace(/[^0-9]/g, "");
+}
+
 function extractMentionedJid(message) {
   const mentioned =
     message.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
@@ -88,8 +93,9 @@ async function sudoCommand(sock, chatId, message) {
   }
 
   if (sub === "del" || sub === "remove") {
-    const ownerJid = settings.ownerNumber + "@s.whatsapp.net";
-    if (targetJid === ownerJid) {
+    const ownerNum = normalizeToNumber(settings.ownerNumber);
+    const targetNum = normalizeToNumber(targetJid);
+    if (ownerNum && targetNum && targetNum === ownerNum) {
       await sock.sendMessage(
         chatId,
         { text: "Owner cannot be removed." },

@@ -78,6 +78,14 @@ process.on("unhandledRejection", (err) => {
 
 let XeonBotInc;
 
+function normalizeToDigits(id) {
+  if (!id) return "";
+  return String(id)
+    .split(":")[0]
+    .split("@")[0]
+    .replace(/[^0-9]/g, "");
+}
+
 // Improved store implementation
 const store = {
   messages: {},
@@ -125,32 +133,63 @@ const store = {
 let phoneNumber = "2348087357158";
 // Automatically sync owner from settings to owner.json
 const ownerDataPath = "./data/owner.json";
-if (fs.existsSync(ownerDataPath)) {
-  try {
-    const ownerData = JSON.parse(fs.readFileSync(ownerDataPath));
-    const currentOwnerNum = settings.ownerNumber;
-
-    if (!Array.isArray(ownerData.owners)) {
-      ownerData.owners = [];
-    }
-
-    const exists = ownerData.owners.some((o) => o.number === currentOwnerNum);
-    if (!exists && currentOwnerNum) {
-      ownerData.owners.push({
-        number: currentOwnerNum,
-        jid: `${currentOwnerNum}@s.whatsapp.net`,
-        lid: currentOwnerNum,
-      });
-      fs.writeFileSync(ownerDataPath, JSON.stringify(ownerData, null, 2));
-      console.log(
-        chalk.green(
-          `Automatically added owner ${currentOwnerNum} to owner.json`
-        )
-      );
-    }
-  } catch (err) {
-    console.error("Failed to sync owner.json from settings:", err);
+try {
+  let ownerData = { superOwner: [], owners: [] };
+  if (fs.existsSync(ownerDataPath)) {
+    ownerData = JSON.parse(fs.readFileSync(ownerDataPath, "utf8"));
   }
+
+  const currentOwnerNum = normalizeToDigits(settings.ownerNumber);
+  if (!currentOwnerNum) throw new Error("settings.ownerNumber is empty");
+
+  // Ensure arrays
+  ownerData.superOwner = Array.isArray(ownerData.superOwner)
+    ? ownerData.superOwner
+    : ownerData.superOwner
+    ? [ownerData.superOwner]
+    : [];
+  ownerData.owners = Array.isArray(ownerData.owners) ? ownerData.owners : [];
+
+  // Normalize existing values (strip @s.whatsapp.net, @lid, device ids, etc.)
+  ownerData.superOwner = Array.from(
+    new Set(ownerData.superOwner.map(normalizeToDigits).filter(Boolean))
+  );
+
+  ownerData.owners = ownerData.owners
+    .map((o) => {
+      // Support legacy shapes where owner could be a string or used "jid"
+      if (typeof o === "string" || typeof o === "number") {
+        const v = normalizeToDigits(o);
+        return v ? { number: v, lid: v } : null;
+      }
+      const num = normalizeToDigits(o?.number || o?.jid);
+      if (!num) return null;
+      const lid = normalizeToDigits(o?.lid) || num;
+      return { number: num, lid };
+    })
+    .filter(Boolean);
+
+  // Ensure superOwner contains settings owner
+  if (!ownerData.superOwner.includes(currentOwnerNum)) {
+    ownerData.superOwner.unshift(currentOwnerNum);
+  }
+
+  // Ensure owners list contains settings owner (store as numeric LID, not JID)
+  const exists = ownerData.owners.some(
+    (o) => normalizeToDigits(o.number) === currentOwnerNum
+  );
+  if (!exists) {
+    ownerData.owners.push({ number: currentOwnerNum, lid: currentOwnerNum });
+    console.log(
+      chalk.green(
+        `Automatically added owner ${currentOwnerNum} to owner.json`
+      )
+    );
+  }
+
+  fs.writeFileSync(ownerDataPath, JSON.stringify(ownerData, null, 2));
+} catch (err) {
+  console.error("Failed to sync owner.json from settings:", err);
 }
 
 let owner = JSON.parse(fs.readFileSync("./data/owner.json"));
@@ -396,6 +435,66 @@ async function startXeonBotInc() {
       // Send connected message to bot's own number
       const botNumber = XeonBotInc.user.id.split(":")[0] + "@s.whatsapp.net";
       global.botUserJid = botNumber;
+
+      // Resolve and persist the real WhatsApp LID for the configured owner number
+      // This fixes cases where messages come from an LID JID and the owner isn't recognized.
+      try {
+        const ownerNum = normalizeToDigits(settings.ownerNumber);
+        if (ownerNum) {
+          const lookupJid = `${ownerNum}@s.whatsapp.net`;
+          const wa = await XeonBotInc.onWhatsApp(lookupJid).catch(() => null);
+          const lidDigits = normalizeToDigits(wa?.[0]?.lid);
+          if (lidDigits) {
+            let ownerData = { superOwner: [], owners: [] };
+            if (fs.existsSync(ownerDataPath)) {
+              ownerData = JSON.parse(fs.readFileSync(ownerDataPath, "utf8"));
+            }
+            ownerData.superOwner = Array.isArray(ownerData.superOwner)
+              ? ownerData.superOwner
+              : ownerData.superOwner
+              ? [ownerData.superOwner]
+              : [];
+            ownerData.owners = Array.isArray(ownerData.owners)
+              ? ownerData.owners
+              : [];
+
+            // Normalize and ensure entry
+            ownerData.superOwner = Array.from(
+              new Set(ownerData.superOwner.map(normalizeToDigits).filter(Boolean))
+            );
+            if (!ownerData.superOwner.includes(ownerNum)) {
+              ownerData.superOwner.unshift(ownerNum);
+            }
+
+            const normalizedOwners = ownerData.owners
+              .map((o) => {
+                if (typeof o === "string" || typeof o === "number") {
+                  const v = normalizeToDigits(o);
+                  return v ? { number: v, lid: v } : null;
+                }
+                const num = normalizeToDigits(o?.number || o?.jid);
+                if (!num) return null;
+                const lid = normalizeToDigits(o?.lid) || num;
+                return { number: num, lid };
+              })
+              .filter(Boolean);
+            ownerData.owners = normalizedOwners;
+
+            const existing = ownerData.owners.find(
+              (o) => normalizeToDigits(o.number) === ownerNum
+            );
+            if (existing) {
+              existing.lid = lidDigits;
+            } else {
+              ownerData.owners.push({ number: ownerNum, lid: lidDigits });
+            }
+
+            fs.writeFileSync(ownerDataPath, JSON.stringify(ownerData, null, 2));
+          }
+        }
+      } catch (e) {
+        console.error("Owner LID sync failed:", e);
+      }
 
       // Allow time for file reads
       const currentPrefix = loadPrefix();
