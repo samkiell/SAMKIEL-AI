@@ -274,8 +274,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
     const currentPrefix = loadPrefix();
     const p = currentPrefix === "off" ? "" : currentPrefix;
 
-    // Get command without prefix
-    const command = getCommand(userMessage);
+    // Get command body, base command (cmd), and args without prefix
+    const command = getCommand(userMessage); // Full body after prefix
+    const cmd = command.split(/\s+/)[0].toLowerCase(); // First word (lowercase)
+    const args = command.split(/\s+/).slice(1); // Arguments array
 
     // Only log command usage
     if (isCommand(userMessage)) {

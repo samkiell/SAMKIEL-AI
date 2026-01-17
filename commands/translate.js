@@ -1,22 +1,26 @@
-const fetch = require("node-fetch");
+const axios = require("axios");
+const { sendText } = require("../lib/sendResponse");
 const { loadPrefix } = require("../lib/prefix");
 
 async function handleTranslateCommand(sock, chatId, message, match) {
   const currentPrefix = loadPrefix();
   const p = currentPrefix === "off" ? "" : currentPrefix;
+
   try {
     // Show typing indicator
-    await sock.presenceSubscribe(chatId);
-    await sock.sendPresenceUpdate("composing", chatId);
+    try {
+      await sock.sendPresenceUpdate("composing", chatId);
+    } catch (e) {}
 
     let textToTranslate = "";
-    let lang = "";
+    let targetLang = "en"; // Default
 
     // Check if it's a reply
     const quotedMessage =
       message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+
     if (quotedMessage) {
-      // Get text from quoted message
+      // If it's a reply, the entire match is likely the language code
       textToTranslate =
         quotedMessage.conversation ||
         quotedMessage.extendedTextMessage?.text ||
@@ -24,126 +28,91 @@ async function handleTranslateCommand(sock, chatId, message, match) {
         quotedMessage.videoMessage?.caption ||
         "";
 
-      // Get language from command
-      lang = match.trim();
+      const requestedLang = match.trim().split(/\s+/)[0];
+      if (requestedLang && requestedLang.length <= 5) {
+        targetLang = requestedLang;
+      }
     } else {
-      // Parse command arguments for direct message
-      const args = match.trim().split(" ");
+      // If not a reply, parse args: .trt <text> <lang>
+      const args = match.trim().split(/\s+/);
       if (args.length < 2) {
-        return sock.sendMessage(
+        return await sendText(
+          sock,
           chatId,
-          {
-            text: `*TRANSLATOR*\n\nUsage:\n1. Reply to a message with: ${p}translate <lang> or ${p}trt <lang>\n2. Or type: ${p}translate <text> <lang> or ${p}trt <text> <lang>\n\nExample:\n${p}translate hello fr\n${p}trt hello fr\n\nLanguage codes:\nfr - French\nes - Spanish\nde - German\nit - Italian\npt - Portuguese\nru - Russian\nja - Japanese\nko - Korean\nzh - Chinese\nar - Arabic\nhi - Hindi`,
-            ...global.channelInfo,
-          },
-          {
-            quoted: message,
-          }
+          `*🌍 TRANSLATOR*\n\n` +
+            `Usage:\n` +
+            `1. Reply to a message with: *${p}trt <lang>*\n` +
+            `2. Or type: *${p}trt <text> <lang>*\n\n` +
+            `Example:\n` +
+            `*${p}trt hello es*\n\n` +
+            `Common Codes: en, es, fr, de, it, ar, hi, zh, ja, ru`,
+          { quoted: message },
         );
       }
 
-      lang = args.pop(); // Get language code
-      textToTranslate = args.join(" "); // Get text to translate
+      // Check if last arg is a language code (usually 2-3 chars, sometimes with locale like pt-BR)
+      const lastArg = args[args.length - 1];
+      if (
+        lastArg.length <= 5 &&
+        !lastArg.includes(".") &&
+        lastArg.toLowerCase() !== lastArg.toUpperCase()
+      ) {
+        targetLang = args.pop();
+        textToTranslate = args.join(" ");
+      } else {
+        // Fallback: use 'en' and take all text
+        textToTranslate = args.join(" ");
+      }
     }
 
-    if (!textToTranslate) {
-      return sock.sendMessage(
+    if (!textToTranslate || textToTranslate.trim() === "") {
+      return await sendText(
+        sock,
         chatId,
-        {
-          text: "❌ No text found to translate. Please provide text or reply to a message.",
-          ...global.channelInfo,
-        },
-        {
-          quoted: message,
-        }
+        "❌ Please provide text to translate.",
       );
     }
 
-    // Try multiple translation APIs in sequence
-    let translatedText = null;
-    let error = null;
-
-    // Try API 1 (Google Translate API)
+    // Try Google Translate API (reliable & free)
     try {
-      const response = await fetch(
-        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURIComponent(
-          textToTranslate
-        )}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data[0] && data[0][0] && data[0][0][0]) {
-          translatedText = data[0][0][0];
+      const gUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(textToTranslate)}`;
+      const res = await axios.get(gUrl, { timeout: 10000 });
+
+      if (res.data && res.data[0]) {
+        // Concatenate all parts (Google sends multi-sentence as separate array elements)
+        const translated = res.data[0].map((part) => part[0]).join("");
+        if (translated) {
+          return await sendText(sock, chatId, translated, { quoted: message });
         }
       }
     } catch (e) {
-      error = e;
+      console.error("Google Translate failed:", e.message);
     }
 
-    // If API 1 fails, try API 2
-    if (!translatedText) {
-      try {
-        const response = await fetch(
-          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-            textToTranslate
-          )}&langpair=auto|${lang}`
+    // Fallback: MyMemory API
+    try {
+      const mUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=auto|${targetLang}`;
+      const res = await axios.get(mUrl, { timeout: 10000 });
+      if (res.data?.responseData?.translatedText) {
+        return await sendText(
+          sock,
+          chatId,
+          res.data.responseData.translatedText,
+          { quoted: message },
         );
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.responseData && data.responseData.translatedText) {
-            translatedText = data.responseData.translatedText;
-          }
-        }
-      } catch (e) {
-        error = e;
       }
+    } catch (e) {
+      console.error("MyMemory failed:", e.message);
     }
 
-    // If API 2 fails, try API 3
-    if (!translatedText) {
-      try {
-        const response = await fetch(
-          `https://api.dreaded.site/api/translate?text=${encodeURIComponent(
-            textToTranslate
-          )}&lang=${lang}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.translated) {
-            translatedText = data.translated;
-          }
-        }
-      } catch (e) {
-        error = e;
-      }
-    }
-
-    if (!translatedText) {
-      throw new Error("All translation APIs failed");
-    }
-
-    // Send translation
-    await sock.sendMessage(
-      chatId,
-      {
-        text: `${translatedText}`,
-        ...global.channelInfo,
-      },
-      {
-        quoted: message,
-      }
-    );
+    throw new Error("Translation failed");
   } catch (error) {
     console.error("❌ Error in translate command:", error);
-    await sock.sendMessage(
+    await sendText(
+      sock,
       chatId,
-      {
-        text: `❌ Failed to translate text. Please try again later.\n\nUsage:\n1. Reply to a message with: ${p}translate <lang> or ${p}trt <lang>\n2. Or type: ${p}translate <text> <lang> or ${p}trt <text> <lang>`,
-        ...global.channelInfo,
-      },
-      {
-        quoted: message,
-      }
+      `❌ Failed to translate. Make sure you use a valid language code (like 'en', 'es', 'fr').`,
+      { quoted: message },
     );
   }
 }
