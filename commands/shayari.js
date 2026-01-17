@@ -1,41 +1,25 @@
-const fetch = require("node-fetch");
+const axios = require("axios");
+const { sendText } = require("../lib/sendResponse");
 
 async function shayariCommand(sock, chatId) {
   try {
-    const response = await fetch(
-      "https://api.shizo.top/api/quote/shayari?apikey=𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"
+    const response = await axios.get(
+      "https://hindi-quotes.vercel.app/api/shayari",
     );
-    const data = await response.json();
+    const data = response.data;
 
-    if (!data || !data.result) {
+    if (!data || !data.quote) {
       throw new Error("Invalid response from API");
     }
 
-    const buttons = [
-      {
-        buttonId: ".shayari",
-        buttonText: { displayText: "Shayari 🪄" },
-        type: 1,
-      },
-      {
-        buttonId: ".roseday",
-        buttonText: { displayText: "🌹 RoseDay" },
-        type: 1,
-      },
-    ];
-
-    await sock.sendMessage(chatId, {
-      text: data.result,
-      buttons: buttons,
-      headerType: 1,
-      ...global.channelInfo,
-    });
+    await sendText(sock, chatId, `🖋️ *Shayari:*\n\n${data.quote}`);
   } catch (error) {
     console.error("Error in shayari command:", error);
-    await sock.sendMessage(chatId, {
-      text: "❌ Failed to fetch shayari. Please try again later.",
-      ...global.channelInfo,
-    });
+    await sendText(
+      sock,
+      chatId,
+      "❌ Failed to fetch shayari. Please try again later.",
+    );
   }
 }
 
