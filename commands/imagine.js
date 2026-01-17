@@ -25,7 +25,7 @@ async function imagineCommand(sock, chatId, message) {
         },
         {
           quoted: message,
-        }
+        },
       );
       return;
     }
@@ -37,7 +37,7 @@ async function imagineCommand(sock, chatId, message) {
         text: "🎨 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 is Generating your image...",
         ...global.channelInfo,
       },
-      { quoted: message }
+      { quoted: message },
     );
     const key = initialMsg.key;
 
@@ -76,14 +76,13 @@ async function imagineCommand(sock, chatId, message) {
     // Enhance the prompt with quality keywords
     const enhancedPrompt = enhancePrompt(imagePrompt);
 
-    // Make API request
+    // Make API request with timeout
     const response = await axios.get(
-      `https://shizoapi.onrender.com/api/ai/imagine?apikey=shizo&query=${encodeURIComponent(
-        enhancedPrompt
-      )}`,
+      `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true`,
       {
         responseType: "arraybuffer",
-      }
+        timeout: 120000, // 2 minutes for image gen
+      },
     );
 
     // Check if response contains valid image data
@@ -101,7 +100,7 @@ async function imagineCommand(sock, chatId, message) {
       },
       {
         quoted: message,
-      }
+      },
     );
   } catch (error) {
     console.error("Error in imagine command:", error);
@@ -121,7 +120,7 @@ async function imagineCommand(sock, chatId, message) {
       },
       {
         quoted: message,
-      }
+      },
     );
   }
 }

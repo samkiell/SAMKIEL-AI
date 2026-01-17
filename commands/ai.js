@@ -19,7 +19,7 @@ async function aiCommand(sock, chatId, message) {
           text: `Please provide a question after ${p}gpt, ${p}gemini or ${p}deepseek\n\nExample: ${p}gpt write a basic html code`,
           ...global.channelInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
     }
 
@@ -35,7 +35,7 @@ async function aiCommand(sock, chatId, message) {
           text: `Please provide a question after ${p}gpt, ${p}gemini or ${p}deepseek`,
           ...global.channelInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
     }
 
@@ -46,7 +46,7 @@ async function aiCommand(sock, chatId, message) {
         {
           text: "🧠 Thinking...",
         },
-        { quoted: message }
+        { quoted: message },
       );
       const key = initialMsg.key;
 
@@ -100,13 +100,13 @@ async function aiCommand(sock, chatId, message) {
         // Array of GPT API endpoints
         const gptApis = [
           `https://api.siputzx.my.id/api/ai/llama33?prompt=You+are+AI+developed+by+SAMKIEL&text=${encodeURIComponent(
-            query
+            query,
           )}`,
           `https://api.siputzx.my.id/api/ai/gpt3?content=${encodeURIComponent(
-            query
+            query,
           )}`,
           `https://api.popcat.xyz/chatbot?owner=Samkiel&botname=SamkielAI&msg=${encodeURIComponent(
-            query
+            query,
           )}`,
         ];
 
@@ -115,7 +115,7 @@ async function aiCommand(sock, chatId, message) {
             const response = await axios.get(api, { timeout: 10000 });
             if (response.status !== 200) {
               console.warn(
-                `GPT API failed with status ${response.status}: ${api}`
+                `GPT API failed with status ${response.status}: ${api}`,
               );
               continue;
             }
@@ -149,7 +149,7 @@ async function aiCommand(sock, chatId, message) {
                   text: answer,
                   ...global.channelInfo,
                 },
-                { quoted: message }
+                { quoted: message },
               );
               return;
             }
@@ -166,7 +166,7 @@ async function aiCommand(sock, chatId, message) {
             text: "❌ All GPT APIs failed, Elon musk hasnt paid up. Please try again later.",
             ...global.channelInfo,
           },
-          { quoted: message }
+          { quoted: message },
         );
         return;
       } else if (commandPart === "gemini") {
@@ -190,7 +190,7 @@ async function aiCommand(sock, chatId, message) {
               headers: {
                 "Content-Type": "application/json",
               },
-            }
+            },
           );
 
           if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
@@ -203,26 +203,26 @@ async function aiCommand(sock, chatId, message) {
                 text: answer,
                 ...global.channelInfo,
               },
-              { quoted: message }
+              { quoted: message },
             );
             return;
           }
         } catch (e) {
           console.warn(
             "Primary Gemini API failed, trying fallbacks...",
-            e.message
+            e.message,
           );
         }
 
         const geminiApis = [
           `https://api.vreden.my.id/api/ai/gemini?query=${encodeURIComponent(
-            query
+            query,
           )}`,
           `https://api.siputzx.my.id/api/ai/gemini?text=${encodeURIComponent(
-            query
+            query,
           )}`,
           `https://api.giftedtech.web.id/api/ai/geminiai?apikey=gifted&q=${encodeURIComponent(
-            query
+            query,
           )}`,
         ];
 
@@ -255,7 +255,7 @@ async function aiCommand(sock, chatId, message) {
                   text: answer,
                   ...global.channelInfo,
                 },
-                { quoted: message }
+                { quoted: message },
               );
               return;
             }
@@ -272,16 +272,14 @@ async function aiCommand(sock, chatId, message) {
             text: "❌ All Gemini APIs failed. Please try again later.",
             ...global.channelInfo,
           },
-          { quoted: message }
+          { quoted: message },
         );
         return;
       } else if (commandPart === "deepseek" || commandPart === "ds") {
         const deepseekApis = [
+          `https://api.siputzx.my.id/api/ai/deepseek-r1?text=${encodeURIComponent(query)}`,
           `https://api.siputzx.my.id/api/ai/llama33?prompt=You+are+DeepSeek+R1+thinking+AI&text=${encodeURIComponent(
-            query
-          )}`,
-          `https://api.shizo.top/api/ai/deepseek?apikey=𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋&q=${encodeURIComponent(
-            query
+            query,
           )}`,
         ];
 
@@ -307,7 +305,7 @@ async function aiCommand(sock, chatId, message) {
                   text: answer,
                   ...global.channelInfo,
                 },
-                { quoted: message }
+                { quoted: message },
               );
               return;
             }
@@ -324,7 +322,7 @@ async function aiCommand(sock, chatId, message) {
             text: "❌ All DeepSeek APIs failed. Please try again later.",
             ...global.channelInfo,
           },
-          { quoted: message }
+          { quoted: message },
         );
         return;
       }
@@ -337,7 +335,7 @@ async function aiCommand(sock, chatId, message) {
           text: "❌ Failed to get response. Please try again later.",
           ...global.channelInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
     }
   } catch (error) {
@@ -348,7 +346,7 @@ async function aiCommand(sock, chatId, message) {
         text: "❌ An error occurred. Please try again later.",
         ...global.channelInfo,
       },
-      { quoted: message }
+      { quoted: message },
     );
   }
 }
