@@ -27,8 +27,8 @@ if (!fs.existsSync(configPath)) {
         allowedGroups: [],
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 }
 
@@ -51,7 +51,7 @@ async function copyNForward(
   jid,
   message,
   forceForward = false,
-  options = {}
+  options = {},
 ) {
   try {
     const content = await generateForwardMessageContent(message, forceForward);
@@ -171,12 +171,12 @@ async function handleMessageRevocation(sock, revocationMessage) {
 
     // 3. Group Eligibility Check
     if (isGroup) {
-      if (!config.allowedGroups || config.allowedGroups.length === 0) {
-        // "If allowedGroups is empty, treat anti-delete as disabled for groups"
-        return;
-      }
-      if (!config.allowedGroups.includes(remoteJid)) {
-        return;
+      // If allowedGroups has entries, we restrict to those.
+      // If it's empty, we allow ALL groups as long as global toggle is ON.
+      if (config.allowedGroups && config.allowedGroups.length > 0) {
+        if (!config.allowedGroups.includes(remoteJid)) {
+          return;
+        }
       }
     }
 
@@ -222,7 +222,7 @@ async function handleMessageRevocation(sock, revocationMessage) {
     if (destinations.length === 0) return;
 
     console.log(
-      `♻️ Anti-delete triggered for ${targetId} in ${remoteJid}. Mode: ${config.mode}`
+      `♻️ Anti-delete triggered for ${targetId} in ${remoteJid}. Mode: ${config.mode}`,
     );
 
     // 5. Construct Report Header

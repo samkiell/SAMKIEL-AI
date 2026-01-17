@@ -120,6 +120,7 @@ const {
   handleMessageRevocation,
   storeMessage,
 } = require("./commands/antidelete");
+const { bibleCommand } = require("./commands/bible");
 const clearTmpCommand = require("./commands/cleartmp");
 const setProfilePicture = require("./commands/setpp");
 const instagramCommand = require("./commands/instagram");
@@ -466,7 +467,6 @@ You can explore all available commands below 👇`,
       "autostatus",
       "antidelete",
       "cleartmp",
-      "setpp",
       "clearsession",
       "areact",
       "autoreact",
@@ -1014,6 +1014,11 @@ You can explore all available commands below 👇`,
         await movieCommand(sock, chatId, message, movieArgs);
         break;
       }
+      case command.startsWith("bible"): {
+        await bibleCommand(sock, chatId, args);
+        break;
+      }
+
       case command === "clear":
         if (isGroup) await clearCommand(sock, chatId);
         break;

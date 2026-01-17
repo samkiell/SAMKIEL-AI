@@ -595,7 +595,7 @@ ${Object.entries(pluginStatus)
   .join("\n")}
 
 ━━━ *OWNER* ━━━
-${settings.ownerName || "SAMKIEL"} (${settings.website || "https://samkielbot.app"})
+${"SAMKIEL"} (${settings.portfolio || "https://samkiel.dev"})
 
 ━━━━━━━━━━━━━━━━━━━━━`.trim();
 
