@@ -538,6 +538,76 @@ You can explore all available commands below 👇`,
 
     // Command handlers
     switch (true) {
+      case userMessage.toLowerCase() === "mp3": {
+        const quotedMessage =
+          message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+        if (quotedMessage?.audioMessage) {
+          const fileName = quotedMessage.audioMessage.fileName || "song.mp3";
+          const searchQuery = fileName.replace(".mp3", "");
+
+          await sendText(
+            sock,
+            chatId,
+            `⏳ Converting *${searchQuery}* to document format...`,
+            { quoted: message },
+          );
+
+          // Reuse play logic but send as document
+          const playLogic = require("./commands/play");
+          // We need a way to trigger document send.
+          // Let's modify play.js to accept an option or just handle it here.
+          // Since play.js is already complex, let's just implement the download here
+          // or call a dedicated song document handler.
+
+          // For now, let's use the songCommand but modify it to send document
+          // Actually, I'll just Implement a quick download here using the same providers
+          const { videos } = await yts(searchQuery);
+          if (videos && videos.length > 0) {
+            const video = videos[0];
+            // Import the downloaders from play.js if possible or just use a helper
+            // Better: just call the playCommand with an extra flag?
+            // Baileys sendMessage supports document: {url}
+
+            // Re-using the logic from play.js (simplified for this one-off)
+            // In a real codebase, I'd refactor this into a lib.
+            try {
+              const axios = require("axios");
+              const getAsithaAudio = async (youtubeUrl) => {
+                const apiKey =
+                  "0c97d662e61301ae4fa667fbb8001051e00c02f8369c756c10a1404a95fe0edb";
+                const apiUrl = `https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/ytapi?url=${encodeURIComponent(youtubeUrl)}&fo=2&qu=128&apiKey=${apiKey}`;
+                const res = await axios.get(apiUrl, { timeout: 60000 });
+                return res.data?.downloadData?.url;
+              };
+
+              const audioUrl = await getAsithaAudio(video.url);
+              if (audioUrl) {
+                await sock.sendMessage(
+                  chatId,
+                  {
+                    document: { url: audioUrl },
+                    mimetype: "audio/mpeg",
+                    fileName: `${video.title}.mp3`,
+                    caption: `*${video.title}* - Document Version`,
+                  },
+                  { quoted: message },
+                );
+                return;
+              }
+            } catch (e) {
+              console.log("MP3 document fallback triggered");
+            }
+          }
+          await sendText(
+            sock,
+            chatId,
+            "❌ Failed to convert to document format.",
+            { quoted: message },
+          );
+        }
+        break;
+      }
+
       case command === "simage": {
         const quotedMessage =
           message.message?.extendedTextMessage?.contextInfo?.quotedMessage;

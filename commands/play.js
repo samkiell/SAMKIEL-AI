@@ -40,7 +40,7 @@ async function tryRequest(getter, attempts = 3) {
 
 async function getIzumiDownloadByUrl(youtubeUrl) {
   const apiUrl = `https://izumiiiiiiii.dpdns.org/downloader/youtube?url=${encodeURIComponent(
-    youtubeUrl
+    youtubeUrl,
   )}&format=mp3`;
   const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
   if (res?.data?.result?.download) return res.data.result;
@@ -49,7 +49,7 @@ async function getIzumiDownloadByUrl(youtubeUrl) {
 
 async function getIzumiDownloadByQuery(query) {
   const apiUrl = `https://izumiiiiiiii.dpdns.org/downloader/youtube-play?query=${encodeURIComponent(
-    query
+    query,
   )}`;
   const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
   if (res?.data?.result?.download) return res.data.result;
@@ -58,7 +58,7 @@ async function getIzumiDownloadByQuery(query) {
 
 async function getOkatsuDownloadByUrl(youtubeUrl) {
   const apiUrl = `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp3?url=${encodeURIComponent(
-    youtubeUrl
+    youtubeUrl,
   )}`;
   const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
   // Okatsu response shape: { status, creator, title, format, thumb, duration, cached, dl }
@@ -76,7 +76,7 @@ async function getAsithaAudio(youtubeUrl) {
   const apiKey =
     "0c97d662e61301ae4fa667fbb8001051e00c02f8369c756c10a1404a95fe0edb";
   const apiUrl = `https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/ytapi?url=${encodeURIComponent(
-    youtubeUrl
+    youtubeUrl,
   )}&fo=2&qu=128&apiKey=${apiKey}`;
   const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
   if (res?.data?.downloadData?.url) {
@@ -109,7 +109,7 @@ async function playCommand(sock, chatId, message) {
     const { videos } = await yts(searchQuery);
     console.log(
       "YouTube search result:",
-      videos && videos.length ? videos[0] : "No videos"
+      videos && videos.length ? videos[0] : "No videos",
     );
     if (!videos || videos.length === 0) {
       console.log("No songs found!");
@@ -135,7 +135,7 @@ async function playCommand(sock, chatId, message) {
           }\n*Views:* ${video.views.toLocaleString()}\n\n⏳ *Downloading Audio...*`,
           contextInfo: channelInfo.contextInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
       key = initialMsg.key;
 
@@ -216,14 +216,23 @@ async function playCommand(sock, chatId, message) {
 
     // Send the audio
     console.log("Sending audio file");
-    await sock.sendMessage(
+    const sentAudio = await sock.sendMessage(
       chatId,
       {
         audio: { url: audioUrl },
         mimetype: "audio/mpeg",
         fileName: `${title}.mp3`,
       },
-      { quoted: message }
+      { quoted: message },
+    );
+
+    // Prompt for MP3 document version - quote the audio message itself
+    await sock.sendMessage(
+      chatId,
+      {
+        text: "Reply to this audio with *'mp3'* to download it in document format.",
+      },
+      { quoted: sentAudio },
     );
   } catch (error) {
     console.error("Error in play command:", error);
