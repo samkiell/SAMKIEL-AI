@@ -1,40 +1,24 @@
-const fetch = require("node-fetch");
+const axios = require("axios");
 
 async function memeCommand(sock, chatId) {
   try {
-    const response = await fetch(
-      "https://shizoapi.onrender.com/api/memes/cheems?apikey=𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"
-    );
+    const response = await axios.get("https://meme-api.com/gimme");
+    const data = response.data;
 
-    // Check if response is an image
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("image")) {
-      const imageBuffer = await response.buffer();
-
-      const buttons = [
-        {
-          buttonId: ".meme",
-          buttonText: { displayText: "🎭 Another Meme" },
-          type: 1,
-        },
-        { buttonId: ".joke", buttonText: { displayText: "😄 Joke" }, type: 1 },
-      ];
-
-      await sock.sendMessage(chatId, {
-        image: imageBuffer,
-        caption: "Here's your cheems meme! 🐕",
-        buttons: buttons,
-        headerType: 1,
-        ...global.channelInfo,
-      });
-    } else {
-      throw new Error("Invalid response type from API");
+    if (!data || !data.url) {
+      throw new Error("Invalid response from API");
     }
+
+    await sock.sendMessage(chatId, {
+      image: { url: data.url },
+      caption: `*${data.title}*\n\n> Source: r/${data.subreddit}`,
+      contextInfo: global.channelInfo?.contextInfo || {},
+    });
   } catch (error) {
     console.error("Error in meme command:", error);
     await sock.sendMessage(chatId, {
       text: "❌ Failed to fetch meme. Please try again later.",
-      ...global.channelInfo,
+      contextInfo: global.channelInfo?.contextInfo || {},
     });
   }
 }

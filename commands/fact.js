@@ -1,17 +1,13 @@
 const axios = require("axios");
+const { sendText } = require("../lib/sendResponse");
 
 module.exports = async function (sock, chatId) {
   try {
-    const response = await axios.get(
-      "https://uselessfacts.jsph.pl/random.json?language=en"
-    );
-    const fact = response.data.text;
-    await sock.sendMessage(chatId, { text: fact, ...global.channelInfo });
+    const response = await axios.get("https://nekos.life/api/v2/fact");
+    const fact = response.data.fact;
+    await sendText(sock, chatId, `💡 *Did you know?*\n\n${fact}`);
   } catch (error) {
     console.error("Error fetching fact:", error);
-    await sock.sendMessage(chatId, {
-      text: "Sorry, I could not fetch a fact right now.",
-      ...global.channelInfo,
-    });
+    await sendText(sock, chatId, "Sorry, I could not fetch a fact right now.");
   }
 };
