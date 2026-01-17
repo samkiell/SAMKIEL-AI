@@ -138,7 +138,6 @@ const {
   autoReactToNonCommand,
 } = require("./lib/reactions");
 const { goodnightCommand } = require("./commands/goodnight");
-const { shayariCommand } = require("./commands/shayari");
 const movieCommand = require("./commands/movie");
 const { rosedayCommand } = require("./commands/roseday");
 const imagineCommand = require("./commands/imagine");
@@ -1380,9 +1379,6 @@ You can explore all available commands below 👇`,
         break;
       case cmd === "goodnight" || command === "lovenight" || command === "gn":
         await goodnightCommand(sock, chatId);
-        break;
-      case cmd === "shayari" || command === "shayri":
-        await shayariCommand(sock, chatId);
         break;
       case cmd === "roseday":
         await rosedayCommand(sock, chatId);

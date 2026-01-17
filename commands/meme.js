@@ -11,7 +11,8 @@ async function memeCommand(sock, chatId) {
 
     await sock.sendMessage(chatId, {
       image: { url: data.url },
-      caption: `*${data.title}*\n\n> Source: r/${data.subreddit}`,
+      caption: `*${data.title}*\n\n> Source: SAMKIEL`,
+
       contextInfo: global.channelInfo?.contextInfo || {},
     });
   } catch (error) {
