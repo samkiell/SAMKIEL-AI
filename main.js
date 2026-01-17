@@ -611,8 +611,12 @@ You can explore all available commands below 👇`,
         break;
       }
 
-      case command.startsWith("pin"): {
-        await pinCommand(sock, chatId, senderId, message);
+      case cmd === "pin": {
+        await pinCommand(sock, chatId, senderId, message, args);
+        break;
+      }
+      case cmd === "unpin": {
+        await pinCommand(sock, chatId, senderId, message, ["unpin"]);
         break;
       }
 
@@ -893,7 +897,9 @@ You can explore all available commands below 👇`,
         }
         break;
       case cmd === "news":
-        await newsCommand(sock, chatId);
+        await newsCommand(sock, chatId, message, args);
+        break;
+
         break;
       case command.startsWith("pdf"): {
         let text = userMessage
