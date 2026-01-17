@@ -1016,12 +1016,11 @@ You can explore all available commands below 👇`,
       case cmd === "truth":
         await truthCommand(sock, chatId);
         break;
-      case command.startsWith("movie"): {
-        const movieArgs = userMessage.trim().split(/\s+/).slice(1);
-        await movieCommand(sock, chatId, message, movieArgs);
+      case cmd === "movie": {
+        await movieCommand(sock, chatId, message, args);
         break;
       }
-      case command.startsWith("bible"): {
+      case cmd === "bible": {
         await bibleCommand(sock, chatId, args);
         break;
       }
@@ -1045,7 +1044,7 @@ You can explore all available commands below 👇`,
       case cmd === "alive":
         await aliveCommand(sock, chatId, message);
         break;
-      case command.startsWith("blur"):
+      case cmd === "blur":
         const quotedMessage =
           message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
         await blurCommand(sock, chatId, message, quotedMessage);
@@ -1211,13 +1210,13 @@ You can explore all available commands below 👇`,
         }
         await staffCommand(sock, chatId, message);
         break;
-      case command.startsWith("emojimix") || command.startsWith("emix"):
+      case cmd === "emojimix" || cmd === "emix":
         await emojimixCommand(sock, chatId, message);
         break;
-      case command.startsWith("tg") ||
-        command.startsWith("stickertelegram") ||
-        command.startsWith("tgsticker") ||
-        command.startsWith("telesticker"):
+      case cmd === "tg" ||
+        cmd === "stickertelegram" ||
+        cmd === "tgsticker" ||
+        cmd === "telesticker":
         await stickerTelegramCommand(sock, chatId, message);
         break;
 
@@ -1307,39 +1306,37 @@ You can explore all available commands below 👇`,
       case cmd === "setpp":
         await setProfilePicture(sock, chatId, message);
         break;
-      case command.startsWith("instagram") ||
-        command.startsWith("insta") ||
-        command.startsWith("ig"):
+      case cmd === "instagram" || cmd === "insta" || cmd === "ig":
         await instagramCommand(sock, chatId, message);
         break;
-      case command.startsWith("fb") || command.startsWith("facebook"):
+      case cmd === "fb" || cmd === "facebook":
         await facebookCommand(sock, chatId, message);
         break;
-      case command.startsWith("video"):
+      case cmd === "video":
         await videoCommand(sock, chatId, message);
         break;
-      case command.startsWith("play"):
+      case cmd === "play":
         await playCommand(sock, chatId, message);
         break;
-      case command.startsWith("song") ||
-        command.startsWith("music") ||
-        command.startsWith("mp3") ||
-        command.startsWith("ytmp3") ||
-        command.startsWith("yts"):
+      case cmd === "song" ||
+        cmd === "music" ||
+        cmd === "mp3" ||
+        cmd === "ytmp3" ||
+        cmd === "yts":
         await songCommand(sock, chatId, message);
         break;
 
-      case command.startsWith("tiktok") || command.startsWith("tt"):
+      case cmd === "tiktok" || cmd === "tt":
         await tiktokCommand(sock, chatId, message);
         break;
-      case command.startsWith("gpt") ||
-        command.startsWith("gemini") ||
-        command.startsWith("deepseek") ||
-        command.startsWith("ds"):
+      case cmd === "gpt" ||
+        cmd === "gemini" ||
+        cmd === "deepseek" ||
+        cmd === "ds":
         await aiCommand(sock, chatId, message);
         break;
-      case command.startsWith("translate") || command.startsWith("trt"):
-        const commandLength = command.startsWith("translate") ? 9 : 3;
+      case cmd === "translate" || cmd === "trt":
+        const commandLength = cmd === "translate" ? 9 : 3;
         await handleTranslateCommand(
           sock,
           chatId,
@@ -1351,14 +1348,9 @@ You can explore all available commands below 👇`,
       case cmd === "admin" || command === "panel" || command === "cms":
         await panelCommand(sock, chatId, message);
         break;
-      case command.startsWith("ss") ||
-        command.startsWith("ssweb") ||
-        command.startsWith("screenshot"):
-        const ssCommandLength = command.startsWith("screenshot")
-          ? 10
-          : command.startsWith("ssweb")
-            ? 5
-            : 2;
+      case cmd === "ss" || cmd === "ssweb" || cmd === "screenshot":
+        const ssCommandLength =
+          cmd === "screenshot" ? 10 : cmd === "ssweb" ? 5 : 2;
         await handleSsCommand(
           sock,
           chatId,
@@ -1366,9 +1358,7 @@ You can explore all available commands below 👇`,
           command.slice(ssCommandLength).trim(),
         );
         break;
-      case command.startsWith("areact") ||
-        command.startsWith("autoreact") ||
-        command.startsWith("autoreaction"):
+      case cmd === "areact" || cmd === "autoreact" || cmd === "autoreaction":
         await handleAreactCommand(
           sock,
           chatId,
@@ -1383,40 +1373,40 @@ You can explore all available commands below 👇`,
       case cmd === "roseday":
         await rosedayCommand(sock, chatId);
         break;
-      case command.startsWith("imagine") ||
-        command.startsWith("gen") ||
-        command.startsWith("flux") ||
-        command.startsWith("dalle"):
+      case cmd === "imagine" ||
+        cmd === "gen" ||
+        cmd === "flux" ||
+        cmd === "dalle":
         await imagineCommand(sock, chatId, message);
         break;
-      case command.startsWith("remini"):
-        const reminiArgs = command.split(" ").slice(1);
-        await reminiCommand(sock, chatId, message, reminiArgs);
+      case cmd === "remini":
+        await reminiCommand(sock, chatId, message, args);
         break;
-      case command.startsWith("setgdesc"):
-        const descText = command.slice(8).trim();
-        await setGroupDescription(sock, chatId, senderId, descText, message);
+      case cmd === "setgdesc":
+        await setGroupDescription(
+          sock,
+          chatId,
+          senderId,
+          args.join(" "),
+          message,
+        );
         break;
-      case command.startsWith("setgname"):
-        const nameText = command.slice(8).trim();
-        await setGroupName(sock, chatId, senderId, nameText, message);
+      case cmd === "setgname":
+        await setGroupName(sock, chatId, senderId, args.join(" "), message);
         break;
-      case command.startsWith("setgpp"):
+      case cmd === "setgpp":
         await setGroupPhoto(sock, chatId, senderId, message);
         break;
-      case command.startsWith("removebg") ||
-        command.startsWith("rmbg") ||
-        command.startsWith("nobg"):
-        const removebgArgs = command.split(" ").slice(1);
-        await removebg.exec(sock, message, removebgArgs);
+      case cmd === "removebg" || cmd === "rmbg" || cmd === "nobg":
+        await removebg.exec(sock, message, args);
         break;
       case cmd === "settings":
         await settingsCommand(sock, chatId, message);
         break;
-      case command.startsWith("sora"):
+      case cmd === "sora":
         await soraCommand(sock, chatId, message);
         break;
-      case command.startsWith("sudo"):
+      case cmd === "sudo":
         await sudoCommand(sock, chatId, message);
         break;
       case cmd === "add":
@@ -1433,7 +1423,7 @@ You can explore all available commands below 👇`,
       case cmd === "deploy":
         await deployCommand(sock, chatId, message);
         break;
-      case command.startsWith("setprefix"):
+      case cmd === "setprefix":
         if (!(await isOwner(senderId))) {
           await sendText(
             sock,
