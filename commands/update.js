@@ -4,6 +4,7 @@ const path = require("path");
 const https = require("https");
 const settings = require("../settings");
 const { isOwner: checkOwner } = require("../lib/isOwner");
+const { sendText } = require("../lib/sendResponse");
 
 function run(cmd) {
   return new Promise((resolve, reject) => {
