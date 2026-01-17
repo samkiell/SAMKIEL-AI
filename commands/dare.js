@@ -1,30 +1,19 @@
-const fetch = require("node-fetch");
+const axios = require("axios");
+const { sendText } = require("../lib/sendResponse");
 
 async function dareCommand(sock, chatId) {
   try {
-    const shizokeys = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
-    const res = await fetch(
-      `https://api.shizo.top/api/quote/dare?apikey=${shizokeys}`
-    );
+    const res = await axios.get("https://api.truthordarebot.xyz/v1/dare");
+    const dareMessage = res.data.question;
 
-    if (!res.ok) {
-      throw await res.text();
-    }
-
-    const json = await res.json();
-    const dareMessage = json.result;
-
-    // Send the dare message
-    await sock.sendMessage(chatId, {
-      text: dareMessage,
-      ...global.channelInfo,
-    });
+    await sendText(sock, chatId, `🎯 *Dare:* ${dareMessage}`);
   } catch (error) {
     console.error("Error in dare command:", error);
-    await sock.sendMessage(chatId, {
-      text: "❌ Failed to get dare. Please try again later!",
-      ...global.channelInfo,
-    });
+    await sendText(
+      sock,
+      chatId,
+      "❌ Failed to get dare. Please try again later!",
+    );
   }
 }
 

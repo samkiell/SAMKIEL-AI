@@ -1,30 +1,19 @@
-const fetch = require("node-fetch");
+const axios = require("axios");
+const { sendText } = require("../lib/sendResponse");
 
 async function truthCommand(sock, chatId) {
   try {
-    const shizokeys = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
-    const res = await fetch(
-      `https://api.shizo.top/api/quote/truth?apikey=${shizokeys}`
-    );
+    const res = await axios.get("https://api.truthordarebot.xyz/v1/truth");
+    const truthMessage = res.data.question;
 
-    if (!res.ok) {
-      throw await res.text();
-    }
-
-    const json = await res.json();
-    const truthMessage = json.result;
-
-    // Send the truth message
-    await sock.sendMessage(chatId, {
-      text: truthMessage,
-      ...global.channelInfo,
-    });
+    await sendText(sock, chatId, `🤔 *Truth:* ${truthMessage}`);
   } catch (error) {
     console.error("Error in truth command:", error);
-    await sock.sendMessage(chatId, {
-      text: "❌ Failed to get truth. Please try again later!",
-      ...global.channelInfo,
-    });
+    await sendText(
+      sock,
+      chatId,
+      "❌ Failed to get truth. Please try again later!",
+    );
   }
 }
 
