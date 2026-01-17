@@ -169,6 +169,7 @@ const {
   listOnlineCommand,
   recordUserActivity,
 } = require("./commands/listonline");
+const pinCommand = require("./commands/pin");
 const { sendText, shouldHaveBranding } = require("./lib/sendResponse");
 
 // Global settings
@@ -605,6 +606,11 @@ You can explore all available commands below 👇`,
             { quoted: message },
           );
         }
+        break;
+      }
+
+      case command.startsWith("pin"): {
+        await pinCommand(sock, chatId, senderId, message);
         break;
       }
 

@@ -156,6 +156,7 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🌍 ${p}trt <text> <lang>
   ║ ✧ 📸 ${p}ss <link>
   ║ ✧ 👁️ ${p}viewonce
+  ║ ✧ 🌐 ${p}deploy
   ╚═══════════════════╝ 
 
   ╔═══════════════════╗
@@ -179,6 +180,8 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🔄 ${p}resetlink
   ║ ✧ 🔌 ${p}plugin
   ║ ✧ 💾 ${p}savestatus [dm]
+  ║ ✧ 👥 ${p}listonline
+  ║ ✧ 📌 ${p}pin
   ╚═══════════════════╝
 
   ╔═══════════════════╗
