@@ -57,6 +57,37 @@ async function pdfCommand(sock, chatId, text, message) {
     const doc = new PDFDocument({ margin: 50 });
     const stream = fs.createWriteStream(pdfPath);
 
+    // Font support for emojis
+    const emojiFonts = [
+      "C:/Windows/Fonts/seguiemj.ttf", // Windows
+      "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf", // Linux
+      "/System/Library/Fonts/Apple Color Emoji.ttc", // macOS
+    ];
+
+    let fontLoaded = false;
+    for (const fontPath of emojiFonts) {
+      if (fs.existsSync(fontPath)) {
+        try {
+          doc.font(fontPath);
+          fontLoaded = true;
+          console.log(`➡️ [PDF COMMAND] Using font: ${fontPath}`);
+          break;
+        } catch (e) {
+          console.error(
+            `❌ [PDF COMMAND] Error loading font ${fontPath}:`,
+            e.message,
+          );
+        }
+      }
+    }
+
+    if (!fontLoaded) {
+      console.warn(
+        "⚠️ [PDF COMMAND] No emoji font found, falling back to Helvetica",
+      );
+      doc.font("Helvetica");
+    }
+
     // Error handling for stream
     stream.on("error", (err) => {
       console.error("❌ [PDF COMMAND] Stream Error:", err);

@@ -184,6 +184,7 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 💾 ${p}savestatus [dm]
   ║ ✧ 👥 ${p}listonline
   ║ ✧ 📌 ${p}pin
+  ║ ✧ 📍 ${p}unpin
   ╚═══════════════════╝
 
   ╔═══════════════════╗
@@ -232,7 +233,6 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🌟 ${p}compliment @user
   ║ ✧ 😡 ${p}insult @user
   ║ ✧ 💌 ${p}flirt 
-  ║ ✧ 🎤 ${p}shayari
   ║ ✧ 🌙 ${p}goodnight
   ║ ✧ 🌹 ${p}roseday
   ║ ✧ 🧙‍♂️ ${p}character @user
