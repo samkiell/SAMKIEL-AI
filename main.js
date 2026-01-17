@@ -281,7 +281,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
     // Only log command usage
     if (isCommand(userMessage)) {
-      if (VALID_COMMANDS.includes(command)) {
+      if (VALID_COMMANDS.includes(cmd)) {
         console.log(
           `📝 Command used in ${isGroup ? "group" : "private"}: ${userMessage}`,
         );
@@ -294,7 +294,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
           await sock.sendPresenceUpdate("recording", chatId);
           // Global command reaction
-          await addCommandReaction(sock, message, command);
+          await addCommandReaction(sock, message, cmd);
         } catch (e) {}
       } else {
         // Log suppressed
@@ -304,10 +304,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
     }
 
     // Check if bot is disabled in this chat
-    if (isBotDisabled(chatId) && command !== "enablebot") {
+    if (isBotDisabled(chatId) && cmd !== "enablebot") {
       return;
     }
-    if (isBanned(senderId) && command !== "unban") {
+    if (isBanned(senderId) && cmd !== "unban") {
       // Only respond occasionally to avoid spam
       if (Math.random() < 0.1) {
         await sock.sendMessage(chatId, {
@@ -616,7 +616,7 @@ You can explore all available commands below 👇`,
         break;
       }
 
-      case command === "simage": {
+      case cmd === "simage": {
         const quotedMessage =
           message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
         if (quotedMessage?.stickerMessage) {
@@ -656,7 +656,7 @@ You can explore all available commands below 👇`,
           await muteCommand(sock, chatId, senderId, muteDuration);
         }
         break;
-      case command === "unmute":
+      case cmd === "unmute":
         await unmuteCommand(sock, chatId, senderId);
         break;
       case command.startsWith("ban"):
@@ -671,7 +671,7 @@ You can explore all available commands below 👇`,
           await updateCommand(sock, chatId, message, updateArgs || userMessage);
         }
         break;
-      case command === "anticall":
+      case cmd === "anticall":
         const args = userMessage.trim().split(/\s+/).slice(1);
         await anticallCommand(sock, chatId, message, args);
         break;
@@ -689,17 +689,17 @@ You can explore all available commands below 👇`,
           await helpCommand(sock, chatId, senderId, message.pushName, helpArgs);
         }
         break;
-      case command === "channel":
+      case cmd === "channel":
         await channelCommand(sock, chatId, message);
         break;
-      case command === "plugin" || command === "plugins":
+      case cmd === "plugin" || command === "plugins":
         await pluginCommand(sock, chatId, message);
         break;
-      case command === "savestatus":
+      case cmd === "savestatus":
         const saveArgs = userMessage.trim().split(/\s+/).slice(1);
         await saveStatusCommand(sock, chatId, message, saveArgs);
         break;
-      case command === "sticker" || command === "s":
+      case cmd === "sticker" || command === "s":
         await stickerCommand(sock, chatId, message);
         break;
       case command.startsWith("warnings"):
@@ -722,7 +722,7 @@ You can explore all available commands below 👇`,
         const text = command.slice(3).trim();
         await ttsCommand(sock, chatId, text);
         break;
-      case command === "delete" || command === "del":
+      case cmd === "delete" || command === "del":
         await deleteCommand(sock, chatId, message, senderId);
         break;
       case command.startsWith("attp"):
@@ -787,14 +787,14 @@ You can explore all available commands below 👇`,
         }
         break;
 
-      case command === "owner":
+      case cmd === "owner":
         await ownerCommand(sock, chatId);
         break;
 
-      case command === "disablebot" || command === "enablebot":
+      case cmd === "disablebot" || command === "enablebot":
         await handleBotControl(sock, chatId, senderId, command, message);
         break;
-      case command === "vcf": {
+      case cmd === "vcf": {
         if (!isGroup) {
           await sendText(
             sock,
@@ -820,7 +820,7 @@ You can explore all available commands below 👇`,
         break;
       }
 
-      case command === "tagall":
+      case cmd === "tagall":
         if (isGroup) {
           const { isSenderAdmin } = await isAdmin(sock, chatId, senderId);
           if (isSenderAdmin || message.key.fromMe) {
@@ -869,16 +869,16 @@ You can explore all available commands below 👇`,
           isSenderAdmin,
         );
         break;
-      case command === "meme":
+      case cmd === "meme":
         await memeCommand(sock, chatId);
         break;
       case command.startsWith("joke"):
         await jokeCommand(sock, chatId, message);
         break;
-      case command === "quote":
+      case cmd === "quote":
         await quoteCommand(sock, chatId);
         break;
-      case command === "fact":
+      case cmd === "fact":
         await factCommand(sock, chatId);
         break;
       case command.startsWith("weather"):
@@ -892,7 +892,7 @@ You can explore all available commands below 👇`,
           });
         }
         break;
-      case command === "news":
+      case cmd === "news":
         await newsCommand(sock, chatId);
         break;
       case command.startsWith("pdf"): {
@@ -938,7 +938,7 @@ You can explore all available commands below 👇`,
           tictactoeMove(sock, chatId, senderId, position);
         }
         break;
-      case command === "topmembers":
+      case cmd === "topmembers":
         topMembers(sock, chatId, isGroup);
         break;
       case command.startsWith("hangman"):
@@ -1005,10 +1005,10 @@ You can explore all available commands below 👇`,
           stupidArgs,
         );
         break;
-      case command === "dare":
+      case cmd === "dare":
         await dareCommand(sock, chatId);
         break;
-      case command === "truth":
+      case cmd === "truth":
         await truthCommand(sock, chatId);
         break;
       case command.startsWith("movie"): {
@@ -1021,7 +1021,7 @@ You can explore all available commands below 👇`,
         break;
       }
 
-      case command === "clear":
+      case cmd === "clear":
         if (isGroup) await clearCommand(sock, chatId);
         break;
       case command.startsWith("promote"):
@@ -1034,10 +1034,10 @@ You can explore all available commands below 👇`,
           message.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
         await demoteCommand(sock, chatId, mentionedJidListDemote, message);
         break;
-      case command === "ping":
+      case cmd === "ping":
         await pingCommand(sock, chatId, message);
         break;
-      case command === "alive":
+      case cmd === "alive":
         await aliveCommand(sock, chatId, message);
         break;
       case command.startsWith("blur"):
@@ -1091,11 +1091,11 @@ You can explore all available commands below 👇`,
           });
         }
         break;
-      case command === "git":
-      case command === "github":
-      case command === "sc":
-      case command === "script":
-      case command === "repo":
+      case cmd === "git":
+      case cmd === "github":
+      case cmd === "sc":
+      case cmd === "script":
+      case cmd === "repo":
         await githubCommand(sock, chatId);
         break;
       case command.startsWith("antibadword"):
@@ -1153,7 +1153,7 @@ You can explore all available commands below 👇`,
         const takeArgs = command.slice(4).trim().split(" ");
         await takeCommand(sock, chatId, message, takeArgs);
         break;
-      case command === "flirt":
+      case cmd === "flirt":
         await flirtCommand(sock, chatId);
         break;
       case command.startsWith("character"):
@@ -1162,7 +1162,7 @@ You can explore all available commands below 👇`,
       case command.startsWith("waste"):
         await wastedCommand(sock, chatId, message);
         break;
-      case command === "ship":
+      case cmd === "ship":
         if (!isGroup) {
           await sock.sendMessage(chatId, {
             text: "This command can only be used in groups!",
@@ -1172,7 +1172,7 @@ You can explore all available commands below 👇`,
         }
         await shipCommand(sock, chatId, message);
         break;
-      case command === "groupinfo" ||
+      case cmd === "groupinfo" ||
         command === "infogp" ||
         command === "infogrupo":
         if (!isGroup) {
@@ -1184,7 +1184,7 @@ You can explore all available commands below 👇`,
         }
         await groupInfoCommand(sock, chatId, message);
         break;
-      case command === "resetlink" ||
+      case cmd === "resetlink" ||
         command === "revoke" ||
         command === "anularlink":
         if (!isGroup) {
@@ -1196,9 +1196,7 @@ You can explore all available commands below 👇`,
         }
         await resetlinkCommand(sock, chatId, senderId);
         break;
-      case command === "staff" ||
-        command === "admins" ||
-        command === "listadmin":
+      case cmd === "staff" || command === "admins" || command === "listadmin":
         if (!isGroup) {
           await sock.sendMessage(chatId, {
             text: "This command can only be used in groups!",
@@ -1218,13 +1216,13 @@ You can explore all available commands below 👇`,
         await stickerTelegramCommand(sock, chatId, message);
         break;
 
-      case command === "deyplay" || command === "vv" || command === "dplay": {
+      case cmd === "deyplay" || command === "vv" || command === "dplay": {
         const args = userMessage.trim().split(/\s+/).slice(1);
         const isDm = args[0]?.toLowerCase() === "dm";
         await viewOnceCommand(sock, chatId, message, isDm);
         break;
       }
-      case command === "clearsession" || command === "clearsesi":
+      case cmd === "clearsession" || command === "clearsesi":
         await clearSessionCommand(sock, chatId, message);
         break;
       case command.startsWith("autostatus"):
@@ -1294,14 +1292,14 @@ You can explore all available commands below 👇`,
         const antideleteMatch = command.slice(10).trim();
         await handleAntideleteCommand(sock, chatId, message, antideleteMatch);
         break;
-      case command === "surrender":
+      case cmd === "surrender":
         // Handle surrender command for tictactoe game
         await handleTicTacToeMove(sock, chatId, senderId, "surrender");
         break;
-      case command === "cleartmp":
+      case cmd === "cleartmp":
         await clearTmpCommand(sock, chatId, message);
         break;
-      case command === "setpp":
+      case cmd === "setpp":
         await setProfilePicture(sock, chatId, message);
         break;
       case command.startsWith("instagram") ||
@@ -1343,8 +1341,9 @@ You can explore all available commands below 👇`,
           message,
           command.slice(commandLength),
         );
-        return;
-      case command === "admin" || command === "panel" || command === "cms":
+        break;
+
+      case cmd === "admin" || command === "panel" || command === "cms":
         await panelCommand(sock, chatId, message);
         break;
       case command.startsWith("ss") ||
@@ -1373,15 +1372,13 @@ You can explore all available commands below 👇`,
         );
         await addCommandReaction(sock, message, "areact");
         break;
-      case command === "goodnight" ||
-        command === "lovenight" ||
-        command === "gn":
+      case cmd === "goodnight" || command === "lovenight" || command === "gn":
         await goodnightCommand(sock, chatId);
         break;
-      case command === "shayari" || command === "shayri":
+      case cmd === "shayari" || command === "shayri":
         await shayariCommand(sock, chatId);
         break;
-      case command === "roseday":
+      case cmd === "roseday":
         await rosedayCommand(sock, chatId);
         break;
       case command.startsWith("imagine") ||
@@ -1411,7 +1408,7 @@ You can explore all available commands below 👇`,
         const removebgArgs = command.split(" ").slice(1);
         await removebg.exec(sock, message, removebgArgs);
         break;
-      case command === "settings":
+      case cmd === "settings":
         await settingsCommand(sock, chatId, message);
         break;
       case command.startsWith("sora"):
@@ -1420,18 +1417,18 @@ You can explore all available commands below 👇`,
       case command.startsWith("sudo"):
         await sudoCommand(sock, chatId, message);
         break;
-      case command === "add":
+      case cmd === "add":
         const addArgs = userMessage.trim().split(/\s+/).slice(1);
         await addCommand(sock, chatId, senderId, message, addArgs);
         break;
-      case command === "lid":
+      case cmd === "lid":
         await lidCommand(sock, chatId, senderId, message);
         break;
 
-      case command === "prefix":
+      case cmd === "prefix":
         await prefixCommand(sock, chatId, message, channelInfo);
         break;
-      case command === "deploy":
+      case cmd === "deploy":
         await deployCommand(sock, chatId, message);
         break;
       case command.startsWith("setprefix"):
