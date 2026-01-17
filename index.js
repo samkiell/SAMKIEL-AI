@@ -580,13 +580,14 @@ async function startXeonBotInc() {
 
         const startMsg = `
 ━━━━━━━━━━━━━━━━━━━━━
-  *${settings.botName || "SAMKIEL BOT"}*
+  🚀 *${settings.botName || "SAMKIEL BOT"}* 🚀
 ━━━━━━━━━━━━━━━━━━━━━
 
-Mode       ${botMode}
-Prefix     ${p}
-Uptime     ${formatUptime(uptime)}
-RAM        ${ramUsage} MB
+*Mode*       ${botMode}
+*Prefix*     ${p}
+*Version*    ${settings.version || "2.1.1"}
+*Uptime*     ${formatUptime(uptime)}
+*RAM*        ${ramUsage} MB
 
 ━━━ *PLUGINS* (${activePlugins}/${totalPlugins} Active) ━━━
 ${Object.entries(pluginStatus)
@@ -594,11 +595,8 @@ ${Object.entries(pluginStatus)
   .join("\n")}
 
 ━━━ *OWNER* ━━━
-${settings.ownerName || "SAMKIEL"}
-v${settings.version || "2.1.1"}
+${settings.ownerName || "SAMKIEL"} (${settings.website || "https://samkielbot.app"})
 
-━━━━━━━━━━━━━━━━━━━━━
-https://whatsapp.com/channel/0029VbAhWo3C6Zvf2t4Rne0h
 ━━━━━━━━━━━━━━━━━━━━━`.trim();
 
         await XeonBotInc.sendMessage(botNumber, {
