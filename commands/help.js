@@ -158,6 +158,7 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 👁️ ${p}viewonce
   ║ ✧ 🌐 ${p}deploy
   ║ ✧ 🆔 ${p}lid
+  ║ ✧ 📖 ${p}bible <text>
   ╚═══════════════════╝ 
 
   ╔═══════════════════╗
