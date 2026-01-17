@@ -5,15 +5,17 @@ async function tagAllCommand(sock, chatId, senderId) {
     const { isSenderAdmin, isBotAdmin } = await isAdmin(sock, chatId, senderId);
 
     const { isOwner } = require("../lib/isOwner");
+    const { sendText } = require("../lib/sendResponse");
 
     // Check if sender is admin or owner
-    const isUserOwner = await isOwner(senderId);
+    const isUserOwner = await isOwner(senderId, sock);
 
     if (!isSenderAdmin && !isUserOwner) {
-      await sock.sendMessage(chatId, {
-        text: "🚫 *Only admins or the bot owner can use the .tagall command.*",
-        ...global.channelInfo,
-      });
+      await sendText(
+        sock,
+        chatId,
+        "🚫 *Only admins or the bot owner can use the .tagall command.*",
+      );
       return;
     }
 
@@ -22,10 +24,7 @@ async function tagAllCommand(sock, chatId, senderId) {
     const participants = groupMetadata.participants;
 
     if (!participants || participants.length === 0) {
-      await sock.sendMessage(chatId, {
-        text: "❌ No participants found in the group.",
-        ...global.channelInfo,
-      });
+      await sendText(sock, chatId, "❌ No participants found in the group.");
       return;
     }
 
@@ -47,14 +46,10 @@ async function tagAllCommand(sock, chatId, senderId) {
     await sock.sendMessage(chatId, {
       text: message,
       mentions: participants.map((p) => p.id),
-      ...global.channelInfo,
     });
   } catch (error) {
     console.error("Error in tagall command:", error);
-    await sock.sendMessage(chatId, {
-      text: "❌ Failed to tag all members.",
-      ...global.channelInfo,
-    });
+    await sendText(sock, chatId, "❌ Failed to tag all members.");
   }
 }
 

@@ -1,4 +1,6 @@
 const fs = require("fs");
+const { isOwner } = require("../lib/isOwner");
+const { sendText } = require("../lib/sendResponse");
 
 function readJsonSafe(path, fallback) {
   try {
@@ -10,14 +12,14 @@ function readJsonSafe(path, fallback) {
 }
 
 async function settingsCommand(sock, chatId, message) {
+  const senderId = message.key.participant || message.key.remoteJid;
+
   try {
     // Owner-only
-    if (!message.key.fromMe) {
-      await sock.sendMessage(
-        chatId,
-        { text: "Only bot owner can use this command!", ...global.channelInfo },
-        { quoted: message }
-      );
+    if (!(await isOwner(senderId, sock)) && !message.key.fromMe) {
+      await sendText(sock, chatId, "Only bot owner can use this command!", {
+        quoted: message,
+      });
       return;
     }
 
@@ -109,22 +111,16 @@ async function settingsCommand(sock, chatId, message) {
     } else {
       lines.push("");
       lines.push(
-        "Note: Per-group settings will be shown when used inside a group."
+        "Note: Per-group settings will be shown when used inside a group.",
       );
     }
 
-    await sock.sendMessage(
-      chatId,
-      { text: lines.join("\n"), ...global.channelInfo },
-      { quoted: message }
-    );
+    await sendText(sock, chatId, lines.join("\n"), { quoted: message });
   } catch (error) {
     console.error("Error in settings command:", error);
-    await sock.sendMessage(
-      chatId,
-      { text: "Failed to read settings.", ...global.channelInfo },
-      { quoted: message }
-    );
+    await sendText(sock, chatId, "Failed to read settings.", {
+      quoted: message,
+    });
   }
 }
 

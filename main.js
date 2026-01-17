@@ -165,6 +165,11 @@ const saveStatusCommand = require("./commands/savestatus");
 const pdfCommand = require("./commands/pdf");
 const autoReadCommand = require("./commands/autoread");
 const toggleStartMsgCommand = require("./commands/togglestart");
+const {
+  listOnlineCommand,
+  recordUserActivity,
+} = require("./commands/listonline");
+const { sendText, shouldHaveBranding } = require("./lib/sendResponse");
 
 // Global settings
 global.packname = settings.featureToggles.PACKNAME;
@@ -210,7 +215,7 @@ const rawOwners = [
 ].filter(Boolean);
 
 const ownerList = rawOwners.map((j) =>
-  jidNormalizedUser(`${j}@s.whatsapp.net`)
+  jidNormalizedUser(`${j}@s.whatsapp.net`),
 );
 
 async function handleMessages(sock, messageUpdate, printLog) {
@@ -251,6 +256,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
       const adminStatus = await isAdmin(sock, chatId, senderId);
       isSenderAdmin = adminStatus.isSenderAdmin;
       isBotAdmin = adminStatus.isBotAdmin;
+
+      // Section 5: Record activity for listonline
+      recordUserActivity(chatId, senderId);
     }
 
     let userMessage =
@@ -271,7 +279,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
     if (isCommand(userMessage)) {
       if (VALID_COMMANDS.includes(command)) {
         console.log(
-          `📝 Command used in ${isGroup ? "group" : "private"}: ${userMessage}`
+          `📝 Command used in ${isGroup ? "group" : "private"}: ${userMessage}`,
         );
         // Set recording state for commands
         try {
@@ -314,7 +322,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
           "./data/mode.json",
           JSON.stringify({
             isPublic: settings.featureToggles.COMMAND_MODE === "public",
-          })
+          }),
         );
       }
       modeData = JSON.parse(fs.readFileSync("./data/mode.json"));
@@ -323,8 +331,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
     }
 
     // Enforce Private Mode
-    // Strict Owner Check: Owner (from owner.json) OR Bot itself
-    const isOwnerUser = (await isOwner(senderId)) || message.key.fromMe;
+    // Section 2 & 6: Owner bypass and self-healing LID check
+    const isOwnerUser = (await isOwner(senderId, sock)) || message.key.fromMe;
 
     if (!modeData.isPublic && !isOwnerUser) {
       return;
@@ -343,7 +351,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
     if (
       !isGroup &&
       ["hi", "hello", "ezekiel", "bot", "samkiel", "hey", "bro"].includes(
-        userMessage.toLowerCase()
+        userMessage.toLowerCase(),
       )
     ) {
       await sock.sendMessage(chatId, {
@@ -405,7 +413,7 @@ You can explore all available commands below 👇`,
         chatId,
         message,
         userMessage,
-        senderId
+        senderId,
       );
     }
 
@@ -418,7 +426,7 @@ You can explore all available commands below 👇`,
           chatId,
           message,
           userMessage,
-          senderId
+          senderId,
         );
         await Antilink(message, sock);
       }
@@ -469,23 +477,24 @@ You can explore all available commands below 👇`,
     const hybridCommands = ["welcome", "goodbye", "chatbot"];
 
     const isAdminOnlyCommand = adminOnlyCommands.some((cmd) =>
-      command.startsWith(cmd)
+      command.startsWith(cmd),
     );
     const isOwnerOnlyCommand = ownerOnlyCommands.some((cmd) =>
-      command.startsWith(cmd)
+      command.startsWith(cmd),
     );
     const isHybridCommand = hybridCommands.some((cmd) =>
-      command.startsWith(cmd)
+      command.startsWith(cmd),
     );
 
     const superOwnerCheck = isSuperOwner(senderId);
+    const ownerBypass = isOwnerUser || superOwnerCheck;
 
-    // Admin-only commands: Require admin status (bypass for superOwner)
-    if (isGroup && isAdminOnlyCommand && !superOwnerCheck) {
+    // Admin-only commands: Require admin status (bypass for Owner)
+    if (isGroup && isAdminOnlyCommand && !ownerBypass) {
       const { isSenderAdmin, isBotAdmin } = await isAdmin(
         sock,
         chatId,
-        senderId
+        senderId,
       );
 
       if (!isBotAdmin) {
@@ -505,10 +514,9 @@ You can explore all available commands below 👇`,
       }
     }
 
-    // Owner-only commands: Require owner only (superOwner is already an owner)
+    // Owner-only commands: Require owner only
     if (isOwnerOnlyCommand) {
-      const isOwnerCheck = (await isOwner(senderId)) || message.key.fromMe;
-      if (!isOwnerCheck) {
+      if (!isOwnerUser) {
         await sock.sendMessage(chatId, {
           text: "❌ Sorry buddy this command can only be used by Ԇ・SAMKIEL.",
           ...channelInfo,
@@ -519,9 +527,7 @@ You can explore all available commands below 👇`,
 
     // Hybrid commands: Allow both admins and owner
     if (isGroup && isHybridCommand) {
-      const { isSenderAdmin } = await isAdmin(sock, chatId, senderId);
-      const isOwnerCheck = await isOwner(senderId);
-      if (!isSenderAdmin && !isOwnerCheck && !message.key.fromMe) {
+      if (!isSenderAdmin && !ownerBypass) {
         await sock.sendMessage(chatId, {
           text: "Buddy only group admins or bot owner can use this command.",
           ...channelInfo,
@@ -538,10 +544,14 @@ You can explore all available commands below 👇`,
         if (quotedMessage?.stickerMessage) {
           await simageCommand(sock, quotedMessage, chatId);
         } else {
-          await sendWithRecording(sock, chatId, {
-            text: "Please reply to a sticker with the simage command to convert it.",
-            ...channelInfo,
-          });
+          await sendText(
+            sock,
+            chatId,
+            "Please reply to a sticker with the simage command to convert it.",
+            {
+              quoted: message,
+            },
+          );
         }
         break;
       }
@@ -553,16 +563,17 @@ You can explore all available commands below 👇`,
           chatId,
           senderId,
           mentionedJidListKick,
-          message
+          message,
         );
         break;
       case command.startsWith("mute"):
         const muteDuration = parseInt(command.split(" ")[1]);
         if (isNaN(muteDuration)) {
-          await sock.sendMessage(chatId, {
-            text: "Please provide a valid number of minutes.\neg to mute 10 minutes\nmute 10",
-            ...channelInfo,
-          });
+          await sendText(
+            sock,
+            chatId,
+            "Please provide a valid number of minutes.\neg to mute 10 minutes\nmute 10",
+          );
         } else {
           await muteCommand(sock, chatId, senderId, muteDuration);
         }
@@ -621,7 +632,7 @@ You can explore all available commands below 👇`,
           chatId,
           senderId,
           mentionedJidListWarn,
-          message
+          message,
         );
         break;
       case command.startsWith("tts"):
@@ -642,16 +653,14 @@ You can explore all available commands below 👇`,
           if (!fs.existsSync("./data/mode.json")) {
             fs.writeFileSync(
               "./data/mode.json",
-              JSON.stringify({ isPublic: true })
+              JSON.stringify({ isPublic: true }),
             );
           }
           modeData = JSON.parse(fs.readFileSync("./data/mode.json"));
         } catch (error) {
           console.error("Error reading access mode:", error);
-          await sock.sendMessage(chatId, {
-            text: "Failed to read bot mode status",
-            ...channelInfo,
-          });
+          await sendText(sock, chatId, "Failed to read bot mode status");
+
           return;
         }
 
@@ -659,18 +668,22 @@ You can explore all available commands below 👇`,
         // If no argument provided, show current status
         if (!action) {
           const currentMode = modeData.isPublic ? "public" : "private";
-          await sock.sendMessage(chatId, {
-            text: `Current bot mode: *${currentMode}*\n\nUsage: .mode public/private\n\nExample:\n.mode public - Allow everyone to use bot\n.mode private - Restrict to owner only`,
-            ...channelInfo,
-          });
+          await sendText(
+            sock,
+            chatId,
+            `Current bot mode: *${currentMode}*\n\nUsage: .mode public/private\n\nExample:\n.mode public - Allow everyone to use bot\n.mode private - Restrict to owner only`,
+          );
+
           return;
         }
 
         if (action !== "public" && action !== "private") {
-          await sock.sendMessage(chatId, {
-            text: `Usage: ${p}mode public/private\n\nExample:\n${p}mode public - Allow everyone to use bot\n${p}mode private - Restrict to owner only`,
-            ...channelInfo,
-          });
+          await sendText(
+            sock,
+            chatId,
+            `Usage: ${p}mode public/private\n\nExample:\n${p}mode public - Allow everyone to use bot\n${p}mode private - Restrict to owner only`,
+          );
+
           return;
         }
 
@@ -681,19 +694,13 @@ You can explore all available commands below 👇`,
           // Save updated data
           fs.writeFileSync(
             "./data/mode.json",
-            JSON.stringify(modeData, null, 2)
+            JSON.stringify(modeData, null, 2),
           );
 
-          await sock.sendMessage(chatId, {
-            text: `Bot is now in *${action}* mode`,
-            ...channelInfo,
-          });
+          await sendText(sock, chatId, `Bot is now in *${action}* mode`);
         } catch (error) {
           console.error("Error updating access mode:", error);
-          await sock.sendMessage(chatId, {
-            text: "Failed to update bot access mode",
-            ...channelInfo,
-          });
+          await sendText(sock, chatId, "Failed to update bot access mode");
         }
         break;
 
@@ -702,31 +709,28 @@ You can explore all available commands below 👇`,
         break;
 
       case command === "disablebot" || command === "enablebot":
-        await handleBotControl(
-          sock,
-          chatId,
-          senderId,
-          command,
-          message,
-          channelInfo
-        );
+        await handleBotControl(sock, chatId, senderId, command, message);
         break;
       case command === "vcf": {
         if (!isGroup) {
-          await sock.sendMessage(chatId, {
-            text: "This command can only be used in groups!",
-            ...channelInfo,
-          });
+          await sendText(
+            sock,
+            chatId,
+            "This command can only be used in groups!",
+          );
+
           return;
         }
         // Check if sender is admin or owner
         const { isSenderAdmin } = await isAdmin(sock, chatId, senderId);
         const isOwnerCheck = await isOwner(senderId);
         if (!isSenderAdmin && !isOwnerCheck) {
-          await sock.sendMessage(chatId, {
-            text: "Only group admins or bot owner can use this command.",
-            ...channelInfo,
-          });
+          await sendText(
+            sock,
+            chatId,
+            "Only group admins or bot owner can use this command.",
+          );
+
           return;
         }
         await vcfCommand(sock, chatId);
@@ -739,10 +743,11 @@ You can explore all available commands below 👇`,
           if (isSenderAdmin || message.key.fromMe) {
             await tagAllCommand(sock, chatId, senderId);
           } else {
-            await sock.sendMessage(chatId, {
-              text: "Sorry, only group admins can use the .tagall command.",
-              ...channelInfo,
-            });
+            await sendText(
+              sock,
+              chatId,
+              "Sorry, only group admins can use the .tagall command.",
+            );
           }
         } else {
           await sock.sendMessage(chatId, {
@@ -778,7 +783,7 @@ You can explore all available commands below 👇`,
           chatId,
           userMessage,
           senderId,
-          isSenderAdmin
+          isSenderAdmin,
         );
         break;
       case command === "meme":
@@ -825,7 +830,7 @@ You can explore all available commands below 👇`,
               text: "Please provide text or reply to a text message to convert to PDF.\nExample: .pdf Hello World",
               ...channelInfo,
             },
-            { quoted: message }
+            { quoted: message },
           );
           return;
         }
@@ -912,7 +917,7 @@ You can explore all available commands below 👇`,
           stupidQuotedMsg,
           stupidMentionedJid,
           senderId,
-          stupidArgs
+          stupidArgs,
         );
         break;
       case command === "dare":
@@ -1029,7 +1034,7 @@ You can explore all available commands below 👇`,
           chatId,
           message,
           senderId,
-          isSenderAdmin
+          isSenderAdmin,
         );
         break;
       case command.startsWith("chatbot"):
@@ -1246,7 +1251,7 @@ You can explore all available commands below 👇`,
           sock,
           chatId,
           message,
-          command.slice(commandLength)
+          command.slice(commandLength),
         );
         return;
       case command === "admin" || command === "panel" || command === "cms":
@@ -1258,13 +1263,13 @@ You can explore all available commands below 👇`,
         const ssCommandLength = command.startsWith("screenshot")
           ? 10
           : command.startsWith("ssweb")
-          ? 5
-          : 2;
+            ? 5
+            : 2;
         await handleSsCommand(
           sock,
           chatId,
           message,
-          command.slice(ssCommandLength).trim()
+          command.slice(ssCommandLength).trim(),
         );
         break;
       case command.startsWith("areact") ||
@@ -1274,7 +1279,7 @@ You can explore all available commands below 👇`,
           sock,
           chatId,
           message,
-          await isOwner(senderId)
+          await isOwner(senderId),
         );
         await addCommandReaction(sock, message, "areact");
         break;
@@ -1333,6 +1338,12 @@ You can explore all available commands below 👇`,
         await lidCommand(sock, chatId, senderId, message);
         break;
 
+      case command.startsWith("listonline"): {
+        const listArgs = userMessage.trim().split(/\s+/).slice(1);
+        await listOnlineCommand(sock, chatId, senderId, message, listArgs);
+        break;
+      }
+
       case command === "prefix":
         await prefixCommand(sock, chatId, message, channelInfo);
         break;
@@ -1341,10 +1352,11 @@ You can explore all available commands below 👇`,
         break;
       case command.startsWith("setprefix"):
         if (!(await isOwner(senderId))) {
-          await sock.sendMessage(chatId, {
-            text: "❌ This command can only be used by the owner!",
-            ...channelInfo,
-          });
+          await sendText(
+            sock,
+            chatId,
+            "❌ This command can only be used by the owner!",
+          );
           return;
         }
 
@@ -1354,38 +1366,31 @@ You can explore all available commands below 👇`,
         const newPrefix = parts.length > 1 ? parts[1] : null;
 
         if (!newPrefix) {
-          await sock.sendMessage(chatId, {
-            text: `Usage: ${p}setprefix <prefix> or ${p}setprefix off\n\nExamples:\n${p}setprefix !\n${p}setprefix off (no prefix required)\n${p}setprefix . (default)`,
-            ...global.channelInfo,
-          });
+          await sendText(
+            sock,
+            chatId,
+            `Usage: ${p}setprefix <prefix> or ${p}setprefix off\n\nExamples:\n${p}setprefix !\n${p}setprefix off (no prefix required)\n${p}setprefix . (default)`,
+          );
           return;
         }
 
         if (newPrefix === "off" || newPrefix === "none") {
           const success = savePrefix("off");
           if (success) {
-            await sock.sendMessage(chatId, {
-              text: "✅ Prefix disabled! Commands now work without any prefix.",
-              ...channelInfo,
-            });
+            await sendText(
+              sock,
+              chatId,
+              "✅ Prefix disabled! Commands now work without any prefix.",
+            );
           } else {
-            await sock.sendMessage(chatId, {
-              text: "❌ Failed to disable prefix.",
-              ...channelInfo,
-            });
+            await sendText(sock, chatId, "❌ Failed to disable prefix.");
           }
         } else {
           const success = savePrefix(newPrefix);
           if (success) {
-            await sock.sendMessage(chatId, {
-              text: `✅ Prefix set to: ${newPrefix}`,
-              ...channelInfo,
-            });
+            await sendText(sock, chatId, `✅ Prefix set to: ${newPrefix}`);
           } else {
-            await sock.sendMessage(chatId, {
-              text: "❌ Failed to set prefix.",
-              ...channelInfo,
-            });
+            await sendText(sock, chatId, "❌ Failed to set prefix.");
           }
         }
 
@@ -1415,7 +1420,7 @@ You can explore all available commands below 👇`,
               chatId,
               message,
               userMessage,
-              senderId
+              senderId,
             );
           }
           await Antilink(message, sock);
@@ -1424,7 +1429,7 @@ You can explore all available commands below 👇`,
             chatId,
             message,
             userMessage,
-            senderId
+            senderId,
           );
         }
         break;
@@ -1454,10 +1459,7 @@ You can explore all available commands below 👇`,
     // Only try to send error message if we have a valid chatId
     if (chatId) {
       try {
-        await sock.sendMessage(chatId, {
-          text: "❌ Failed to process command!",
-          ...channelInfo,
-        });
+        await sendText(sock, chatId, "❌ Failed to process command!");
       } catch (e) {
         // Ignore errors sending the error message (e.g. if connection is closed)
       }
