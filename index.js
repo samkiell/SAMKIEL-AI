@@ -37,7 +37,7 @@ global.reply = async (sock, message, content) => {
   return await sock.sendMessage(
     message.chat || message.key.remoteJid,
     content,
-    { quoted: message }
+    { quoted: message },
   );
 };
 const {
@@ -146,13 +146,13 @@ try {
   ownerData.superOwner = Array.isArray(ownerData.superOwner)
     ? ownerData.superOwner
     : ownerData.superOwner
-    ? [ownerData.superOwner]
-    : [];
+      ? [ownerData.superOwner]
+      : [];
   ownerData.owners = Array.isArray(ownerData.owners) ? ownerData.owners : [];
 
   // Normalize existing values (strip @s.whatsapp.net, @lid, device ids, etc.)
   ownerData.superOwner = Array.from(
-    new Set(ownerData.superOwner.map(normalizeToDigits).filter(Boolean))
+    new Set(ownerData.superOwner.map(normalizeToDigits).filter(Boolean)),
   );
 
   ownerData.owners = ownerData.owners
@@ -176,14 +176,12 @@ try {
 
   // Ensure owners list contains settings owner (store as numeric LID, not JID)
   const exists = ownerData.owners.some(
-    (o) => normalizeToDigits(o.number) === currentOwnerNum
+    (o) => normalizeToDigits(o.number) === currentOwnerNum,
   );
   if (!exists) {
     ownerData.owners.push({ number: currentOwnerNum, lid: currentOwnerNum });
     console.log(
-      chalk.green(
-        `Automatically added owner ${currentOwnerNum} to owner.json`
-      )
+      chalk.green(`Automatically added owner ${currentOwnerNum} to owner.json`),
     );
   }
 
@@ -227,7 +225,7 @@ async function startXeonBotInc() {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(
         state.keys,
-        pino({ level: "fatal" }).child({ level: "fatal" })
+        pino({ level: "fatal" }).child({ level: "fatal" }),
       ),
     },
     markOnlineOnConnect: true,
@@ -317,8 +315,8 @@ async function startXeonBotInc() {
           v.name ||
             v.subject ||
             PhoneNumber("+" + id.replace("@s.whatsapp.net", "")).getNumber(
-              "international"
-            )
+              "international",
+            ),
         );
       });
     else
@@ -329,14 +327,14 @@ async function startXeonBotInc() {
               name: "WhatsApp",
             }
           : id === XeonBotInc.decodeJid(XeonBotInc.user.id)
-          ? XeonBotInc.user
-          : store.contacts[id] || {};
+            ? XeonBotInc.user
+            : store.contacts[id] || {};
     return (
       (withoutContact ? "" : v.name) ||
       v.subject ||
       v.verifiedName ||
       PhoneNumber("+" + jid.replace("@s.whatsapp.net", "")).getNumber(
-        "international"
+        "international",
       )
     );
   };
@@ -358,9 +356,9 @@ async function startXeonBotInc() {
       phoneNumber = await question(
         chalk.bgBlack(
           chalk.greenBright(
-            `Please type your WhatsApp number 😍\nFormat: 2348087357158 (without + or spaces) : `
-          )
-        )
+            `Please type your WhatsApp number 😍\nFormat: 2348087357158 (without + or spaces) : `,
+          ),
+        ),
       );
     }
 
@@ -378,19 +376,19 @@ async function startXeonBotInc() {
         code = code?.match(/.{1,4}/g)?.join("-") || code;
         console.log(
           chalk.black(chalk.bgGreen(`Your Pairing Code : `)),
-          chalk.black(chalk.white(code))
+          chalk.black(chalk.white(code)),
         );
         console.log(
           chalk.yellow(
-            `\nPlease enter this code in your WhatsApp app:\n1. Open WhatsApp\n2. Go to Settings > Linked Devices\n3. Tap "Link a Device"\n4. Enter the code shown above`
-          )
+            `\nPlease enter this code in your WhatsApp app:\n1. Open WhatsApp\n2. Go to Settings > Linked Devices\n3. Tap "Link a Device"\n4. Enter the code shown above`,
+          ),
         );
       } catch (error) {
         console.error("Error requesting pairing code:", error);
         console.log(
           chalk.red(
-            "Failed to get pairing code. Please check your phone number and try again."
-          )
+            "Failed to get pairing code. Please check your phone number and try again.",
+          ),
         );
       }
     }, 3000);
@@ -407,8 +405,8 @@ async function startXeonBotInc() {
       console.log(chalk.magenta(` `));
       console.log(
         chalk.yellow(
-          `🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)
-        )
+          `🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2),
+        ),
       );
 
       // Always Online feature
@@ -452,15 +450,17 @@ async function startXeonBotInc() {
             ownerData.superOwner = Array.isArray(ownerData.superOwner)
               ? ownerData.superOwner
               : ownerData.superOwner
-              ? [ownerData.superOwner]
-              : [];
+                ? [ownerData.superOwner]
+                : [];
             ownerData.owners = Array.isArray(ownerData.owners)
               ? ownerData.owners
               : [];
 
             // Normalize and ensure entry
             ownerData.superOwner = Array.from(
-              new Set(ownerData.superOwner.map(normalizeToDigits).filter(Boolean))
+              new Set(
+                ownerData.superOwner.map(normalizeToDigits).filter(Boolean),
+              ),
             );
             if (!ownerData.superOwner.includes(ownerNum)) {
               ownerData.superOwner.unshift(ownerNum);
@@ -481,7 +481,7 @@ async function startXeonBotInc() {
             ownerData.owners = normalizedOwners;
 
             const existing = ownerData.owners.find(
-              (o) => normalizeToDigits(o.number) === ownerNum
+              (o) => normalizeToDigits(o.number) === ownerNum,
             );
             if (existing) {
               existing.lid = lidDigits;
@@ -532,41 +532,74 @@ async function startXeonBotInc() {
       } catch (e) {}
       const diskStr = `${Math.round(usedDisk)}MB`;
 
-      const pluginList = [
-        `🔌 *Auto Status View:* ${settings.featureToggles.AUTO_STATUS_VIEW}`,
-        `🔌 *Always Online:* ${
-          settings.featureToggles.ALWAYS_ONLINE ? "On" : "Off"
-        }`,
-        `🔌 *Anti Delete:* ${
-          settings.featureToggles.ANTI_DELETE ? "On" : "Off"
-        }`,
-        `🔌 *Auto Reaction:* ${isAutoReactGlobal ? "On" : "Off"}`,
+      // Read current bot mode
+      let modeData = {
+        isPublic: settings.featureToggles.COMMAND_MODE === "public",
+      };
+      try {
+        if (fs.existsSync("./data/mode.json")) {
+          modeData = JSON.parse(fs.readFileSync("./data/mode.json"));
+        }
+      } catch (e) {}
+      const botMode = modeData.isPublic ? "Public" : "Private";
 
-        `🔌 *Anti-Call:* ${isAntiCallEnabled ? "On" : "Off"}`,
-        `🔌 *Auto Read:* ${settings.featureToggles.SEND_READ ? "On" : "Off"}`,
-        `🔌 *Private Mode:* ${
-          settings.featureToggles.PERSONAL_MESSAGE ? "On" : "Off"
-        }`,
-      ].join("\n");
+      // Format uptime nicely
+      const formatUptime = (seconds) => {
+        const d = Math.floor(seconds / (24 * 60 * 60));
+        const h = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
+        const m = Math.floor((seconds % (60 * 60)) / 60);
+        const s = Math.floor(seconds % 60);
+        let result = "";
+        if (d > 0) result += `${d}d `;
+        if (h > 0) result += `${h}h `;
+        if (m > 0) result += `${m}m `;
+        result += `${s}s`;
+        return result.trim();
+      };
+
+      // Plugin status summary (compact ON/OFF)
+      const pluginStatus = {
+        "Status View":
+          settings.featureToggles.AUTO_STATUS_VIEW === "on" ? "ON" : "OFF",
+        "Always Online": settings.featureToggles.ALWAYS_ONLINE ? "ON" : "OFF",
+        "Anti-Delete": settings.featureToggles.ANTI_DELETE ? "ON" : "OFF",
+        "Auto-React": isAutoReactGlobal ? "ON" : "OFF",
+        "Anti-Call": isAntiCallEnabled ? "ON" : "OFF",
+        "Auto-Read": settings.featureToggles.SEND_READ ? "ON" : "OFF",
+      };
+
+      // Count active plugins
+      const activePlugins = Object.values(pluginStatus).filter(
+        (v) => v === "ON",
+      ).length;
+      const totalPlugins = Object.keys(pluginStatus).length;
 
       if (!settings.featureToggles.DISABLE_START_MESSAGE) {
         const uptime = process.uptime();
+        const ramUsage = Math.round(process.memoryUsage().rss / 1024 / 1024);
+
         const startMsg = `
-    ╭─❒ 🤖 *SAMKIEL BOT* ❒
-    │
-    │ 📌 *Prefix:* ${p}
-    │ 🧠 *RAM:* ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)} MB
-    │ 💾 *Disk:* ${diskStr}
-    │ ⏰ *Time:* ${new Date().toLocaleTimeString()}
-    │
-    │ 🔌 *Active Plugins:*
-    │ ${pluginList.replace(/🔌 /g, "│ ◦ ")}
-    │
-    ╰──────────────────❒
-    
-    🌐 *COMMUNITY*
-    Join our official group for updates, support and new features!
-    https://chat.whatsapp.com/Jgrc79greN63Omt5T7LTzs`;
+━━━━━━━━━━━━━━━━━━━━━
+  *${settings.botName || "SAMKIEL BOT"}*
+━━━━━━━━━━━━━━━━━━━━━
+
+Mode       ${botMode}
+Prefix     ${p}
+Uptime     ${formatUptime(uptime)}
+RAM        ${ramUsage} MB
+
+━━━ *PLUGINS* (${activePlugins}/${totalPlugins} Active) ━━━
+${Object.entries(pluginStatus)
+  .map(([k, v]) => `${v === "ON" ? "●" : "○"} ${k}`)
+  .join("\n")}
+
+━━━ *OWNER* ━━━
+${settings.ownerName || "SAMKIEL"}
+v${settings.version || "2.1.1"}
+
+━━━━━━━━━━━━━━━━━━━━━
+https://whatsapp.com/channel/0029VbAhWo3C6Zvf2t4Rne0h
+━━━━━━━━━━━━━━━━━━━━━`.trim();
 
         await XeonBotInc.sendMessage(botNumber, {
           text: startMsg,
@@ -586,33 +619,33 @@ async function startXeonBotInc() {
       console.log(
         chalk.yellow(
           `\n\n                  ${chalk.bold.blue(
-            `[ ${global.botname || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"} ]`
-          )}\n\n`
-        )
+            `[ ${global.botname || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"} ]`,
+          )}\n\n`,
+        ),
       );
       console.log(
-        chalk.cyan(`< ================================================== >`)
+        chalk.cyan(`< ================================================== >`),
       );
       console.log(
-        chalk.magenta(`\n${global.themeemoji || "•"} YT CHANNEL: samkiel.dev`)
-      );
-      console.log(
-        chalk.magenta(
-          `${global.themeemoji || "•"} GITHUB: github.com/samkiel488`
-        )
+        chalk.magenta(`\n${global.themeemoji || "•"} YT CHANNEL: samkiel.dev`),
       );
       console.log(
         chalk.magenta(
-          `${global.themeemoji || "•"} WA NUMBER: wa.me/+2348087357158`
-        )
+          `${global.themeemoji || "•"} GITHUB: github.com/samkiel488`,
+        ),
       );
       console.log(
-        chalk.magenta(`${global.themeemoji || "•"} CREDIT: SAMUEL EZEKIEL`)
+        chalk.magenta(
+          `${global.themeemoji || "•"} WA NUMBER: wa.me/+2348087357158`,
+        ),
+      );
+      console.log(
+        chalk.magenta(`${global.themeemoji || "•"} CREDIT: SAMUEL EZEKIEL`),
       );
       console.log(
         chalk.green(
-          `${global.themeemoji || "•"} 🤖  Bot Connected Successfully! ✅`
-        )
+          `${global.themeemoji || "•"} 🤖  Bot Connected Successfully! ✅`,
+        ),
       );
     }
     if (connection === "close") {
@@ -631,8 +664,8 @@ async function startXeonBotInc() {
       } else if (isConflict) {
         console.log(
           chalk.red(
-            "Connection conflict detected. Please log out other sessions and restart the bot."
-          )
+            "Connection conflict detected. Please log out other sessions and restart the bot.",
+          ),
         );
       }
     }
