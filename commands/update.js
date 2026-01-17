@@ -10,7 +10,7 @@ function run(cmd) {
     exec(cmd, { windowsHide: true }, (err, stdout, stderr) => {
       if (err)
         return reject(
-          new Error((stderr || stdout || err.message || "").toString())
+          new Error((stderr || stdout || err.message || "").toString()),
         );
       resolve((stdout || "").toString());
     });
@@ -38,7 +38,7 @@ async function updateViaGit() {
   const commits = alreadyUpToDate
     ? ""
     : await run(
-        `git log --pretty=format:"%h %s (%an)" ${oldRev}..${newRev}`
+        `git log --pretty=format:"%h %s (%an)" ${oldRev}..${newRev}`,
       ).catch(() => "");
   const files = alreadyUpToDate
     ? ""
@@ -73,7 +73,7 @@ function downloadFile(url, dest, visited = new Set()) {
             const location = res.headers.location;
             if (!location)
               return reject(
-                new Error(`HTTP ${res.statusCode} without Location`)
+                new Error(`HTTP ${res.statusCode} without Location`),
               );
             const nextUrl = new URL(location, url).toString();
             res.resume();
@@ -95,7 +95,7 @@ function downloadFile(url, dest, visited = new Set()) {
             } catch {}
             fs.unlink(dest, () => reject(err));
           });
-        }
+        },
       );
       req.on("error", (err) => {
         fs.unlink(dest, () => reject(err));
@@ -111,7 +111,7 @@ async function extractZip(zipPath, outDir) {
   if (process.platform === "win32") {
     const cmd = `powershell -NoProfile -Command "Expand-Archive -Path '${zipPath}' -DestinationPath '${outDir.replace(
       /\\/g,
-      "/"
+      "/",
     )}' -Force"`;
     await run(cmd);
     return;
@@ -133,7 +133,7 @@ async function extractZip(zipPath, outDir) {
     return;
   } catch {}
   throw new Error(
-    "No system unzip tool found (unzip/7z/busybox). Git mode is recommended on this panel."
+    "No system unzip tool found (unzip/7z/busybox). Git mode is recommended on this panel.",
   );
 }
 
@@ -162,7 +162,7 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
   ).trim();
   if (!zipUrl) {
     throw new Error(
-      "No ZIP URL configured. Set settings.updateZipUrl or UPDATE_ZIP_URL env."
+      "No ZIP URL configured. Set settings.updateZipUrl or UPDATE_ZIP_URL env.",
     );
   }
   const tmpDir = path.join(process.cwd(), "tmp");
@@ -213,12 +213,12 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
         let text = fs.readFileSync(settingsPath, "utf8");
         text = text.replace(
           /ownerNumber:\s*'[^']*'/,
-          `ownerNumber: '${preservedOwner}'`
+          `ownerNumber: '${preservedOwner}'`,
         );
         if (preservedBotOwner) {
           text = text.replace(
             /botOwner:\s*'[^']*'/,
-            `botOwner: '${preservedBotOwner}'`
+            `botOwner: '${preservedBotOwner}'`,
           );
         }
         fs.writeFileSync(settingsPath, text);
@@ -240,7 +240,7 @@ async function restartProcess(sock, chatId, message) {
     await sock.sendMessage(
       chatId,
       { text: "✅ Update complete! Restarting…" },
-      { quoted: message }
+      { quoted: message },
     );
   } catch {}
   try {
@@ -263,7 +263,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     await sock.sendMessage(
       chatId,
       { text: "Only bot owner or sudo can use .update" },
-      { quoted: message }
+      { quoted: message },
     );
     return;
   }
@@ -272,43 +272,39 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     await sock.sendMessage(
       chatId,
       { text: "🔄 Updating the bot, please wait…" },
-      { quoted: message }
+      { quoted: message },
     );
 
     if (await hasGitRepo()) {
       // silent
       const { oldRev, newRev, alreadyUpToDate, commits, files } =
         await updateViaGit();
-      // Short message only: version info
-      const summary = alreadyUpToDate
-        ? `✅ Already up to date: ${newRev}`
-        : `✅ Updated to ${newRev}`;
-      console.log("[update] summary generated");
-      // silent
+
+      let updateInfo = "";
+      if (alreadyUpToDate) {
+        updateInfo = `✅ Already up to date: ${newRev}`;
+      } else {
+        updateInfo = `✅ Updated to: ${newRev}\n\n*Recent Changes SC:*\n${commits || "No commit details available."}`;
+      }
+
       await run("npm install --no-audit --no-fund");
+
+      await sock.sendMessage(
+        chatId,
+        { text: updateInfo + "\n\nRestarting…" },
+        { quoted: message },
+      );
     } else {
       const { copiedFiles } = await updateViaZip(
         sock,
         chatId,
         message,
-        zipOverride
+        zipOverride,
       );
-      // silent
-    }
-    try {
-      const v = require("../settings").version || "";
       await sock.sendMessage(
         chatId,
-        { text: `✅ Update done. Restarting…` },
-        { quoted: message }
-      );
-    } catch {
-      await sock.sendMessage(
-        chatId,
-        {
-          text: "✅ Restared Successfully\n Type .ping to check latest version.",
-        },
-        { quoted: message }
+        { text: `✅ Update done via ZIP. Restarting…` },
+        { quoted: message },
       );
     }
     await restartProcess(sock, chatId, message);
@@ -317,7 +313,7 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     await sock.sendMessage(
       chatId,
       { text: `❌ Update failed:\n${String(err.message || err)}` },
-      { quoted: message }
+      { quoted: message },
     );
   }
 }

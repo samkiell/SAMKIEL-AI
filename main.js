@@ -597,6 +597,11 @@ You can explore all available commands below 👇`,
         const args = userMessage.trim().split(/\s+/).slice(1);
         await anticallCommand(sock, chatId, message, args);
         break;
+      case command.startsWith("listonline"): {
+        const listArgs = userMessage.trim().split(/\s+/).slice(1);
+        await listOnlineCommand(sock, chatId, senderId, message, listArgs);
+        break;
+      }
       case command.startsWith("help") ||
         command.startsWith("menu") ||
         command.startsWith("bot") ||
@@ -1337,12 +1342,6 @@ You can explore all available commands below 👇`,
       case command === "lid":
         await lidCommand(sock, chatId, senderId, message);
         break;
-
-      case command.startsWith("listonline"): {
-        const listArgs = userMessage.trim().split(/\s+/).slice(1);
-        await listOnlineCommand(sock, chatId, senderId, message, listArgs);
-        break;
-      }
 
       case command === "prefix":
         await prefixCommand(sock, chatId, message, channelInfo);
