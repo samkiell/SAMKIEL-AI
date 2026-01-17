@@ -289,11 +289,9 @@ async function updateCommand(sock, chatId, message, zipOverride) {
 
       await run("npm install --no-audit --no-fund");
 
-      await sock.sendMessage(
-        chatId,
-        { text: updateInfo + "\n\nRestarting…" },
-        { quoted: message },
-      );
+      await sendText(sock, chatId, updateInfo + "\n\nRestarting…", {
+        quoted: message,
+      });
     } else {
       const { copiedFiles } = await updateViaZip(
         sock,
@@ -301,18 +299,17 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         message,
         zipOverride,
       );
-      await sock.sendMessage(
-        chatId,
-        { text: `✅ Update done via ZIP. Restarting…` },
-        { quoted: message },
-      );
+      await sendText(sock, chatId, `✅ Update done via ZIP. Restarting…`, {
+        quoted: message,
+      });
     }
     await restartProcess(sock, chatId, message);
   } catch (err) {
     console.error("Update failed:", err);
-    await sock.sendMessage(
+    await sendText(
+      sock,
       chatId,
-      { text: `❌ Update failed:\n${String(err.message || err)}` },
+      `❌ Update failed:\n${String(err.message || err)}`,
       { quoted: message },
     );
   }

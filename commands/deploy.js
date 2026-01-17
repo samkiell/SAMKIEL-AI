@@ -24,21 +24,17 @@ async function deployCommand(sock, chatId, message) {
 ┃
 ┗━━━━━━━━━━━━━━━━━━━┛`.trim();
 
-    await sock.sendMessage(
-      chatId,
-      {
-        text: deployMessage,
-        ...global.channelInfo,
-      },
-      { quoted: message }
-    );
+    const { sendText } = require("../lib/sendResponse");
+    await sendText(sock, chatId, deployMessage, {
+      withBranding: true,
+      quoted: message,
+    });
   } catch (error) {
     console.error("Error in deploy command:", error);
-    await sock.sendMessage(
-      chatId,
-      { text: "❌ Failed to send deployment info." },
-      { quoted: message }
-    );
+    const { sendText } = require("../lib/sendResponse");
+    await sendText(sock, chatId, "❌ Failed to send deployment info.", {
+      quoted: message,
+    });
   }
 }
 

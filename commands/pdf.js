@@ -18,7 +18,7 @@ async function pdfCommand(sock, chatId, text, message) {
     const initialMsg = await sock.sendMessage(
       chatId,
       { text: "📑 Generating PDF..." },
-      { quoted: message }
+      { quoted: message },
     );
     const key = initialMsg.key;
 
@@ -74,8 +74,9 @@ async function pdfCommand(sock, chatId, text, message) {
 
     // Add content
     doc.fontSize(12).text(text, {
-      align: "justify",
-      lineGap: 2,
+      align: "left",
+      lineGap: 5,
+      paragraphGap: 10,
     });
 
     function addFooter(doc) {
@@ -147,7 +148,7 @@ async function pdfCommand(sock, chatId, text, message) {
     // Final verification
     if (!fs.existsSync(pdfPath)) {
       throw new Error(
-        "PDF file was not created successfully after stream finish."
+        "PDF file was not created successfully after stream finish.",
       );
     }
 
@@ -177,7 +178,7 @@ async function pdfCommand(sock, chatId, text, message) {
         caption: "✅ PDF Generated Successfully",
         contextInfo: global.channelInfo?.contextInfo || {},
       },
-      { quoted: message }
+      { quoted: message },
     );
 
     console.log("✅ [PDF COMMAND] PDF sent successfully.");
@@ -190,7 +191,7 @@ async function pdfCommand(sock, chatId, text, message) {
       {
         text: `❌ *PDF Error*\n\nAn error occurred while generating your PDF. Please try again later.\n\n*Error:* ${error.message}`,
       },
-      { quoted: message }
+      { quoted: message },
     );
   } finally {
     // Cleanup

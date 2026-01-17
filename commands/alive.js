@@ -18,21 +18,14 @@ async function aliveCommand(sock, chatId, message) {
       `• And more!\n\n` +
       `Type *${p}menu* for full command list`;
 
-    await sock.sendMessage(
-      chatId,
-      {
-        text: aliveMessage,
-        ...global.channelInfo,
-      },
-      { quoted: message }
-    );
+    const { sendText } = require("../lib/sendResponse");
+    await sendText(sock, chatId, aliveMessage, { quoted: message });
   } catch (error) {
     console.error("Error in alive command:", error);
-    await sock.sendMessage(
-      chatId,
-      { text: "Bot is alive and running!", ...global.channelInfo },
-      { quoted: message }
-    );
+    const { sendText } = require("../lib/sendResponse");
+    await sendText(sock, chatId, "Bot is alive and running!", {
+      quoted: message,
+    });
   }
 }
 

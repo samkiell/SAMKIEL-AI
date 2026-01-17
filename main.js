@@ -888,7 +888,9 @@ You can explore all available commands below 👇`,
         await newsCommand(sock, chatId);
         break;
       case command.startsWith("pdf"): {
-        let text = userMessage.trim().split(/\s+/).slice(1).join(" ");
+        let text = userMessage
+          .slice(userMessage.toLowerCase().indexOf("pdf") + 3)
+          .trim();
 
         // Check for quoted message text if no direct text provided
         if (!text) {
