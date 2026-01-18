@@ -11,11 +11,15 @@ const TIMEOUT = 20000;
 async function pinterestCommand(sock, chatId, message, args) {
   const url = args[0]?.trim();
 
+  const { loadPrefix } = require("../lib/prefix");
+  const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
+
   if (!url || !/(?:pinterest\.com|pin\.it)/.test(url)) {
     return await sendText(
       sock,
       chatId,
-      "📌 *Pinterest Download*\n\nUsage: .pinterest <link>",
+      `📌 *Pinterest Download*\n\nUsage: ${p}pinterest <link>`,
     );
   }
 

@@ -161,12 +161,15 @@ async function downloadViaYouTube(trackName, artistName) {
 
 async function spotifyCommand(sock, chatId, message, args) {
   const query = args.join(" ").trim();
+  const { loadPrefix } = require("../lib/prefix");
+  const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
 
   if (!query) {
     return await sendText(
       sock,
       chatId,
-      "🎵 *Spotify Download*\n\nUsage: .spotify <link or song name>",
+      `🎵 *Spotify Download*\n\nUsage: ${p}spotify <link or song name>`,
     );
   }
 

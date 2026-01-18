@@ -11,11 +11,15 @@ const TIMEOUT = 30000;
 async function soundcloudCommand(sock, chatId, message, args) {
   const url = args[0]?.trim();
 
+  const { loadPrefix } = require("../lib/prefix");
+  const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
+
   if (!url || !url.includes("soundcloud.com")) {
     return await sendText(
       sock,
       chatId,
-      "☁️ *SoundCloud Download*\n\nUsage: .soundcloud <link>",
+      `☁️ *SoundCloud Download*\n\nUsage: ${p}soundcloud <link>`,
     );
   }
 

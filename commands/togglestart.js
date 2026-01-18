@@ -10,13 +10,17 @@ async function toggleStartMsgCommand(sock, chatId, message) {
   const args = text.trim().split(/\s+/);
   const mode = args[1]?.toLowerCase();
 
+  const { loadPrefix } = require("../lib/prefix");
+  const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
+
   if (!mode || (mode !== "on" && mode !== "off")) {
     await sock.sendMessage(
       chatId,
       {
-        text: "❌ Usage: .togglestart on (enable start msg) or .togglestart off (disable start msg)",
+        text: `❌ Usage: ${p}togglestart on (enable start msg) or ${p}togglestart off (disable start msg)`,
       },
-      { quoted: message }
+      { quoted: message },
     );
     return;
   }
@@ -49,7 +53,7 @@ async function toggleStartMsgCommand(sock, chatId, message) {
       {
         text: `✅ Bot Start Message has been ${status}!`,
       },
-      { quoted: message }
+      { quoted: message },
     );
   } catch (err) {
     console.error("Error saving start msg config:", err);
@@ -58,7 +62,7 @@ async function toggleStartMsgCommand(sock, chatId, message) {
       {
         text: "❌ Failed to save configuration, but setting is active for this session.",
       },
-      { quoted: message }
+      { quoted: message },
     );
   }
 }
