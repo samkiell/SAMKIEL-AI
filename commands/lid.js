@@ -38,8 +38,10 @@ module.exports = async function lidCommand(sock, chatId, senderId, message) {
     if (!targetJid) {
       await sock.sendMessage(
         chatId,
-        { text: "❌ Could not determine target user." },
-        { quoted: message }
+        {
+          text: "❌ Could not determine target user.\n\n*Powered by SAMKIEL BOT*",
+        },
+        { quoted: message },
       );
       return;
     }
@@ -54,10 +56,10 @@ module.exports = async function lidCommand(sock, chatId, senderId, message) {
         {
           text: `❌ usage: .lid 2348087357158 \n\nThe number @${
             targetJid.split("@")[0]
-          } is not registered on WhatsApp.`,
+          } is not registered on WhatsApp.\n\n*Powered by SAMKIEL BOT*`,
           mentions: [targetJid],
         },
-        { quoted: message }
+        { quoted: message },
       );
       return;
     }
@@ -68,10 +70,10 @@ module.exports = async function lidCommand(sock, chatId, senderId, message) {
       await sock.sendMessage(
         chatId,
         {
-          text: `❌ Could not fetch LID for @${targetJid.split("@")[0]}.`,
+          text: `❌ Could not fetch LID for @${targetJid.split("@")[0]}.\n\n*Powered by SAMKIEL BOT*`,
           mentions: [targetJid],
         },
-        { quoted: message }
+        { quoted: message },
       );
       return;
     }
@@ -82,17 +84,19 @@ module.exports = async function lidCommand(sock, chatId, senderId, message) {
       {
         text: `🔍 *LID Lookup*\n\n👤 *User:* @${
           targetJid.split("@")[0]
-        }\n🆔 *LID:* \`${userData.lid}\``,
+        }\n🆔 *LID:* \`${userData.lid}\`\n\n*Powered by SAMKIEL BOT*`,
         mentions: [targetJid],
       },
-      { quoted: message }
+      { quoted: message },
     );
   } catch (err) {
     console.error("Error in lid command:", err);
     await sock.sendMessage(
       chatId,
-      { text: "❌ An error occurred while fetching the LID." },
-      { quoted: message }
+      {
+        text: "❌ An error occurred while fetching the LID.\n\n*Powered by SAMKIEL BOT*",
+      },
+      { quoted: message },
     );
   }
 };

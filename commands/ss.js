@@ -34,7 +34,7 @@ async function handleSsCommand(sock, chatId, message, match) {
           chatId,
           {
             image: { url: res.data.screenshot.url },
-            caption: `📸 Screenshot of ${url}`,
+            caption: `📸 Screenshot of ${url}\n\n*Powered by SAMKIEL BOT*`,
             ...global.channelInfo,
           },
           { quoted: message },
@@ -67,7 +67,7 @@ async function handleSsCommand(sock, chatId, message, match) {
     await sock.sendMessage(
       chatId,
       {
-        text: "❌ Failed to capture screenshot.",
+        text: "❌ Failed to capture screenshot.\n\n*Powered by SAMKIEL BOT*",
         ...global.channelInfo,
       },
       { quoted: message },

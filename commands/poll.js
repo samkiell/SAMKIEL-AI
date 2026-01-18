@@ -7,7 +7,7 @@ async function pollCommand(sock, chatId, message, args) {
     return await sendText(
       sock,
       chatId,
-      "📊 *Create Poll*\n\nUsage: .poll Question | Option1 | Option2 | ...\nExample: .poll Favorite Color? | Red | Blue | Green",
+      "📊 *Create Poll*\n\nUsage: .poll Question | Option1 | Option2 | ...\nExample: .poll Favorite Color? | Red | Blue | Green\n\n*Powered by SAMKIEL BOT*",
     );
   }
 
@@ -20,7 +20,7 @@ async function pollCommand(sock, chatId, message, args) {
     return await sendText(
       sock,
       chatId,
-      "❌ You must provide a question and at least 2 options.",
+      "❌ You must provide a question and at least 2 options.\n\n*Powered by SAMKIEL BOT*",
     );
   }
 
@@ -37,7 +37,11 @@ async function pollCommand(sock, chatId, message, args) {
     });
   } catch (error) {
     console.error("Poll Error:", error);
-    await sendText(sock, chatId, "❌ Failed to create poll.");
+    await sendText(
+      sock,
+      chatId,
+      "❌ Failed to create poll.\n\n*Powered by SAMKIEL BOT*",
+    );
   }
 }
 

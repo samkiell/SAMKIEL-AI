@@ -16,7 +16,7 @@ async function viewOnceCommand(sock, chatId, message, isDm = false) {
 
     if (!quotedMessage) {
       await sock.sendMessage(chatId, {
-        text: "❌ Please reply to a view once message!",
+        text: "❌ Please reply to a view once message!\n\n*Powered by SAMKIEL BOT*",
       });
       return;
     }
@@ -84,7 +84,7 @@ async function viewOnceCommand(sock, chatId, message, isDm = false) {
 
     if (!mediaMessage) {
       await sock.sendMessage(chatId, {
-        text: "❌ Could not detect view once message! Please make sure you replied to a view once image/video.",
+        text: "❌ Could not detect view once message! Please make sure you replied to a view once image/video.\n\n*Powered by SAMKIEL BOT*",
       });
       return;
     }
