@@ -297,44 +297,40 @@ async function processVoiceWithMistral(audioPath, imagePath = null) {
 }
 
 let yarnKeyIndex = 0;
-let yarnVoiceIndex = 0;
-const YARN_VOICES = [
-  "Idera", // Female
-  "Emma", // Male
-  "Zainab", // Female
-  "Osagie", // Male
-  "Wura", // Female
-  "Jude", // Male
-  "Chinenye", // Female
-  "Tayo", // Male
-];
+
+// DEPRECATED: Voice rotation removed for consistency
+// Now using persistent voice from voiceConfig.js
+// const YARN_VOICES = [...]; // No longer used for rotation
 
 /**
  * Convert text to speech using free TTS APIs with Nigerian accent focus
+ * Uses persistent voice selection - same voice for all responses
  */
 async function textToSpeech(text) {
-  // Try multiple TTS APIs, prioritizing Nigerian voices
+  // Get the bot's persistent voice (assigned once, never changes)
+  const botVoice = getBotVoice();
+  const fallbackVoices = getFallbackVoice();
+
+  console.log(`[TTS] Using persistent voice: ${botVoice}`);
+
+  // Try multiple TTS APIs, using the bot's assigned voice
   const ttsApis = [
     {
-      name: "Yarn AI (Rotating Keys & Voices)",
+      name: `Yarn AI (${botVoice})`,
       fn: async (t) => {
         const keys = settings.yarnApiKeys || [];
         if (keys.length === 0) return null;
 
-        // Current key and voice
+        // Rotate API keys for load balancing (but NOT voice)
         const currentKey = keys[yarnKeyIndex % keys.length];
-        const currentVoice = YARN_VOICES[yarnVoiceIndex % YARN_VOICES.length];
-
-        // Increment for next time
         yarnKeyIndex++;
-        yarnVoiceIndex++;
 
         try {
           const response = await axios.post(
             "https://yarngpt.ai/api/v1/tts",
             {
               text: t,
-              voice: currentVoice,
+              voice: botVoice, // Use persistent voice
               audio_format: "mp3",
             },
             {
@@ -348,7 +344,7 @@ async function textToSpeech(text) {
           );
           if (response.data && response.data.byteLength > 1000) {
             console.log(
-              `✅ Yarn AI: Used voice ${currentVoice} with key ${yarnKeyIndex % keys.length}`,
+              `✅ Yarn AI: Voice ${botVoice} (key ${((yarnKeyIndex - 1) % keys.length) + 1}/${keys.length})`,
             );
             return Buffer.from(response.data);
           }
@@ -357,30 +353,16 @@ async function textToSpeech(text) {
             "Yarn AI TTS error:",
             e.response?.data?.toString() || e.message,
           );
-          // Try to move to next key immediately if balance is high?
-          // Index already incremented above.
         }
         return null;
       },
     },
     {
-      name: "StreamElements (Ezinne - Nigerian Female)",
+      // Fallback uses same gender as the bot's assigned voice
+      name: `StreamElements (${fallbackVoices.streamElements})`,
       fn: async (t) => {
         const response = await axios.get(
-          `https://api.streamelements.com/kappa/v2/speech?voice=Ezinne&text=${encodeURIComponent(t.substring(0, 500))}`,
-          { responseType: "arraybuffer", timeout: 30000 },
-        );
-        if (response.data && response.data.byteLength > 1000) {
-          return Buffer.from(response.data);
-        }
-        return null;
-      },
-    },
-    {
-      name: "StreamElements (Abeo - Nigerian Male)",
-      fn: async (t) => {
-        const response = await axios.get(
-          `https://api.streamelements.com/kappa/v2/speech?voice=Abeo&text=${encodeURIComponent(t.substring(0, 500))}`,
+          `https://api.streamelements.com/kappa/v2/speech?voice=${fallbackVoices.streamElements}&text=${encodeURIComponent(t.substring(0, 500))}`,
           { responseType: "arraybuffer", timeout: 30000 },
         );
         if (response.data && response.data.byteLength > 1000) {
@@ -393,7 +375,7 @@ async function textToSpeech(text) {
       name: "Voicerss (Nigerian English)",
       fn: async (t) => {
         const response = await axios.get(
-          `https://api.voicerss.org/?key=2c97a8c6b1fc4c38b0aa2f5f9d7f3d7d&hl=en-ng&src=${encodeURIComponent(t)}&c=MP3`,
+          `https://api.voicerss.org/?key=2c97a8c6b1fc4c38b0aa2f5f9d7f3d7d&hl=${fallbackVoices.voicerss.locale}&src=${encodeURIComponent(t)}&c=MP3`,
           { responseType: "arraybuffer", timeout: 30000 },
         );
         if (response.data && response.data.byteLength > 1000) {
@@ -419,7 +401,7 @@ async function textToSpeech(text) {
       name: "TTS API (Google Backup)",
       fn: async (t) => {
         const response = await axios.get(
-          `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t.substring(0, 200))}&tl=en-gb&client=tw-ob`,
+          `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t.substring(0, 200))}&tl=${fallbackVoices.google.locale}&client=tw-ob`,
           {
             responseType: "arraybuffer",
             timeout: 30000,

@@ -6,6 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 const { isOwner, isSuperOwner } = require("../lib/isOwner");
+const { getBotVoiceInfo } = require("../lib/voiceConfig");
 
 const CONFIG_PATH = path.join(__dirname, "../data/voiceChat.json");
 
@@ -65,11 +66,14 @@ async function voiceChatCommand(sock, chatId, message, args) {
   const subCmd = args[0]?.toLowerCase();
   const config = loadVoiceChatConfig();
 
+  // Get the bot's persistent voice info
+  const voiceInfo = getBotVoiceInfo();
+
   if (subCmd === "on") {
     config.enabled = true;
     if (saveVoiceChatConfig(config)) {
       await sock.sendMessage(chatId, {
-        text: "🎤 *Voice Chat Mode ENABLED*\n\nThe bot will now:\n• Process incoming voice notes\n• Transcribe audio\n• Generate AI responses\n• Reply with voice + text",
+        text: `🎤 *Voice Chat Mode ENABLED*\n\n*Assigned Voice:* ${voiceInfo.id} (${voiceInfo.description})\n\nThe bot will now:\n• Process incoming voice notes\n• Transcribe audio\n• Generate AI responses\n• Reply with voice + text`,
       });
     } else {
       await sock.sendMessage(chatId, {
@@ -88,10 +92,10 @@ async function voiceChatCommand(sock, chatId, message, args) {
       });
     }
   } else {
-    // Show status
+    // Show status including voice info
     const status = config.enabled ? "✅ ON" : "❌ OFF";
     await sock.sendMessage(chatId, {
-      text: `🎤 *Voice Chat Status*\n\nCurrent: ${status}\n\n*Usage:*\n.voicechat on - Enable voice responses\n.voicechat off - Disable voice responses\n\n_When enabled, the bot will automatically respond to voice notes with AI-generated voice replies._`,
+      text: `🎤 *Voice Chat Status*\n\nStatus: ${status}\nVoice: *${voiceInfo.id}* (${voiceInfo.description})\n\n*Commands:*\n.voicechat on - Enable voice responses\n.voicechat off - Disable voice responses\n\n_When enabled, the bot responds to voice notes with the assigned voice. The voice is permanently fixed and won't change._`,
     });
   }
 }
