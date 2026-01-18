@@ -337,7 +337,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
     // Section 2 & 6: Owner bypass and self-healing LID check
     const isOwnerUser = (await isOwner(senderId, sock)) || message.key.fromMe;
 
-    if (!modeData.isPublic && !isOwnerUser) {
+    // Private Mode: Restricts command usage to owners only in group chats.
+    // DMs are always allowed to ensure accessibility.
+    if (!modeData.isPublic && !isOwnerUser && isGroup) {
       return;
     }
 
@@ -441,7 +443,7 @@ You can explore all available commands below 👇`,
       isCommand(userMessage) &&
       !noDelayCommands.some((c) => command.startsWith(c))
     ) {
-      const delayMs = isGroup ? 2000 : 5000;
+      const delayMs = isGroup ? 1000 : 500;
       try {
         await sock.sendPresenceUpdate("recording", chatId);
       } catch (e) {}
