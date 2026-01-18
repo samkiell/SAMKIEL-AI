@@ -4,7 +4,9 @@ async function githubCommand(sock, chatId) {
 *📂 GitHub Repository:*
 https://github.com/samkiell/ 
 
-_Star ⭐ the repository if you like the bot!_`;
+_Star ⭐ the repository if you like the bot!_
+
+*Powered by SAMKIEL BOT*`;
 
   try {
     await sock.sendMessage(chatId, {

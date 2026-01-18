@@ -62,7 +62,7 @@ async function pingCommand(sock, chatId, message) {
 🧠 *RAM:* ${ramUsage} MB / ${Math.round(totalRam)} GB
 🛰️ *Server:* Private Node
 
-_Bot is running at optimal speed._
+_Bot is running at optimal speed._\n\n*Powered by SAMKIEL BOT*
 ╰──────────────────╯`.trim();
 
     await editMessage(sock, chatId, key, finalMessage, { withBranding: false });

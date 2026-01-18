@@ -16,7 +16,8 @@ async function aliveCommand(sock, chatId, message) {
       `• Artificial Intelligence\n` +
       `• Fun Commands\n` +
       `• And more!\n\n` +
-      `Type *${p}menu* for full command list`;
+      `Type *${p}menu* for full command list\n\n` +
+      `*Powered by SAMKIEL BOT*`;
 
     const { sendText } = require("../lib/sendResponse");
     await sendText(sock, chatId, aliveMessage, { quoted: message });

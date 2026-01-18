@@ -213,7 +213,7 @@ async function pdfCommand(sock, chatId, text, message) {
         document: { url: pdfPath },
         fileName: `samkielbot-pdf_${message.pushName || "User"}.pdf`,
         mimetype: "application/pdf",
-        caption: "✅ PDF Generated Successfully",
+        caption: "✅ PDF Generated Successfully\n\n*Powered by SAMKIEL BOT*",
         contextInfo: global.channelInfo?.contextInfo || {},
       },
       { quoted: message },

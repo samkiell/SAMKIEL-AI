@@ -274,7 +274,7 @@ async function newsCommand(sock, chatId, message, args) {
     response += `_via ${a.source || "News"}_\n\n`;
   });
 
-  response += `_Powered by SAMKIEL BOT_`;
+  response += `*Powered by SAMKIEL BOT*`;
 
   await sendText(sock, chatId, response.trim(), { quoted: message });
 }
