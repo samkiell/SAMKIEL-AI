@@ -75,8 +75,20 @@ async function bibleCommand(sock, chatId, args) {
         // Double check if data.text is empty or "verse not found" logic (some APIs return 200 with error msg)
         // bible-api.com returns actual text or 404.
 
-        const { reference, text, translation_name } = data;
-        const formattedBible = `📖 *${reference}*\n\n${text.trim()}\n\n_— ${translation_name}_`;
+        const { reference, verses, text, translation_name } = data;
+
+        let formattedText = "";
+        if (verses && verses.length > 0) {
+          // Format multiple verses: "1. text..."
+          formattedText = verses
+            .map((v) => `*${v.verse}.* ${v.text.trim()}`)
+            .join("\n");
+        } else {
+          // Fallback to single text block
+          formattedText = text.trim();
+        }
+
+        const formattedBible = `📖 *${reference}*\n\n${formattedText}\n\n_— ${translation_name}_`;
         return await sendText(sock, chatId, formattedBible);
       }
     } catch (refError) {
