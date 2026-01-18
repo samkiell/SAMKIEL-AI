@@ -68,8 +68,14 @@ const settings = {
   // OpenAI (Optional) - https://platform.openai.com/api-keys
   openaiApiKey: "", // String: OpenAI API key (paid)
 
-  // Yarn AI - Nigerian TTS
-  yarnApiKey: "sk_live_2IuLYDP72nKFwXP3uJDMxLCV81dDPBbyNe-hdISsr7E",
+  // Yarn AI - Nigerian TTS (Multiple keys for limit rotation)
+  yarnApiKeys: [
+    "sk_live_2IuLYDP72nKFwXP3uJDMxLCV81dDPBbyNe-hdISsr7E",
+    "sk_live_m0UBBvMwF03_8pCGrYJqv2OJjUGfAabqVdtgSvgRQO8",
+    "sk_live_QLIk6giCMLP8bKvJFpYq4GyI0zvcTN6GmMlBx55o6Cw",
+    "sk_live_aOM4nSv6DDXrtBgP_JScoaL1beBW3XedOsIL7VmQTv4",
+    "sk_live_RXvW25ePOldnHJKJ13QilUMCi_025NRtR1vXA_CPy-U",
+  ],
 };
 
 module.exports = settings;

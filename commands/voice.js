@@ -294,6 +294,19 @@ async function processVoiceWithMistral(audioPath, imagePath = null) {
   }
 }
 
+let yarnKeyIndex = 0;
+let yarnVoiceIndex = 0;
+const YARN_VOICES = [
+  "Idera", // Female
+  "Emma", // Male
+  "Zainab", // Female
+  "Osagie", // Male
+  "Wura", // Female
+  "Jude", // Male
+  "Chinenye", // Female
+  "Tayo", // Male
+];
+
 /**
  * Convert text to speech using free TTS APIs with Nigerian accent focus
  */
@@ -301,20 +314,30 @@ async function textToSpeech(text) {
   // Try multiple TTS APIs, prioritizing Nigerian voices
   const ttsApis = [
     {
-      name: "Yarn AI (Idara - Nigerian English)",
+      name: "Yarn AI (Rotating Keys & Voices)",
       fn: async (t) => {
-        if (!settings.yarnApiKey) return null;
+        const keys = settings.yarnApiKeys || [];
+        if (keys.length === 0) return null;
+
+        // Current key and voice
+        const currentKey = keys[yarnKeyIndex % keys.length];
+        const currentVoice = YARN_VOICES[yarnVoiceIndex % YARN_VOICES.length];
+
+        // Increment for next time
+        yarnKeyIndex++;
+        yarnVoiceIndex++;
+
         try {
           const response = await axios.post(
             "https://yarngpt.ai/api/v1/tts",
             {
               text: t,
-              voice: "Idera",
+              voice: currentVoice,
               audio_format: "mp3",
             },
             {
               headers: {
-                Authorization: `Bearer ${settings.yarnApiKey}`,
+                Authorization: `Bearer ${currentKey}`,
                 "Content-Type": "application/json",
               },
               responseType: "arraybuffer",
@@ -322,6 +345,9 @@ async function textToSpeech(text) {
             },
           );
           if (response.data && response.data.byteLength > 1000) {
+            console.log(
+              `✅ Yarn AI: Used voice ${currentVoice} with key ${yarnKeyIndex % keys.length}`,
+            );
             return Buffer.from(response.data);
           }
         } catch (e) {
@@ -329,6 +355,8 @@ async function textToSpeech(text) {
             "Yarn AI TTS error:",
             e.response?.data?.toString() || e.message,
           );
+          // Try to move to next key immediately if balance is high?
+          // Index already incremented above.
         }
         return null;
       },
