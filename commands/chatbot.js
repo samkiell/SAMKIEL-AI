@@ -401,28 +401,28 @@ You:`.trim();
   // Multiple Chatbot APIs for fallback
   const CHATBOT_APIS = [
     {
+      name: "Siputzx Llama",
+      url: `https://api.siputzx.my.id/api/ai/llama33?prompt=${encodeURIComponent(SYSTEM_INSTRUCTION)}&text=${encodeURIComponent(userMessage)}`,
+      extract: (d) => d?.data || d?.result,
+    },
+    {
       name: "Dreaded",
       url: `https://api.dreaded.site/api/chatgpt?text=${encodeURIComponent(prompt)}`,
       extract: (d) => d?.result?.prompt || d?.result,
     },
     {
       name: "Popcat",
-      url: `https://api.popcat.xyz/chatbot?owner=Samkiel&botname=SamkielAI&msg=${encodeURIComponent(userMessage)}`,
+      url: `https://api.popcat.xyz/chatbot?owner=SAMKIEL&botname=SAMKIEL_BOT&msg=${encodeURIComponent(userMessage)}`, // Popcat has length limits, strict prompt often fails
       extract: (d) => d?.response,
     },
     {
-      name: "Siputzx Llama",
-      url: `https://api.siputzx.my.id/api/ai/llama33?prompt=You+are+a+casual+friend&text=${encodeURIComponent(userMessage)}`,
-      extract: (d) => d?.data || d?.result,
-    },
-    {
       name: "Gifted Chatbot",
-      url: `https://api.giftedtech.my.id/api/ai/gpt?apikey=gifted&q=${encodeURIComponent(userMessage)}`,
+      url: `https://api.giftedtech.my.id/api/ai/gpt?apikey=gifted&q=${encodeURIComponent(prompt)}`,
       extract: (d) => d?.result,
     },
     {
       name: "RyzenDesu",
-      url: `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(userMessage)}`,
+      url: `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(prompt)}`,
       extract: (d) => d?.result || d?.answer,
     },
   ];
@@ -435,7 +435,7 @@ You:`.trim();
       const data = await response.json();
       const answer = api.extract(data);
 
-      if (answer && typeof answer === "string" && answer.length > 3) {
+      if (answer && typeof answer === "string" && answer.length > 2) {
         // Clean up the response
         let cleanedResponse = answer
           .trim()
