@@ -66,6 +66,7 @@ async function pdfCommand(sock, chatId, text, message) {
       "/usr/share/fonts/google-noto-emoji-fonts/NotoColorEmoji.ttf", // Fedora
       "/System/Library/Fonts/Apple Color Emoji.ttc", // macOS
       "/System/Library/Fonts/Apple Color Emoji.ttf", // macOS Alternative
+      path.join(__dirname, "../assets/emoji.ttf"), // Local asset (if user provides one)
     ];
 
     let fontLoaded = false;
