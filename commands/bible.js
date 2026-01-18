@@ -1,19 +1,240 @@
-const axios = require("axios");
-const cheerio = require("cheerio");
-const { sendText } = require("../lib/sendResponse");
-
 /**
- * Enhanced Bible Command (v4.0)
+ * Enhanced Bible Command (v5.0)
  *
- * Capabilities:
- * 1. Primary API: Bible-API.com (Free, Fast, JSON) - supports limited versions (NIV, KJV, etc.)
- * 2. Secondary API: Bible SuperSearch (bible-api.com fallback)
- * 3. Robust Scraping: BibleGateway (The "Gold Standard" for finding anything)
- *    - Handles simple verses AND full text search.
- *    - Supports almost ALL translations (NIV, KJV, ESV, NLT, NKJV, NASB, MSG, AMP, etc.)
+ * Features:
+ * 1. Smart detection: Reference vs Search
+ * 2. Primary API: bible-api.com (fast, JSON)
+ * 3. Fallback: Bolls Life API (comprehensive)
+ * 4. Proper book name mapping
+ * 5. No branding/notes
  */
 
-// List of translations we want to "officially" recognize, though scraper handles anything.
+const axios = require("axios");
+const { sendText } = require("../lib/sendResponse");
+
+const TIMEOUT = 10000;
+
+// Complete Bible Book Mapping
+const BOOK_NAMES = {
+  1: "Genesis",
+  2: "Exodus",
+  3: "Leviticus",
+  4: "Numbers",
+  5: "Deuteronomy",
+  6: "Joshua",
+  7: "Judges",
+  8: "Ruth",
+  9: "1 Samuel",
+  10: "2 Samuel",
+  11: "1 Kings",
+  12: "2 Kings",
+  13: "1 Chronicles",
+  14: "2 Chronicles",
+  15: "Ezra",
+  16: "Nehemiah",
+  17: "Esther",
+  18: "Job",
+  19: "Psalms",
+  20: "Proverbs",
+  21: "Ecclesiastes",
+  22: "Song of Solomon",
+  23: "Isaiah",
+  24: "Jeremiah",
+  25: "Lamentations",
+  26: "Ezekiel",
+  27: "Daniel",
+  28: "Hosea",
+  29: "Joel",
+  30: "Amos",
+  31: "Obadiah",
+  32: "Jonah",
+  33: "Micah",
+  34: "Nahum",
+  35: "Habakkuk",
+  36: "Zephaniah",
+  37: "Haggai",
+  38: "Zechariah",
+  39: "Malachi",
+  40: "Matthew",
+  41: "Mark",
+  42: "Luke",
+  43: "John",
+  44: "Acts",
+  45: "Romans",
+  46: "1 Corinthians",
+  47: "2 Corinthians",
+  48: "Galatians",
+  49: "Ephesians",
+  50: "Philippians",
+  51: "Colossians",
+  52: "1 Thessalonians",
+  53: "2 Thessalonians",
+  54: "1 Timothy",
+  55: "2 Timothy",
+  56: "Titus",
+  57: "Philemon",
+  58: "Hebrews",
+  59: "James",
+  60: "1 Peter",
+  61: "2 Peter",
+  62: "1 John",
+  63: "2 John",
+  64: "3 John",
+  65: "Jude",
+  66: "Revelation",
+};
+
+// Book name aliases for parsing
+const BOOK_ALIASES = {
+  gen: "genesis",
+  ge: "genesis",
+  gn: "genesis",
+  ex: "exodus",
+  exod: "exodus",
+  lev: "leviticus",
+  le: "leviticus",
+  lv: "leviticus",
+  num: "numbers",
+  nu: "numbers",
+  nm: "numbers",
+  deut: "deuteronomy",
+  de: "deuteronomy",
+  dt: "deuteronomy",
+  josh: "joshua",
+  jos: "joshua",
+  judg: "judges",
+  jdg: "judges",
+  jg: "judges",
+  ru: "ruth",
+  rth: "ruth",
+  "1sam": "1 samuel",
+  "1sa": "1 samuel",
+  "1 sam": "1 samuel",
+  "2sam": "2 samuel",
+  "2sa": "2 samuel",
+  "2 sam": "2 samuel",
+  "1kgs": "1 kings",
+  "1ki": "1 kings",
+  "1 kings": "1 kings",
+  "2kgs": "2 kings",
+  "2ki": "2 kings",
+  "2 kings": "2 kings",
+  "1chr": "1 chronicles",
+  "1ch": "1 chronicles",
+  "2chr": "2 chronicles",
+  "2ch": "2 chronicles",
+  ezr: "ezra",
+  neh: "nehemiah",
+  ne: "nehemiah",
+  esth: "esther",
+  es: "esther",
+  jb: "job",
+  ps: "psalms",
+  psa: "psalms",
+  psalm: "psalms",
+  prov: "proverbs",
+  pr: "proverbs",
+  prv: "proverbs",
+  eccl: "ecclesiastes",
+  ec: "ecclesiastes",
+  ecc: "ecclesiastes",
+  song: "song of solomon",
+  sos: "song of solomon",
+  ss: "song of solomon",
+  isa: "isaiah",
+  is: "isaiah",
+  jer: "jeremiah",
+  je: "jeremiah",
+  lam: "lamentations",
+  la: "lamentations",
+  ezek: "ezekiel",
+  eze: "ezekiel",
+  ez: "ezekiel",
+  dan: "daniel",
+  da: "daniel",
+  dn: "daniel",
+  hos: "hosea",
+  ho: "hosea",
+  joe: "joel",
+  jl: "joel",
+  am: "amos",
+  ob: "obadiah",
+  oba: "obadiah",
+  jon: "jonah",
+  jnh: "jonah",
+  mic: "micah",
+  mi: "micah",
+  nah: "nahum",
+  na: "nahum",
+  hab: "habakkuk",
+  zeph: "zephaniah",
+  zep: "zephaniah",
+  hag: "haggai",
+  hg: "haggai",
+  zech: "zechariah",
+  zec: "zechariah",
+  mal: "malachi",
+  matt: "matthew",
+  mt: "matthew",
+  mat: "matthew",
+  mk: "mark",
+  mr: "mark",
+  lk: "luke",
+  lu: "luke",
+  jn: "john",
+  joh: "john",
+  ac: "acts",
+  act: "acts",
+  rom: "romans",
+  ro: "romans",
+  rm: "romans",
+  "1cor": "1 corinthians",
+  "1co": "1 corinthians",
+  "2cor": "2 corinthians",
+  "2co": "2 corinthians",
+  gal: "galatians",
+  ga: "galatians",
+  eph: "ephesians",
+  ep: "ephesians",
+  phil: "philippians",
+  php: "philippians",
+  pp: "philippians",
+  col: "colossians",
+  "1thess": "1 thessalonians",
+  "1th": "1 thessalonians",
+  "2thess": "2 thessalonians",
+  "2th": "2 thessalonians",
+  "1tim": "1 timothy",
+  "1ti": "1 timothy",
+  "2tim": "2 timothy",
+  "2ti": "2 timothy",
+  tit: "titus",
+  ti: "titus",
+  phm: "philemon",
+  phlm: "philemon",
+  heb: "hebrews",
+  jas: "james",
+  jm: "james",
+  "1pet": "1 peter",
+  "1pe": "1 peter",
+  "1pt": "1 peter",
+  "2pet": "2 peter",
+  "2pe": "2 peter",
+  "2pt": "2 peter",
+  "1jn": "1 john",
+  "1jo": "1 john",
+  "2jn": "2 john",
+  "2jo": "2 john",
+  "3jn": "3 john",
+  "3jo": "3 john",
+  jud: "jude",
+  jde: "jude",
+  rev: "revelation",
+  re: "revelation",
+  rv: "revelation",
+};
+
+// Translation mapping
 const TRANSLATIONS = {
   niv: "NIV",
   kjv: "KJV",
@@ -30,87 +251,208 @@ const TRANSLATIONS = {
   nrs: "NRSV",
 };
 
+/**
+ * Detect if query is a Bible reference (book chapter:verse) or a search query
+ */
+function parseQuery(queryArgs) {
+  if (!queryArgs || queryArgs.length === 0) return { type: "help" };
+
+  // Check if last arg is a translation
+  let version = "NIV";
+  let args = [...queryArgs];
+  const lastArg = args[args.length - 1].toLowerCase();
+  if (TRANSLATIONS[lastArg]) {
+    version = TRANSLATIONS[lastArg];
+    args.pop();
+  }
+
+  const query = args.join(" ").trim();
+  if (!query) return { type: "help" };
+
+  // Pattern 1: "John 3:16" or "1 John 1:9" or "Genesis 1:1-5"
+  const refPattern1 = /^(\d?\s?[a-zA-Z]+)\s+(\d+):(\d+)(?:-(\d+))?$/i;
+  // Pattern 2: "John 3 16" (space instead of colon)
+  const refPattern2 = /^(\d?\s?[a-zA-Z]+)\s+(\d+)\s+(\d+)(?:\s*-\s*(\d+))?$/i;
+  // Pattern 3: "phil 4 19" (abbreviation with spaces)
+  const refPattern3 = /^([a-zA-Z]+)\s+(\d+)\s+(\d+)(?:\s*-\s*(\d+))?$/i;
+
+  let match =
+    query.match(refPattern1) ||
+    query.match(refPattern2) ||
+    query.match(refPattern3);
+
+  if (match) {
+    let bookPart = match[1].toLowerCase().trim();
+    const chapter = match[2];
+    const verseStart = match[3];
+    const verseEnd = match[4];
+
+    // Expand abbreviation
+    if (BOOK_ALIASES[bookPart]) {
+      bookPart = BOOK_ALIASES[bookPart];
+    }
+
+    // Build reference string
+    let reference = `${bookPart} ${chapter}:${verseStart}`;
+    if (verseEnd) reference += `-${verseEnd}`;
+
+    return { type: "reference", reference, version, original: query };
+  }
+
+  // It's a search query
+  return { type: "search", query, version };
+}
+
+/**
+ * API 1: bible-api.com (Primary for references)
+ */
+async function getBibleApi(reference, version) {
+  // bible-api supports: kjv, web, and a few others
+  const versionMap = { KJV: "kjv", WEB: "web", ASV: "asv" };
+  const apiVersion = versionMap[version] || "kjv"; // Default to KJV if not supported
+
+  const url = `https://bible-api.com/${encodeURIComponent(reference)}?translation=${apiVersion}`;
+  const { data } = await axios.get(url, { timeout: TIMEOUT });
+
+  if (!data.text) throw new Error("No text found");
+
+  return {
+    reference: data.reference,
+    text: data.text.trim(),
+    verses: data.verses,
+    translation: data.translation_name || version,
+  };
+}
+
+/**
+ * API 2: Bolls Life API (Fallback, supports many translations)
+ */
+async function getBollsReference(reference, version) {
+  // Parse reference to match Bolls format
+  // Format: /get-text/VERSION/BOOK/CHAPTER/VERSE/
+  // This is tricky - need to convert "John 3:16" to /get-text/NIV/John/3/16/
+
+  // For now, use search as fallback
+  const url = `https://bolls.life/find/${version}/?search=${encodeURIComponent(reference)}`;
+  const { data } = await axios.get(url, { timeout: TIMEOUT });
+
+  if (!data || data.length === 0) throw new Error("No results");
+
+  // Take first result
+  const verse = data[0];
+  const bookName = BOOK_NAMES[verse.book] || `Book ${verse.book}`;
+
+  return {
+    reference: `${bookName} ${verse.chapter}:${verse.verse}`,
+    text: verse.text.replace(/<[^>]*>/g, ""), // Remove HTML
+    translation: version,
+  };
+}
+
+/**
+ * API 3: Bolls Life Search (For keyword searches)
+ */
+async function getBollsSearch(query, version, limit = 10) {
+  const url = `https://bolls.life/find/${version}/?search=${encodeURIComponent(query)}`;
+  const { data } = await axios.get(url, { timeout: TIMEOUT });
+
+  if (!data || data.length === 0) throw new Error("No results");
+
+  return data.slice(0, limit).map((verse) => ({
+    reference: `${BOOK_NAMES[verse.book] || `Book ${verse.book}`} ${verse.chapter}:${verse.verse}`,
+    text: verse.text
+      .replace(/<[^>]*>/g, "")
+      .replace(/<mark>/g, "")
+      .replace(/<\/mark>/g, ""),
+  }));
+}
+
 async function bibleCommand(sock, chatId, args) {
-  if (!args || args.length === 0) {
+  const parsed = parseQuery(args);
+
+  if (parsed.type === "help") {
     return await sendText(
       sock,
       chatId,
-      "🔍 Please provide a verse reference OR a search query.\nExample:\n• Reference: *.bible john 3:16*\n• Search: *.bible ask and it shall be given*\n• Version: *.bible john 3:16 esv*",
+      "📖 *Bible Command*\n\n" +
+        "*Reference Lookup:*\n" +
+        "• .bible John 3:16\n" +
+        "• .bible phil 4 19\n" +
+        "• .bible Genesis 1:1-5 kjv\n\n" +
+        "*Keyword Search:*\n" +
+        "• .bible ask and you shall receive\n" +
+        "• .bible love one another\n\n" +
+        "*Translations:* NIV, KJV, ESV, NLT, NKJV, ASV",
     );
   }
 
-  // --- 1. Parse Version ---
-  let version = "NIV"; // Default
-  let queryArgs = [...args];
-  const lastArg = queryArgs[queryArgs.length - 1].toLowerCase();
-
-  if (TRANSLATIONS[lastArg]) {
-    version = TRANSLATIONS[lastArg];
-    queryArgs.pop(); // Remove version from query
-  }
-
-  // Construct the search text
-  let query = queryArgs.join(" ").trim();
-
-  // Clean query for smart formatting (e.g., "john 3 16" -> "john 3:16")
-  // Only applies if it strictly looks like [Book Chapter Verse]
-  const refRegex = /^([1-3]?\s?[a-zA-Z]+)\s+(\d+)\s+(\d+)(?:-(\d+))?$/;
-  const directRefMatch = query.match(refRegex);
-  if (directRefMatch) {
-    // Reformat "john 3 16" to "john 3:16" for better API hits, but keep original for search fallback
-    // query = `${directRefMatch[1]} ${directRefMatch[2]}:${directRefMatch[3]}`;
-    // Getting clever can break search phrases, so valid reference formatting helps APIs.
-    query = query.replace(refRegex, (match, book, ch, start, end) => {
-      return `${book} ${ch}:${start}${end ? "-" + end : ""}`;
-    });
-  }
-
   try {
-    // Show typing state
     await sock.sendPresenceUpdate("composing", chatId);
 
-    // --- STRATEGY 1: bible-api.com (Fastest, JSON, Exact References Only) ---
-    // Only works if the query IS a reference. It fails on "search text".
-    // Also, it only supports a few versions perfectly.
-    // If user asked for 'WEB' or 'KJV' or 'Bible-API supported', we try this.
-    // If user asked for 'NLT' or 'NIV' (sometimes hidden), it might fail or return WEB.
-    // We try it first ONLY if it looks like a reference.
-    const isReferenceLayout = /[0-9]+:[0-9]+/.test(query);
-
-    if (isReferenceLayout) {
+    if (parsed.type === "reference") {
+      // Try bible-api first
+      let result = null;
       try {
-        // bible-api.com uses `?translation=` but limited support.
-        // We try. If it 404s, we move to scraper.
-        const cleanVersion = version.toLowerCase(); // bible-api likes lowercase
-        const apiUrl = `https://bible-api.com/${encodeURIComponent(query)}?translation=${cleanVersion}`;
-
-        const res = await axios.get(apiUrl, { timeout: 4000 });
-        if (res.data && res.data.text) {
-          const { reference, verses, text, translation_name } = res.data;
-          let body = text.trim();
-          // Multi-verse formatting
-          if (verses?.length > 1) {
-            body = verses
-              .map((v) => `*${v.verse}.* ${v.text.trim()}`)
-              .join("\n");
-          }
-          const msg = `📖 *${reference}*\n\n${body}\n\n_— ${translation_name}_`;
-          return await sendText(sock, chatId, msg);
-        }
+        result = await getBibleApi(parsed.reference, parsed.version);
       } catch (e) {
-        // Ignore and flow to next strategy
+        console.log("Bible: bible-api failed, trying Bolls...");
       }
+
+      // Try Bolls as fallback
+      if (!result) {
+        try {
+          result = await getBollsReference(parsed.reference, parsed.version);
+        } catch (e) {
+          console.log("Bible: Bolls failed");
+        }
+      }
+
+      if (!result) {
+        return await sendText(
+          sock,
+          chatId,
+          `❌ Could not find: ${parsed.original}\n\nTry using full book names like "Philippians 4:19"`,
+        );
+      }
+
+      // Format multi-verse
+      let text = result.text;
+      if (result.verses && result.verses.length > 1) {
+        text = result.verses
+          .map((v) => `*${v.verse}.* ${v.text.trim()}`)
+          .join("\n");
+      }
+
+      const msg = `📖 *${result.reference}*\n\n${text}\n\n_— ${result.translation}_`;
+      return await sendText(sock, chatId, msg);
+    } else if (parsed.type === "search") {
+      // Keyword search
+      let results = null;
+      try {
+        results = await getBollsSearch(parsed.query, parsed.version, 10);
+      } catch (e) {
+        console.log("Bible: Search failed");
+      }
+
+      if (!results || results.length === 0) {
+        return await sendText(
+          sock,
+          chatId,
+          `❌ No results found for: "${parsed.query}"`,
+        );
+      }
+
+      let msg = `🔍 *Bible Search: "${parsed.query}"* (${parsed.version})\n\n`;
+      results.forEach((r, i) => {
+        const snippet =
+          r.text.length > 120 ? r.text.substring(0, 120) + "..." : r.text;
+        msg += `${i + 1}. *${r.reference}*\n"${snippet}"\n\n`;
+      });
+
+      return await sendText(sock, chatId, msg.trim());
     }
-
-    // --- STRATEGY 2: THE "VAST SEARCH" (BibleGateway Scraper) ---
-    // This is the fallback for everything:
-    // 1. Complex References that API missed.
-    // 2. Keyword Searches ("ask and ye shall find").
-    // 3. Translations not on free APIs (NLT, MSG, AMP).
-
-    await performVastSearch(sock, chatId, query, version);
   } catch (error) {
-    console.error("Bible Command Fatal:", error);
+    console.error("Bible Command Error:", error.message);
     await sendText(
       sock,
       chatId,
@@ -119,102 +461,17 @@ async function bibleCommand(sock, chatId, args) {
   }
 }
 
-/**
- * The Robust Scraper using BibleGateway
- * Handles both "Search Results" AND "Passage Display"
- */
-/**
- * The Robust Fallback: Bolls Life API
- * Open Source, Free, JSON-based. No scraping needed.
- */
-async function performVastSearch(sock, chatId, query, version) {
-  try {
-    // Map common versions to Bolls abbreviations if needed
-    // Bolls uses: NIV, ESV, KJV, NKJV, NLT, etc. directly usually.
-    // Check https://bolls.life/static/bolls/app/views/translations.json for strict mapping.
-    // For now we assume user input is close enough or default to NIV.
-    const v = version.toUpperCase();
-
-    // Check if query is a Reference or Search
-    // We tried reference above with bible-api.com. If that failed, maybe Bolls can handle it?
-    // Bolls structure: https://bolls.life/get-text/NIV/John/3/16/  (Chapter/Verse)
-    // Bolls Search: https://bolls.life/find/NIV/?search=ask
-
-    // Try Search Endpoint First if it's a phrase
-    // If it's a reference, Bolls search might return verses.
-    const searchUrl = `https://bolls.life/find/${v}/?search=${encodeURIComponent(query)}`;
-    const { data } = await axios.get(searchUrl);
-
-    // Bolls returns { [verse_pk]: "Text" } or list structure?
-    // Actually Bolls /find/ returns list of objects: { pk, text, verse, chapter, book }
-
-    if (data && data.length > 0) {
-      // It found matches!
-      // Limit to 5
-      const results = data.slice(0, 5);
-
-      // Format output
-      // Need to map Book ID to Name? Bolls returns book ID (int).
-      // We might need to fetch book names or just show "Book Ch:Ver".
-      // Wait, data includes 'book' integer.
-      // Let's try to be smart. If logic assumes search, show snippets.
-
-      // Actually, /find/ endpoint is for "Search".
-
-      let msg = `🔍 *Bible Search: "${query}"* (${v})\n\n`;
-
-      // Bolls JSON example: [{ text: "...", verse: 1, chapter: 1, book: 1 }]
-      // We need Book Names. Bolls has /get-books/NIV/
-      // Optimization: Just show the text and user can deduce? No, imprecise.
-
-      // Alternative: Use a different public API for search if Bolls is hard to map?
-      // "Bible SuperSearch" mentioned by user?
-      // https://api.biblesupersearch.com/api/bible/search?q=john+3:16
-
-      // Let's try Bible SuperSearch as the primary "Search" fallback since Bolls requires mapping.
-      // Only if request fails.
-
-      results.forEach((r) => {
-        // Remove HTML tags if any (Bolls usually clean or HTML entities)
-        const text = r.text.replace(/<[^>]*>/g, "");
-        msg += `📜 *Verse (Book ${r.book} ${r.chapter}:${r.verse})*\n"${text}"\n\n`;
-      });
-      msg += "_Note: Bolls API uses Book IDs. 1=Genesis, 43=John, etc._";
-
-      return await sendText(sock, chatId, msg);
-    } else {
-      // Try Bible SuperSearch as last resort for "No Results" or Reference
-      await performSuperSearch(sock, chatId, query);
-    }
-  } catch (e) {
-    console.error("Bolls Search Error:", e.message);
-    // Fallback to SuperSearch
-    await performSuperSearch(sock, chatId, query);
-  }
-}
-
-async function performSuperSearch(sock, chatId, query) {
-  try {
-    // https://api.biblesupersearch.com/api/bible/search?q=...
-    const url = `https://api.biblesupersearch.com/api/bible/search?q=${encodeURIComponent(query)}`;
-    const { data } = await axios.get(url);
-
-    if (data && data.results && data.results.length > 0) {
-      const item = data.results[0]; // Just show first for now or list
-      // API structure varies, assuming simplified.
-      // Actually, this API documentation is complex.
-      // Let's stick to the message:
-      await sendText(
-        sock,
-        chatId,
-        "❌ No text found. Please check the spelling or reference.",
-      );
-    } else {
-      await sendText(sock, chatId, "❌ Search failed. No results found.");
-    }
-  } catch (e) {
-    await sendText(sock, chatId, "❌ Search Service Unavailable.");
-  }
-}
+// Command metadata
+bibleCommand.meta = {
+  name: "bible",
+  aliases: ["verse", "scripture"],
+  ownerOnly: false,
+  adminOnly: false,
+  groupOnly: false,
+  lockdownBlocked: true,
+  ratelimited: true,
+  silenceBlocked: true,
+  description: "Look up Bible verses or search",
+};
 
 module.exports = bibleCommand;
