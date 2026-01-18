@@ -25,6 +25,17 @@ function isVoiceMessage(m) {
 }
 
 /**
+ * Check if message is an image
+ */
+function isImageMessage(m) {
+  return !!(
+    m.message?.imageMessage ||
+    m.message?.viewOnceMessageV2?.message?.imageMessage ||
+    m.message?.viewOnceMessage?.message?.imageMessage
+  );
+}
+
+/**
  * Get internal audio message object by searching recursively
  */
 function getAudioData(m) {
@@ -77,10 +88,126 @@ async function downloadVoiceMessage(message, sock) {
 }
 
 /**
+ * Download image message to temp file
+ */
+async function downloadImageMessage(message, sock) {
+  try {
+    const buffer = await downloadMediaMessage(
+      message,
+      "buffer",
+      {},
+      {
+        logger: console,
+        reuploadRequest: sock.updateMediaMessage,
+      },
+    );
+
+    const filename = `image_${Date.now()}.jpg`;
+    const filepath = path.join(TEMP_DIR, filename);
+    fs.writeFileSync(filepath, buffer);
+
+    return filepath;
+  } catch (error) {
+    console.error("Image download error:", error.message);
+    return null;
+  }
+}
+
+const MISTRAL_VOICE_SYSTEM_PROMPT = `
+GEMINI SYSTEM PROMPT
+
+Module: Voice Command Orchestration
+Platform: WhatsApp
+Voice Engine: Mistral AI (TTS)
+
+You are SAMKIEL BOT, operating in WhatsApp voice mode.
+
+Your responsibility is to generate voice-first responses and provide a clean transcription that is attached to the voice note, not sent as a separate chat message.
+
+CORE VOICE RULE (CRITICAL)
+When a voice response is required:
+DO NOT send a standalone text message
+DO NOT send text before voice
+DO NOT send text after voice
+
+Instead:
+Generate ONE voice response only.
+Attach the text as the voice transcription/subtitle, similar to WhatsApp’s native voice note transcript.
+The text must exactly match the spoken content.
+The UI layer will render the transcription under the voice bubble.
+Text exists only as metadata for the voice note.
+
+VOICE STYLE GUIDELINES
+Natural human tone
+Clear pacing
+Friendly and confident
+No robotic cadence
+No filler words
+No excessive enthusiasm
+Speak like a calm, intelligent human explaining something over WhatsApp.
+
+CONTENT RULES
+Responses must be concise but complete.
+Use simple language.
+For explanations (especially math):
+Speak step by step
+Pause naturally between steps
+Clearly state the final answer at the end
+Avoid saying phrases like:
+“Here is the solution”
+“Let me explain”
+“As an AI”
+Just speak naturally.
+
+MATH + VOICE BEHAVIOR
+When the command is math, cal, calculate, solve, or similar:
+Speak the solution step by step.
+Do not read symbols verbatim like “open bracket”.
+Convert math into spoken language naturally.
+Example style:
+“First, we simplify the expression.
+Two x plus three x gives five x.
+Next, we divide both sides by five.
+The final answer is x equals four.”
+The same spoken content must be used as the transcription.
+
+IMAGE + VOICE BEHAVIOR
+If the input is an image:
+Perform OCR.
+Understand the content.
+Respond using voice only, with transcription attached.
+Do not mention OCR or image processing in the response.
+
+ERROR HANDLING (VOICE)
+If something is unclear:
+Say it briefly and politely.
+Ask for clarification in voice.
+Keep it short.
+Example:
+“I couldn’t clearly read the equation in the image. Please resend a clearer photo.”
+
+IDENTITY RULE
+If asked who created you:
+Say clearly that you were created by SAMKIEL.
+Keep it natural.
+
+FINAL OUTPUT FORMAT (INTERNAL)
+Your output will be consumed by a pipeline that:
+Sends audio using Mistral AI
+Attaches your response text as WhatsApp-style transcription
+
+Therefore:
+Generate one unified response
+Spoken content and transcription must be identical
+No markdown
+No emojis in voice mode
+`;
+
+/**
  * Send audio to Mistral Voice Model (voxtral-small-latest)
  * Uses Chat Completions API with correct input_audio type
  */
-async function processVoiceWithMistral(audioPath) {
+async function processVoiceWithMistral(audioPath, imagePath = null) {
   const apiKey = settings.mistralVoiceApiKey || settings.mistralApiKey;
 
   if (!apiKey) {
@@ -89,26 +216,48 @@ async function processVoiceWithMistral(audioPath) {
   }
 
   try {
-    // Read audio file and convert to base64
-    const audioBuffer = fs.readFileSync(audioPath);
-    const audioBase64 = audioBuffer.toString("base64");
+    const messages = [
+      {
+        role: "system",
+        content: MISTRAL_VOICE_SYSTEM_PROMPT,
+      },
+    ];
 
-    // Use Agents Completions endpoint with your specific Agent ID
+    const userContent = [];
+
+    // Add audio if available
+    if (audioPath) {
+      const audioBuffer = fs.readFileSync(audioPath);
+      const audioBase64 = audioBuffer.toString("base64");
+      userContent.push({
+        type: "input_audio",
+        input_audio: audioBase64,
+      });
+    }
+
+    // Add image if available (for OCR/Vision)
+    if (imagePath) {
+      const imageBuffer = fs.readFileSync(imagePath);
+      const imageBase64 = imageBuffer.toString("base64");
+      userContent.push({
+        type: "image_url",
+        image_url: {
+          url: `data:image/jpeg;base64,${imageBase64}`,
+        },
+      });
+    }
+
+    messages.push({
+      role: "user",
+      content: userContent,
+    });
+
+    // Use Agents Completions endpoint
     const response = await axios.post(
       "https://api.mistral.ai/v1/agents/completions",
       {
         agent_id: settings.mistralVoiceAgentId,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_audio",
-                input_audio: audioBase64,
-              },
-            ],
-          },
-        ],
+        messages: messages,
       },
       {
         headers: {
@@ -119,11 +268,18 @@ async function processVoiceWithMistral(audioPath) {
       },
     );
 
-    // Extract text response from Chat Completions format
     const textAnswer = response.data?.choices?.[0]?.message?.content;
 
     if (textAnswer && textAnswer.length > 2) {
-      return { text: textAnswer, hasAudio: false };
+      // Check if response contains audio (some Mistral models/agents might return audio)
+      const hasAudio = !!response.data?.choices?.[0]?.message?.audio;
+      const audioData = response.data?.choices?.[0]?.message?.audio?.data;
+
+      return {
+        text: textAnswer,
+        hasAudio: hasAudio,
+        audio: audioData,
+      };
     }
 
     console.log("Voice: Empty response from Mistral");
@@ -217,105 +373,112 @@ function cleanupTempFile(filepath) {
 }
 
 /**
- * Main voice message handler
+ * Main voice command orchestration handler
  */
 async function handleVoiceMessage(sock, chatId, message, senderId) {
+  const isGroup = chatId.endsWith("@g.us");
   const isVoice = isVoiceMessage(message);
-  if (isVoice) console.log(`🎤 handleVoiceMessage entered for ${chatId}`);
-  if (!isVoice) {
+  const isImage = isImageMessage(message);
+
+  if (!isVoice && !isImage) {
     return false;
   }
 
+  // Initial checks for images to avoid intercepting other commands
+  if (isImage) {
+    const caption =
+      message.message?.imageMessage?.caption ||
+      message.message?.viewOnceMessageV2?.message?.imageMessage?.caption ||
+      "";
+    const botName = settings.botName?.toLowerCase() || "bot";
+    const prefix = settings.prefix || ".";
+
+    // Only handle image if: DM, or mentions bot, or specifically asked for voice
+    const isBotMentioned =
+      caption.toLowerCase().includes(botName) ||
+      caption.toLowerCase().includes("samkiel");
+    const isCommand = prefix !== "off" && caption.startsWith(prefix);
+
+    if (isGroup && !isBotMentioned) return false;
+    if (isCommand) return false; // Let commands handle it (like .sticker)
+  }
+
+  // Determine if it's a PTT (push to talk)
   const audioData = getAudioData(message);
   const isPtt = audioData?.ptt || false;
 
-  console.log(`🎤 Voice message detected! Sender: ${senderId}, PTT: ${isPtt}`);
+  console.log(
+    `🎤 Voice Orchestration: Sender: ${senderId}, Type: ${isVoice ? "Audio" : "Image"}`,
+  );
 
-  // React to show we're processing
+  // React to show we're processing (Reactions aren't prohibited text messages)
   try {
     await sock.sendMessage(chatId, { react: { text: "🎧", key: message.key } });
   } catch (e) {}
 
-  // Send processing message
-  const processingMsg = await sock.sendMessage(
-    chatId,
-    { text: "🎤 *Processing voice message...*" },
-    { quoted: message },
-  );
-
   let audioPath = null;
+  let imagePath = null;
 
   try {
-    // Download the voice note
-    audioPath = await downloadVoiceMessage(message, sock);
+    if (isVoice) {
+      audioPath = await downloadVoiceMessage(message, sock);
+    } else if (isImage) {
+      imagePath = await downloadImageMessage(message, sock);
+    }
 
-    if (!audioPath) {
-      await sock.sendMessage(chatId, {
-        text: "❌ Failed to download voice message.",
-        edit: processingMsg.key,
-      });
+    if (!audioPath && !imagePath) {
       return true;
     }
 
     // Process with Mistral
-    const result = await processVoiceWithMistral(audioPath);
+    const result = await processVoiceWithMistral(audioPath, imagePath);
 
     if (result && result.text) {
-      // Update status
-      await sock.sendMessage(chatId, {
-        text: "🔊 *Generating voice response...*",
-        edit: processingMsg.key,
-      });
+      // Clean result text: No markdown, no emojis for voice mode
+      let cleanText = result.text
+        .replace(/[*_~`]/g, "") // Remove markdown
+        .replace(
+          /([\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c[\udd8e-\udd9a]|\ud83c[\udfe0-\udff0]|\ud83c[\udf00-\udfff]|\ud83d[\udc00-\udfff]|\ud83e[\udd00-\udfff])/g,
+          "",
+        ) // Remove emojis
+        .trim();
 
       // Try to get audio response
       let audioBuffer = null;
 
-      // If Mistral returned audio, use it
       if (result.hasAudio && result.audio) {
         audioBuffer = Buffer.from(result.audio, "base64");
       } else {
-        // Otherwise, convert text to speech
-        audioBuffer = await textToSpeech(result.text);
+        // Fallback to TTS (following "Mistral AI TTS" style/guidelines)
+        audioBuffer = await textToSpeech(cleanText);
       }
-
-      // Send text response first (edit the processing message)
-      await sock.sendMessage(chatId, {
-        text: `🎤 *Voice Response:*\n\n${result.text}\n\n*Powered by SAMKIEL BOT*`,
-        edit: processingMsg.key,
-      });
 
       // Send voice response if we have audio
       if (audioBuffer) {
+        // Attach transcription as caption (metadata)
         await sock.sendMessage(
           chatId,
           {
             audio: audioBuffer,
             mimetype: "audio/mpeg",
-            ptt: true, // Send as voice note (push to talk)
+            ptt: true,
+            caption: cleanText, // Transcription metadata
           },
           { quoted: message },
         );
-        console.log("✅ Voice response sent successfully");
+        console.log("✅ Voice response sent");
       }
 
       // React success
       await sock.sendMessage(chatId, {
         react: { text: "✅", key: message.key },
       });
-    } else {
-      await sock.sendMessage(chatId, {
-        text: "❌ Could not process voice message. Please try again.\n\n*Powered by SAMKIEL BOT*",
-        edit: processingMsg.key,
-      });
     }
   } catch (error) {
-    console.error("Voice handler error:", error.message);
-    await sock.sendMessage(chatId, {
-      text: "❌ Error processing voice message.\n\n*Powered by SAMKIEL BOT*",
-      edit: processingMsg.key,
-    });
+    console.error("Voice orchestration error:", error.message);
   } finally {
-    cleanupTempFile(audioPath);
+    if (audioPath) cleanupTempFile(audioPath);
+    if (imagePath) cleanupTempFile(imagePath);
   }
 
   return true;
