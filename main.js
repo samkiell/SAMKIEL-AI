@@ -66,6 +66,7 @@ const quoteCommand = require("./commands/quote");
 const factCommand = require("./commands/fact");
 const weatherCommand = require("./commands/weather");
 const newsCommand = require("./commands/news");
+const { reportCommand } = require("./commands/report");
 const kickCommand = require("./commands/kick");
 const simageCommand = require("./commands/simage");
 const attpCommand = require("./commands/attp");
@@ -1052,6 +1053,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
         break;
       case cmd === "news":
         await newsCommand(sock, chatId, message, args);
+        break;
+      case cmd === "report" || cmd === "bug":
+        await reportCommand(sock, chatId, message);
         break;
       case cmd === "crypto" || cmd === "coin" || cmd === "price":
         await cryptoCommand(sock, chatId, message, args);

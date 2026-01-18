@@ -146,6 +146,7 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🌦️ ${p}weather <city>
   ║ ✧ 📽️ ${p}movie <name>
   ║ ✧ 📰 ${p}news
+  ║ ✧ 🐛 ${p}report
   ║ ✧ 📄 ${p}pdf <text>
   ║ ✧ 🎨 ${p}attp <text>
   ║ ✧ 🎵 ${p}lyrics <song_title>
