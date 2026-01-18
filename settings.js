@@ -9,7 +9,7 @@ const settings = {
   botName: "SAMKIEL BOT", // String: Display name in greetings
   prefix: ".", // String: Command prefix (e.g. ".", "!", or "off")
   botNumber: "", // String: Bot's number (e.g., "2348087357158"). Empty string allows internal resolution.
-  ownerNumber: "2348087357158", // String: PURE NUMBER ONLY (No + or spaces). Critical for access control.
+  ownerNumber: "", // String: PURE NUMBER ONLY (No + or spaces). Critical for access control.
   ownerName: "SAMKIEL", // String: Owner display name
 
   // --- CREDITS ---
