@@ -300,6 +300,39 @@ async function textToSpeech(text) {
   // Try multiple TTS APIs, prioritizing Nigerian voices
   const ttsApis = [
     {
+      name: "Yarn AI (Idara - Nigerian English)",
+      fn: async (t) => {
+        if (!settings.yarnApiKey) return null;
+        try {
+          const response = await axios.post(
+            "https://yarngpt.ai/api/v1/tts",
+            {
+              text: t,
+              voice: "Idera",
+              audio_format: "mp3",
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${settings.yarnApiKey}`,
+                "Content-Type": "application/json",
+              },
+              responseType: "arraybuffer",
+              timeout: 45000,
+            },
+          );
+          if (response.data && response.data.byteLength > 1000) {
+            return Buffer.from(response.data);
+          }
+        } catch (e) {
+          console.error(
+            "Yarn AI TTS error:",
+            e.response?.data?.toString() || e.message,
+          );
+        }
+        return null;
+      },
+    },
+    {
       name: "StreamElements (Ezinne - Nigerian Female)",
       fn: async (t) => {
         const response = await axios.get(

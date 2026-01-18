@@ -67,6 +67,9 @@ const settings = {
 
   // OpenAI (Optional) - https://platform.openai.com/api-keys
   openaiApiKey: "", // String: OpenAI API key (paid)
+
+  // Yarn AI - Nigerian TTS
+  yarnApiKey: "sk_live_2IuLYDP72nKFwXP3uJDMxLCV81dDPBbyNe-hdISsr7E",
 };
 
 module.exports = settings;
