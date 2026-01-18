@@ -250,9 +250,7 @@ async function aiCommand(sock, chatId, message) {
     let answer = null;
 
     // Route to appropriate AI - Try Mistral Agent (Primary), then Groq (Backup)
-    if (commandPart === "samkielai" || commandPart === "skai") {
-      answer = await tryMistralAPI(query);
-    } else if (commandPart === "gpt" || commandPart === "chatgpt") {
+    if (commandPart === "gpt" || commandPart === "chatgpt") {
       answer = await tryMistralAPI(query);
       if (!answer) answer = await tryGroqAPI(query, "llama-3.3-70b-versatile");
     } else if (commandPart === "gemini" || commandPart === "bard") {

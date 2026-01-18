@@ -29,14 +29,26 @@ async function samkielaiCommand(sock, chatId, message) {
       );
     }
 
-    const parts = text.split(/\s+/);
-    const query = parts.slice(1).join(" ").trim();
+    const parts = (text || "").split(/\s+/);
+    const commandName = parts[0].replace(p, "").toLowerCase();
+    let query = parts.slice(1).join(" ").trim();
+
+    // Check for quoted message
+    const quoted =
+      message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+    if (quoted) {
+      const quotedText =
+        quoted.conversation || quoted.extendedTextMessage?.text || "";
+      if (quotedText) {
+        query = query ? `${query}\n\nContext: ${quotedText}` : quotedText;
+      }
+    }
 
     if (!query) {
       return await sock.sendMessage(
         chatId,
         {
-          text: `Please provide a question.\n\nExample: ${p}samkielai who are you?`,
+          text: `Please provide a question or reply to a message.\n\nExample: ${p}samkielai who are you?`,
         },
         { quoted: message },
       );

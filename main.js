@@ -152,6 +152,7 @@ const { groupCommand } = require("./commands/groupmanage");
 const playstoreCommand = require("./commands/playstore");
 
 const aiCommand = require("./commands/ai");
+const samkielaiCommand = require("./commands/samkielai");
 const mathCommand = require("./commands/math");
 const { handleTranslateCommand } = require("./commands/translate");
 const { handleSsCommand } = require("./commands/ss");
@@ -1570,12 +1571,13 @@ async function handleMessages(sock, messageUpdate, printLog) {
       case cmd === "tiktok" || cmd === "tt":
         await tiktokCommand(sock, chatId, message);
         break;
+      case cmd === "samkielai" || cmd === "skai":
+        await samkielaiCommand(sock, chatId, message);
+        break;
       case cmd === "gpt" ||
         cmd === "gemini" ||
         cmd === "deepseek" ||
-        cmd === "ds" ||
-        cmd === "samkielai" ||
-        cmd === "skai":
+        cmd === "ds":
         await aiCommand(sock, chatId, message);
         break;
       case cmd === "math" ||

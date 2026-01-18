@@ -21,37 +21,33 @@ if (!fs.existsSync(TEMP_DIR)) {
  * Check if message is a voice note or audio
  */
 function isVoiceMessage(m) {
-  if (!m.message) return false;
-
-  // Standard path
-  if (m.message.audioMessage) return true;
-
-  // Nested paths (ViewOnce, Ephemeral, etc.)
-  const msg = m.message;
-  if (msg.viewOnceMessageV2?.message?.audioMessage) return true;
-  if (msg.viewOnceMessage?.message?.audioMessage) return true;
-  if (msg.ephemeralMessage?.message?.audioMessage) return true;
-  if (msg.documentWithCaptionMessage?.message?.audioMessage) return true;
-
-  return false;
+  return !!getAudioData(m);
 }
 
 /**
- * Get internal audio message object
+ * Get internal audio message object by searching recursively
  */
 function getAudioData(m) {
-  if (!m.message) return null;
-  const msg = m.message;
-  if (msg.audioMessage) return msg.audioMessage;
-  if (msg.viewOnceMessageV2?.message?.audioMessage)
-    return msg.viewOnceMessageV2.message.audioMessage;
-  if (msg.viewOnceMessage?.message?.audioMessage)
-    return msg.viewOnceMessage.message.audioMessage;
-  if (msg.ephemeralMessage?.message?.audioMessage)
-    return msg.ephemeralMessage.message.audioMessage;
-  if (msg.documentWithCaptionMessage?.message?.audioMessage)
-    return msg.documentWithCaptionMessage.message.audioMessage;
-  return null;
+  if (!m || !m.message) return null;
+
+  // Direct check
+  if (m.message.audioMessage) return m.message.audioMessage;
+
+  // Recursively search for audioMessage in any nested objects
+  const findAudio = (obj) => {
+    if (!obj || typeof obj !== "object") return null;
+    if (obj.audioMessage) return obj.audioMessage;
+
+    for (const key in obj) {
+      if (typeof obj[key] === "object") {
+        const found = findAudio(obj[key]);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  return findAudio(m.message);
 }
 
 /**
