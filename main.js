@@ -174,6 +174,18 @@ const livescoreCommand = require("./commands/livescore");
 const pmCommand = require("./commands/pm");
 const { sendText, shouldHaveBranding } = require("./lib/sendResponse");
 
+// New Architecture Commands
+const auditlogCommand = require("./commands/auditlog");
+const lockdownCommand = require("./commands/lockdown");
+const silenceCommand = require("./commands/silence");
+const ratelimitCommand = require("./commands/ratelimit");
+const snapshotCommand = require("./commands/snapshot");
+const failsafeCommand = require("./commands/failsafe");
+
+// New Architecture Libraries
+const { logAction, ACTIONS } = require("./lib/auditLog");
+const botState = require("./lib/botState");
+
 // Global settings
 global.packname = settings.featureToggles.PACKNAME;
 global.author = settings.author;
@@ -1509,6 +1521,73 @@ async function handleMessages(sock, messageUpdate, printLog) {
           await sock.sendMessage(chatId, { text: "❌ Owner only command!" });
         }
         break;
+
+      // =====================
+      // NEW ARCHITECTURE COMMANDS
+      // =====================
+      case cmd === "auditlog" || cmd === "audit" || cmd === "logs": {
+        if (await isOwner(senderId)) {
+          const ctx = { senderId, isGroup, isOwner: true };
+          await auditlogCommand(sock, chatId, message, args, ctx);
+        }
+        break;
+      }
+      case cmd === "lockdown" || cmd === "ld": {
+        if (await isOwner(senderId)) {
+          const ctx = { senderId, isGroup, isOwner: true };
+          await lockdownCommand(sock, chatId, message, args, ctx);
+        }
+        break;
+      }
+      case cmd === "silence" || cmd === "quiet" || cmd === "mute": {
+        if (await isOwner(senderId)) {
+          const ctx = { senderId, isGroup, isOwner: true };
+          await silenceCommand(sock, chatId, message, args, ctx);
+        }
+        break;
+      }
+      case cmd === "ratelimit" || cmd === "rl" || cmd === "limit": {
+        if (await isOwner(senderId)) {
+          const ctx = { senderId, isGroup, isOwner: true };
+          await ratelimitCommand(sock, chatId, message, args, ctx);
+        }
+        break;
+      }
+      case cmd === "snapshot" || cmd === "botinfo" || cmd === "state": {
+        // Snapshot is admin/owner
+        const ownerCheck = await isOwner(senderId);
+        let adminCheck = false;
+        if (isGroup && !ownerCheck) {
+          try {
+            const groupMeta = await sock.groupMetadata(chatId);
+            const participant = groupMeta.participants.find(
+              (p) =>
+                p.id === senderId ||
+                p.id.split("@")[0] === senderId.split("@")[0],
+            );
+            adminCheck =
+              participant?.admin === "admin" ||
+              participant?.admin === "superadmin";
+          } catch (e) {}
+        }
+        if (ownerCheck || adminCheck) {
+          const ctx = {
+            senderId,
+            isGroup,
+            isOwner: ownerCheck,
+            isAdmin: adminCheck,
+          };
+          await snapshotCommand(sock, chatId, message, args, ctx);
+        }
+        break;
+      }
+      case cmd === "failsafe" || cmd === "fs" || cmd === "crash": {
+        if (await isOwner(senderId)) {
+          const ctx = { senderId, isGroup, isOwner: true };
+          await failsafeCommand(sock, chatId, message, args, ctx);
+        }
+        break;
+      }
 
       default:
         if (isGroup) {
