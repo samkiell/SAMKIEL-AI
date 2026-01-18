@@ -141,6 +141,12 @@ const bilibiliCommand = require("./commands/bilibili");
 const likeeCommand = require("./commands/likee");
 const douyinCommand = require("./commands/douyin");
 const capcutCommand = require("./commands/capcut");
+const {
+  createGc,
+  setGroupName,
+  setGroupDesc,
+  setGroupPP,
+} = require("./commands/groupmanage");
 
 const playstoreCommand = require("./commands/playstore");
 
@@ -1112,6 +1118,20 @@ async function handleMessages(sock, messageUpdate, printLog) {
         break;
       case cmd === "playstore" || cmd === "apk":
         await playstoreCommand(sock, chatId, message, args);
+        break;
+
+      case cmd === "creategc":
+        await createGc(sock, chatId, message, args, senderId);
+        break;
+      case cmd === "setgname" || cmd === "setname":
+        await setGroupName(sock, chatId, message, args, senderId);
+        break;
+      case cmd === "setgdesc" || cmd === "setdesc":
+        await setGroupDesc(sock, chatId, message, args, senderId);
+        break;
+      case cmd === "setgpp" || cmd === "seticon":
+        await setGroupPP(sock, chatId, message, args, senderId);
+        break;
         break;
 
       case command.startsWith("pdf"): {
