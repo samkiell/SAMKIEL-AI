@@ -61,8 +61,8 @@ async function updateViaGit() {
   );
 
   // 🛡️ Safe Update Strategy:
-  // 1. Stash any local modifications (including data files if tracked)
-  await run("git stash").catch(() => {});
+  // 1. Stash any local modifications (including untracked files if any)
+  await run("git stash -u").catch(() => {});
 
   // 2. Force reset to the new revision
   await run(`git reset --hard ${newRev}`);
@@ -226,6 +226,9 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
     "temp",
     "data",
     "baileys_store.json",
+    "settings.js",
+    ".env",
+    "owner.json",
   ];
   const copied = [];
 

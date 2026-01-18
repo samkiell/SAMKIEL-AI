@@ -54,7 +54,7 @@ async function handleSsCommand(sock, chatId, message, match) {
         chatId,
         {
           image: { url: thumUrl },
-          caption: `📸 Screenshot of ${url}`,
+          caption: `📸 Screenshot of ${url}\n\n*Powered by SAMKIEL BOT*`,
           ...global.channelInfo,
         },
         { quoted: message },
