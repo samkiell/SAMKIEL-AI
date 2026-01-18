@@ -190,9 +190,9 @@ No detailed description available for this command yet, but you can use it with:
   🔒 *Owner Commands*:
   ║ ✧ 🛠️ ${p}mode
   ║ ✧ 📤 ${p}autostatus
-  ║ ✧ � ${p}sudo
+  ║ ✧ 🆔 ${p}sudo
   ║ ✧ 🔄 ${p}update
-  ║ ✧ �🗑️ ${p}clearsession
+  ║ ✧ 🗑️ ${p}clearsession
   ║ ✧ 🔍 ${p}antidelete
   ║ ✧ 🧽 ${p}cleartmp
   ║ ✧ 🖼️ ${p}setpp <reply to image>
