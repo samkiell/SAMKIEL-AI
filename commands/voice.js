@@ -11,6 +11,7 @@ const { downloadMediaMessage } = require("@whiskeysockets/baileys");
 const settings = require("../settings");
 const { toPTT } = require("../lib/converter");
 const { isVoiceChatEnabled } = require("./voicechat");
+const { getBotVoice, getFallbackVoice } = require("../lib/voiceConfig");
 
 const TEMP_DIR = path.join(__dirname, "../temp");
 
