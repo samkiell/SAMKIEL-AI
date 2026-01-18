@@ -128,6 +128,10 @@ const facebookCommand = require("./commands/facebook");
 const playCommand = require("./commands/play");
 const songCommand = require("./commands/song");
 const tiktokCommand = require("./commands/tiktok");
+const spotifyCommand = require("./commands/spotify");
+const twitterCommand = require("./commands/twitter");
+const pinterestCommand = require("./commands/pinterest");
+const shortsCommand = require("./commands/shorts");
 
 const aiCommand = require("./commands/ai");
 const { handleTranslateCommand } = require("./commands/translate");
