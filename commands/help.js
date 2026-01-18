@@ -26,7 +26,7 @@ async function helpCommand(sock, chatId, senderId, pushName, commandName) {
 
     if (info) {
       const detailedHelp = `
-    ╭─❒ 📚 *COMMAND INFO* ❒
+    ╭──〔 📚 *COMMAND INFO* 〕──
     │ 
     │ 🛠️ *Command:* ${cmd.toUpperCase()}
     │ 📂 *Category:* ${info.category}
@@ -40,7 +40,7 @@ async function helpCommand(sock, chatId, senderId, pushName, commandName) {
     │ 💡 *Example:*
     │ \`${p}${info.usage.split(" ")[0]} hello\`
     │
-    ╰──────────────────❒
+    ╰──────────────────────
     
     > _Type ${p}help to see the full menu_`;
 
