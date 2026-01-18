@@ -34,19 +34,55 @@ async function updateViaGit() {
     await run("git rev-parse HEAD").catch(() => "unknown")
   ).trim();
   await run("git fetch --all --prune");
-  const newRev = (await run("git rev-parse origin/main")).trim();
+
+  // Try to find the default branch (usually main or master)
+  let branch = "main";
+  try {
+    const remoteInfo = await run("git remote show origin");
+    const match = remoteInfo.match(/HEAD branch: (.*)/);
+    if (match) branch = match[1].trim();
+  } catch {
+    // Fallback to main
+  }
+
+  const newRev = (await run(`git rev-parse origin/${branch}`)).trim();
   const alreadyUpToDate = oldRev === newRev;
-  const commits = alreadyUpToDate
-    ? ""
-    : await run(
-        `git log --pretty=format:"%h %s (%an)" ${oldRev}..${newRev}`,
-      ).catch(() => "");
-  const files = alreadyUpToDate
-    ? ""
-    : await run(`git diff --name-status ${oldRev} ${newRev}`).catch(() => "");
+
+  if (alreadyUpToDate) {
+    return { oldRev, newRev, alreadyUpToDate: true };
+  }
+
+  const commits = await run(
+    `git log --pretty=format:"%h %s (%an)" ${oldRev}..${newRev}`,
+  ).catch(() => "");
+
+  const files = await run(`git diff --name-status ${oldRev} ${newRev}`).catch(
+    () => "",
+  );
+
+  // 🛡️ Safe Update Strategy:
+  // 1. Stash any local modifications (including data files if tracked)
+  await run("git stash").catch(() => {});
+
+  // 2. Force reset to the new revision
   await run(`git reset --hard ${newRev}`);
-  await run("git clean -fd");
-  return { oldRev, newRev, alreadyUpToDate, commits, files };
+
+  // 3. Clean untracked files but PROTECT config/data folders
+  // -e excludes patterns from being deleted
+  await run(
+    "git clean -fd -e data/ -e session/ -e settings.js -e .env -e owner.json",
+  ).catch(() => {});
+
+  // 4. Try to restore local configurations/data
+  await run("git stash pop").catch(() => {
+    // If pop fails due to conflicts, we keep the updated repo version
+    // but the local changes remain in the stash for manual recovery if needed.
+    console.warn(
+      "Update: Local changes had conflicts with the update and were kept in stash.",
+    );
+  });
+
+  return { oldRev, newRev, alreadyUpToDate: false, commits, files };
 }
 
 function downloadFile(url, dest, visited = new Set()) {
