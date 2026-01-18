@@ -193,6 +193,7 @@ async function listOnlineCommand(sock, chatId, senderId, message, args = []) {
 
     // Build response message
     let response = `${headerText}\n`;
+    response += `📊 *Total Active:* ${onlineUsers.length}\n`;
     response += `━━━━━━━━━━━━━━━\n\n`;
 
     onlineUsers.forEach((user, index) => {
@@ -201,11 +202,7 @@ async function listOnlineCommand(sock, chatId, senderId, message, args = []) {
     });
 
     response += `\n━━━━━━━━━━━━━━━\n`;
-    response += `📊 *Total:* ${onlineUsers.length} user${onlineUsers.length !== 1 ? "s" : ""}`;
-
-    if (!timeMs) {
-      response += `\n\n💡 _Use .listonline 20m to see users active in the last 20 minutes_`;
-    }
+    response += `👀 _Look at all these people ignoring their responsibilities!_ 😭`;
 
     await sendText(sock, chatId, response, {
       withBranding: false,

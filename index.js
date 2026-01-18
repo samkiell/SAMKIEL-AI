@@ -583,11 +583,11 @@ async function startXeonBotInc() {
   🚀 *${settings.botName || "SAMKIEL BOT"}* 🚀
 ━━━━━━━━━━━━━━━━━━━━━
 
-*Mode*       ${botMode}
-*Prefix*     ${p}
-*Version*    ${settings.version || "2.1.1"}
-*Uptime*     ${formatUptime(uptime)}
-*RAM*        ${ramUsage} MB
+*Mode:*       ${botMode}
+*Prefix:*     ${p}
+*Version:*    ${settings.version || "2.2.0"}
+*Uptime:*     ${formatUptime(uptime)}
+*RAM:*        ${ramUsage} MB
 
 ━━━ *PLUGINS* (${activePlugins}/${totalPlugins} Active) ━━━
 ${Object.entries(pluginStatus)
