@@ -39,7 +39,7 @@ const settings = {
     AUTO_REACTION: false, // Boolean
 
     // Configuration Strings
-    STATUS_VIEW_EMOJI: "👀", // String
+    STATUS_VIEW_EMOJI: "💚", // String
     ANTI_DELETE_TYPE: "group", // "group" | "dm"
     COMMAND_MODE: "private", // "public" | "private"
 

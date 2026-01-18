@@ -170,8 +170,7 @@ async function playCommand(sock, chatId, message) {
     let success = false;
 
     // Try providers with fallback
-    let audioData;
-    let success = false;
+    // Variables already declared above
 
     // 1) Primary: Widipe API (New Reliable Source)
     try {
