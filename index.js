@@ -31,6 +31,12 @@ const {
 } = require("./lib/myfunc");
 const { loadPrefix } = require("./lib/prefix");
 const { getAntiCall } = require("./lib/index");
+const { logAction, ACTIONS } = require("./lib/auditLog");
+
+// Log bot startup
+logAction(ACTIONS.BOT_RESTART, "SYSTEM", "startup", {
+  timestamp: new Date().toISOString(),
+});
 
 // Define global reply function
 global.reply = async (sock, message, content) => {
