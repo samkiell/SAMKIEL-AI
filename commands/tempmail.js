@@ -13,11 +13,9 @@ const HEADERS = {
   Accept: "application/json",
 };
 
-// Store tokens in memory
 const emailTokens = new Map();
 
 async function tempmailCommand(sock, chatId) {
-  console.log(`[TEMPMAIL] Generating email...`);
   const p = loadPrefix() === "off" ? "" : loadPrefix();
 
   try {
@@ -26,26 +24,15 @@ async function tempmailCommand(sock, chatId) {
       headers: HEADERS,
     });
 
-    console.log(`[TEMPMAIL] API Response:`, JSON.stringify(data));
-
     if (data?.address && data?.token) {
       emailTokens.set(data.address, data.token);
-      console.log(`[TEMPMAIL] Email generated: ${data.address}`);
-
       return await sendText(
         sock,
         chatId,
         `📧 Temporary Email Generated\n\n📩 Email: ${data.address}\n\nUse ${p}checkmail ${data.address} to check inbox.`,
       );
-    } else {
-      console.log(`[TEMPMAIL] Invalid response - no address or token`);
     }
-  } catch (e) {
-    console.log(`[TEMPMAIL] API Error: ${e.message}`);
-    if (e.response) {
-      console.log(`[TEMPMAIL] Response:`, JSON.stringify(e.response.data));
-    }
-  }
+  } catch (e) {}
 
   await sendText(
     sock,
@@ -55,7 +42,6 @@ async function tempmailCommand(sock, chatId) {
 }
 
 async function checkmailCommand(sock, chatId, message, args) {
-  console.log(`[CHECKMAIL] Args:`, args);
   const p = loadPrefix() === "off" ? "" : loadPrefix();
   const email = args[0];
 
@@ -68,9 +54,6 @@ async function checkmailCommand(sock, chatId, message, args) {
   }
 
   const token = emailTokens.get(email);
-  console.log(
-    `[CHECKMAIL] Token for ${email}: ${token ? "FOUND" : "NOT FOUND"}`,
-  );
 
   if (!token) {
     return await sendText(
@@ -81,13 +64,10 @@ async function checkmailCommand(sock, chatId, message, args) {
   }
 
   try {
-    console.log(`[CHECKMAIL] Checking inbox...`);
     const { data } = await axios.get(`https://api.tempmail.lol/auth/${token}`, {
       timeout: 15000,
       headers: HEADERS,
     });
-
-    console.log(`[CHECKMAIL] Response:`, JSON.stringify(data));
 
     if (data?.email && Array.isArray(data.email)) {
       if (data.email.length === 0) {
@@ -105,9 +85,7 @@ async function checkmailCommand(sock, chatId, message, args) {
       }
       return await sendText(sock, chatId, response);
     }
-  } catch (e) {
-    console.log(`[CHECKMAIL] Error: ${e.message}`);
-  }
+  } catch (e) {}
 
   await sendText(sock, chatId, "❌ Could not check inbox. Try again.");
 }

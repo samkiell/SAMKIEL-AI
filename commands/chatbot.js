@@ -10,9 +10,6 @@ const { getChatbot, setChatbot } = require("../lib/index");
 
 const TIMEOUT = 20000;
 
-/**
- * Handle chatbot toggle command
- */
 async function handleChatbotCommand(
   sock,
   chatId,
@@ -68,9 +65,6 @@ async function handleChatbotCommand(
   }
 }
 
-/**
- * Handle automatic chatbot response for groups
- */
 async function handleChatbotResponse(
   sock,
   chatId,
@@ -83,19 +77,15 @@ async function handleChatbotResponse(
   const chatbotData = await getChatbot(chatId);
   if (!chatbotData?.enabled) return;
 
-  // Check if bot is mentioned or message starts with bot name
   const botMentions = ["bot", "samkiel", settings.botName?.toLowerCase()];
   const lowerMessage = userMessage.toLowerCase();
   const shouldRespond = botMentions.some((m) => lowerMessage.includes(m));
 
   if (!shouldRespond) return;
 
-  console.log(`[CHATBOT] Responding to: "${userMessage}"`);
-
   try {
     let answer = null;
 
-    // Try Mistral
     const apiKey = settings.mistralApiKey;
     const agentId = settings.mistralAgentId;
 
@@ -120,12 +110,9 @@ async function handleChatbotResponse(
           response.data?.outputs?.[0]?.content ||
           response.data?.message?.content ||
           response.data?.choices?.[0]?.message?.content;
-      } catch (e) {
-        console.log(`[CHATBOT] Mistral error: ${e.message}`);
-      }
+      } catch (e) {}
     }
 
-    // Try Groq as backup
     if (!answer && settings.groqApiKey) {
       try {
         const response = await axios.post(
@@ -146,13 +133,10 @@ async function handleChatbotResponse(
         );
 
         answer = response.data?.choices?.[0]?.message?.content;
-      } catch (e) {
-        console.log(`[CHATBOT] Groq error: ${e.message}`);
-      }
+      } catch (e) {}
     }
 
     if (answer && answer.length > 2) {
-      // Clean formatting
       const cleanAnswer = answer.replace(/\*\*([^*]+)\*\*/g, "*$1*").trim();
 
       await sock.sendMessage(
@@ -161,9 +145,7 @@ async function handleChatbotResponse(
         { quoted: message },
       );
     }
-  } catch (error) {
-    console.log(`[CHATBOT] Error: ${error.message}`);
-  }
+  } catch (error) {}
 }
 
 module.exports = { handleChatbotCommand, handleChatbotResponse };

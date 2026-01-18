@@ -9,8 +9,6 @@ const { loadPrefix } = require("../lib/prefix");
 const TIMEOUT = 30000;
 
 async function mathCommand(sock, chatId, message) {
-  console.log(`[MATH] ========== COMMAND START ==========`);
-
   try {
     const text =
       message.message?.conversation ||
@@ -20,8 +18,6 @@ async function mathCommand(sock, chatId, message) {
     const p = loadPrefix() === "off" ? "" : loadPrefix();
     const parts = text.split(/\s+/);
     const problem = parts.slice(1).join(" ").trim();
-
-    console.log(`[MATH] Problem: "${problem}"`);
 
     if (!problem) {
       return await sock.sendMessage(
@@ -40,11 +36,11 @@ async function mathCommand(sock, chatId, message) {
     } catch (e) {}
 
     const query = `Solve this math problem step by step. Be concise. Problem: ${problem}`;
+    let answer = null;
 
     // Try Mistral
     const apiKey = settings.mistralApiKey;
     const agentId = settings.mistralAgentId;
-    let answer = null;
 
     if (apiKey && agentId) {
       try {
@@ -67,9 +63,7 @@ async function mathCommand(sock, chatId, message) {
           response.data?.outputs?.[0]?.content ||
           response.data?.message?.content ||
           response.data?.choices?.[0]?.message?.content;
-      } catch (e) {
-        console.log(`[MATH] Mistral error: ${e.message}`);
-      }
+      } catch (e) {}
     }
 
     // Try Groq as backup
@@ -93,15 +87,11 @@ async function mathCommand(sock, chatId, message) {
         );
 
         answer = response.data?.choices?.[0]?.message?.content;
-      } catch (e) {
-        console.log(`[MATH] Groq error: ${e.message}`);
-      }
+      } catch (e) {}
     }
 
     if (answer) {
-      // Clean formatting
       const cleanAnswer = answer.replace(/\*\*([^*]+)\*\*/g, "*$1*").trim();
-
       await sock.sendMessage(chatId, {
         react: { text: "✅", key: message.key },
       });
@@ -123,7 +113,6 @@ async function mathCommand(sock, chatId, message) {
       );
     }
   } catch (error) {
-    console.log(`[MATH] Error: ${error.message}`);
     await sock.sendMessage(
       chatId,
       {
@@ -132,8 +121,6 @@ async function mathCommand(sock, chatId, message) {
       { quoted: message },
     );
   }
-
-  console.log(`[MATH] ========== COMMAND END ==========`);
 }
 
 module.exports = mathCommand;
