@@ -851,8 +851,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         await anticallCommand(sock, chatId, message, args);
         break;
       case command.startsWith("listonline"): {
-        const listArgs = userMessage.trim().split(/\s+/).slice(1);
-        await listOnlineCommand(sock, chatId, senderId, message, listArgs);
+        await listOnlineCommand(sock, chatId, message);
         break;
       }
       case command.startsWith("help") ||
@@ -1012,7 +1011,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
           return;
         }
-        await vcfCommand(sock, chatId);
+        await vcfCommand(sock, chatId, message);
         break;
       }
 
