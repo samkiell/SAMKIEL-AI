@@ -30,6 +30,7 @@ async function viewOnceCommand(sock, chatId, message, isDm = false) {
     let mediaMessage;
     let isViewOnceImage = false;
     let isViewOnceVideo = false;
+    let isViewOnceAudio = false;
 
     // Detection logic
     if (msgContent.viewOnceMessageV2) {
@@ -40,6 +41,9 @@ async function viewOnceCommand(sock, chatId, message, isDm = false) {
       } else if (content?.videoMessage) {
         isViewOnceVideo = true;
         mediaMessage = content.videoMessage;
+      } else if (content?.audioMessage) {
+        isViewOnceAudio = true;
+        mediaMessage = content.audioMessage;
       }
     } else if (msgContent.viewOnceMessageV2Extension) {
       const content = msgContent.viewOnceMessageV2Extension.message;
@@ -49,6 +53,9 @@ async function viewOnceCommand(sock, chatId, message, isDm = false) {
       } else if (content?.videoMessage) {
         isViewOnceVideo = true;
         mediaMessage = content.videoMessage;
+      } else if (content?.audioMessage) {
+        isViewOnceAudio = true;
+        mediaMessage = content.audioMessage;
       }
     } else if (msgContent.viewOnceMessage) {
       const content = msgContent.viewOnceMessage.message;
@@ -58,6 +65,9 @@ async function viewOnceCommand(sock, chatId, message, isDm = false) {
       } else if (content?.videoMessage) {
         isViewOnceVideo = true;
         mediaMessage = content.videoMessage;
+      } else if (content?.audioMessage) {
+        isViewOnceAudio = true;
+        mediaMessage = content.audioMessage;
       }
     } else {
       if (msgContent.imageMessage && msgContent.imageMessage.viewOnce) {
@@ -66,6 +76,9 @@ async function viewOnceCommand(sock, chatId, message, isDm = false) {
       } else if (msgContent.videoMessage && msgContent.videoMessage.viewOnce) {
         isViewOnceVideo = true;
         mediaMessage = msgContent.videoMessage;
+      } else if (msgContent.audioMessage && msgContent.audioMessage.viewOnce) {
+        isViewOnceAudio = true;
+        mediaMessage = msgContent.audioMessage;
       }
     }
 
@@ -148,12 +161,47 @@ async function viewOnceCommand(sock, chatId, message, isDm = false) {
       }
     }
 
+    // Process Audio
+    if (isViewOnceAudio) {
+      try {
+        const tempDir = path.join(__dirname, "../temp");
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir);
+        }
+
+        const tempFile = path.join(tempDir, `temp_audio_${Date.now()}.mp3`);
+        const stream = await downloadContentFromMessage(mediaMessage, "audio");
+        const writeStream = fs.createWriteStream(tempFile);
+
+        for await (const chunk of stream) {
+          writeStream.write(chunk);
+        }
+        writeStream.end();
+
+        await new Promise((resolve) => writeStream.on("finish", resolve));
+
+        await sock.sendMessage(targetJid, {
+          audio: fs.readFileSync(tempFile),
+          mimetype: "audio/mp4",
+          ptt: true,
+        });
+
+        fs.unlinkSync(tempFile);
+      } catch (err) {
+        console.error("❌ Error processing audio:", err);
+        await sock.sendMessage(chatId, {
+          text: "❌ Failed to process view once audio!",
+        });
+        return;
+      }
+    }
+
     // Acknowledge if sent to DM
     if (isDm) {
       await sock.sendMessage(
         chatId,
         { text: "✅ Media sent to bot DM" },
-        { quoted: message }
+        { quoted: message },
       );
     }
   } catch (error) {
