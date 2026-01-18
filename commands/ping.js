@@ -53,6 +53,7 @@ async function pingCommand(sock, chatId, message) {
     const totalRam = (os.totalmem() / 1024 / 1024 / 1024).toFixed(2);
 
     const finalMessage = `
+╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
 🚀 *Pong!*
 
 ⚡ *Latency:* ${displayPing} ms
@@ -61,7 +62,7 @@ async function pingCommand(sock, chatId, message) {
 🛰️ *Server:* Private Node
 
 _Bot is running at optimal speed._
-`.trim();
+╰──────────────────╯`.trim();
 
     await editMessage(sock, chatId, key, finalMessage, { withBranding: false });
   } catch (error) {
