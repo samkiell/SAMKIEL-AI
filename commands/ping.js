@@ -1,6 +1,7 @@
 const { performance } = require("perf_hooks");
 const os = require("os");
 const { sendText, editMessage, sendEditable } = require("../lib/sendResponse");
+const settings = require("../settings");
 
 /**
  * Ping Command - Detailed Version (Reverted Layout)
