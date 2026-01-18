@@ -19,7 +19,7 @@ const settings = {
   portfolio: "https://samkiel.dev", // String: URL
   website: "https://samkielbot.app", // String: URL
   description: "Whatsapp Bot", // String: Metadata
-  version: "2.1.3", // String: Version
+  version: "2.3.5", // String: Version
 
   // --- FEATURE TOGGLES ---
   featureToggles: {
