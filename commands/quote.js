@@ -7,7 +7,7 @@ module.exports = async function quoteCommand(sock, chatId) {
       "https://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en",
     );
     const { quoteText, quoteAuthor } = res.data;
-    const quoteMessage = `“${quoteText.trim()}”\n\n— *${quoteAuthor || "Unknown"}*`;
+    const quoteMessage = `“${quoteText.trim()}”\n\n— *${quoteAuthor || "Unknown"}*\n\n*Powered by SAMKIEL BOT*`;
 
     await sendText(sock, chatId, quoteMessage);
   } catch (error) {
