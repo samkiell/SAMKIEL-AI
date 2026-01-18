@@ -45,6 +45,7 @@ const stickerCommand = require("./commands/sticker");
 const urlCommand = require("./commands/url");
 const { ocrCommand } = require("./commands/ocr");
 const { pollCommand } = require("./commands/poll");
+const { letterLeapCommand } = require("./commands/letterleap");
 const {
   tempmailCommand,
   checkmailCommand,
@@ -877,6 +878,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
         break;
       case cmd === "poll":
         await pollCommand(sock, chatId, message, args);
+        break;
+      case cmd === "leap" || cmd === "letterleap":
+        await letterLeapCommand(sock, chatId, message, args, senderId);
         break;
       case cmd === "tempmail":
         await tempmailCommand(sock, chatId);

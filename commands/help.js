@@ -252,6 +252,7 @@ No detailed description available for this command yet, but you can use it with:
   │ ✧ ❓ ${p}answer <answer>
   │ ✧ 💬 ${p}truth
   │ ✧ 🎯 ${p}dare
+  │ ✧ 🔠 ${p}leap start/join
   ╰──────────────────────
 
   ╭──〔 🎯 *Fun* 〕──
