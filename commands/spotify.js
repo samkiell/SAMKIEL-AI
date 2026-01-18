@@ -46,7 +46,24 @@ async function downloadViaYouTube(trackName, artistName) {
   let audioUrl = null;
   let success = false;
 
-  // 1. Keith API
+  // 1. Kord API (Primary)
+  if (!success) {
+    try {
+      const res = await axios.get(
+        `https://api.kord.live/api/ytmp3?url=${encodeURIComponent(youtubeUrl)}`,
+        { timeout: TIMEOUT },
+      );
+      if (res.data?.status && res.data?.download) {
+        audioUrl = res.data.download;
+        success = true;
+        console.log("Spotify: Kord API succeeded");
+      }
+    } catch (e) {
+      console.log("Spotify: Kord failed");
+    }
+  }
+
+  // 2. Keith API
   if (!success) {
     try {
       const res = await axios.get(
