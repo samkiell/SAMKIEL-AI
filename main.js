@@ -1042,7 +1042,17 @@ async function handleMessages(sock, messageUpdate, printLog) {
       case cmd === "news":
         await newsCommand(sock, chatId, message, args);
         break;
-
+      case cmd === "crypto" || cmd === "coin" || cmd === "price":
+        await cryptoCommand(sock, chatId, message, args);
+        break;
+      case cmd === "score" ||
+        cmd === "scores" ||
+        cmd === "livescore" ||
+        cmd === "football":
+        await livescoreCommand(sock, chatId, args);
+        break;
+      case cmd === "fact" || cmd === "facts" || cmd === "trivia":
+        await factCommand(sock, chatId, args);
         break;
       case command.startsWith("pdf"): {
         let text = userMessage
