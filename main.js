@@ -157,6 +157,7 @@ const {
 const playstoreCommand = require("./commands/playstore");
 
 const aiCommand = require("./commands/ai");
+const mathCommand = require("./commands/math");
 const { handleTranslateCommand } = require("./commands/translate");
 const { handleSsCommand } = require("./commands/ss");
 const {
@@ -1574,6 +1575,12 @@ async function handleMessages(sock, messageUpdate, printLog) {
         cmd === "deepseek" ||
         cmd === "ds":
         await aiCommand(sock, chatId, message);
+        break;
+      case cmd === "math" ||
+        cmd === "cal" ||
+        cmd === "calculate" ||
+        cmd === "solve":
+        await mathCommand(sock, chatId, message);
         break;
       case cmd === "translate" || cmd === "trt":
         const commandLength = cmd === "translate" ? 9 : 3;

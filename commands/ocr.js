@@ -4,6 +4,8 @@ const path = require("path");
 const axios = require("axios");
 const { TelegraPh, UploadFileUgu } = require("../lib/uploader");
 const { sendText } = require("../lib/sendResponse");
+const { isMathProblem } = require("../lib/mathSolver");
+const mathCommand = require("./math");
 
 async function getMediaBufferAndExt(message) {
   const m = message.message || {};
@@ -72,7 +74,38 @@ async function ocrCommand(sock, chatId, message) {
       const text = data.ParsedResults[0].ParsedText;
       if (!text.trim())
         return await sendText(sock, chatId, "⚠️ No text found in image.");
+
+      // Send detected text first
       await sendText(sock, chatId, `📝 *Detected Text:*\n\n${text}`);
+
+      // Check if the extracted text contains a math problem
+      if (isMathProblem(text)) {
+        await sendText(
+          sock,
+          chatId,
+          "🧮 *Detected math problem! Solving...*",
+        );
+
+        // Create a synthetic message object for mathCommand
+        const syntheticMessage = {
+          message: {
+            conversation: `.math ${text}`,
+          },
+          key: message.key,
+        };
+
+        // Call math command to solve the problem
+        try {
+          await mathCommand(sock, chatId, syntheticMessage);
+        } catch (mathError) {
+          console.error("Math solving error:", mathError);
+          await sendText(
+            sock,
+            chatId,
+            "⚠️ Failed to solve the math problem automatically.",
+          );
+        }
+      }
     } else {
       await sendText(sock, chatId, "❌ OCR failed. Could not read text.");
     }

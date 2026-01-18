@@ -130,6 +130,13 @@ No detailed description available for this command yet, but you can use it with:
   │ ✧ ✂️ ${p}removebg
   ╰──────────────────────
 
+  ╭──〔 📐 *Math Commands* 〕──
+  │ ✧ 🧮 ${p}math <problem>
+  │ ✧ 🔢 ${p}cal <expression>
+  │ ✧ 📊 ${p}calculate <expression>
+  │ ✧ ✏️ ${p}solve <equation>
+  ╰──────────────────────
+
   ╭──〔 🌐 *General Commands* 〕──
   │ ✧ 🛎️ ${p}help 
   │ ✧ 📢 ${p}channel
