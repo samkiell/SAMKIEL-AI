@@ -281,11 +281,14 @@ async function updateCommand(sock, chatId, message, zipOverride) {
       const { oldRev, newRev, alreadyUpToDate, commits, files } =
         await updateViaGit();
 
+      const shortNewRev =
+        typeof newRev === "string" ? newRev.slice(0, 7) : newRev;
+
       let updateInfo = "";
       if (alreadyUpToDate) {
-        updateInfo = `✅ Already up to date: ${newRev}`;
+        updateInfo = `✅ Already up to date: ${shortNewRev}`;
       } else {
-        updateInfo = `✅ Updated to: ${newRev}\n\n*Recent Changes SC:*\n${commits || "No commit details available."}`;
+        updateInfo = `✅ Updated to: ${shortNewRev}\n\n*Recent Changes SC:*\n${commits || "No commit details available."}`;
       }
 
       await run("npm install --no-audit --no-fund");
