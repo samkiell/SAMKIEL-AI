@@ -113,7 +113,49 @@ async function playCommand(sock, chatId, message) {
     // ROBUST API CHAIN (Prioritizing Working APIs)
     // ------------------------------------------
 
-    // 1) David Cyril API (Confirmed Working)
+    // 1) Kord API (Primary - Most Reliable)
+    if (!success) {
+      try {
+        console.log("Trying Kord API...");
+        const res = await axios.get(
+          `https://api.kord.live/api/ytmp3?url=${encodeURIComponent(urlYt)}`,
+          AXIOS_DEFAULTS,
+        );
+        if (res.data?.status && res.data?.download) {
+          audioData = {
+            url: res.data.download,
+            title: res.data.title || video.title,
+          };
+          success = true;
+          console.log("Kord API succeeded");
+        }
+      } catch (e) {
+        console.log("Kord API failed:", e.message);
+      }
+    }
+
+    // 2) Kord yt-song endpoint
+    if (!success) {
+      try {
+        console.log("Trying Kord yt-song...");
+        const res = await axios.get(
+          `https://api.kord.live/api/yt-song?url=${encodeURIComponent(urlYt)}`,
+          AXIOS_DEFAULTS,
+        );
+        if (res.data?.status && res.data?.download) {
+          audioData = {
+            url: res.data.download,
+            title: res.data.title || video.title,
+          };
+          success = true;
+          console.log("Kord yt-song succeeded");
+        }
+      } catch (e) {
+        console.log("Kord yt-song failed:", e.message);
+      }
+    }
+
+    // 3) David Cyril API
     if (!success) {
       try {
         console.log("Trying David Cyril API...");
