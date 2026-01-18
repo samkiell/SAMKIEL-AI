@@ -220,6 +220,31 @@ async function playCommand(sock, chatId, message) {
       }
     }
 
+    // 3) Tertiary: David Cyril API
+    if (!success) {
+      try {
+        console.log("Trying David Cyril API...");
+        const res = await axios.get(
+          `https://api.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(urlYt)}`,
+        );
+        if (res.data?.success && res.data?.result?.download_url) {
+          audioData = {
+            url: res.data.result.download_url,
+            title: res.data.result.title,
+          };
+          success = true;
+        }
+      } catch (e) {
+        console.log("David Cyril API failed:", e.message);
+      }
+    }
+
+    // 4) Quaternary: Generic Fallback (dlys.so via scrappey or similar, here using a known mirror)
+    if (!success) {
+      // This is a placeholder for any general purpose downloader if needed,
+      // currently relying on the 3 strong ones above.
+    }
+
     if (!success || !audioData) {
       console.log("All APIs failed");
       return await sock.sendMessage(chatId, {
