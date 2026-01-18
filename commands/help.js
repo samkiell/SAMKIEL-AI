@@ -292,6 +292,7 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🎯 ${p}likee <link>
   ║ ✧ 🎶 ${p}douyin <link>
   ║ ✧ ✂️ ${p}capcut <link>
+  ║ ✧ 🎮 ${p}playstore <app_name>
   ╚═══════════════════╝
 
 ✉️ Join our community for updates:

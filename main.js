@@ -142,6 +142,8 @@ const likeeCommand = require("./commands/likee");
 const douyinCommand = require("./commands/douyin");
 const capcutCommand = require("./commands/capcut");
 
+const playstoreCommand = require("./commands/playstore");
+
 const aiCommand = require("./commands/ai");
 const { handleTranslateCommand } = require("./commands/translate");
 const { handleSsCommand } = require("./commands/ss");
@@ -1107,6 +1109,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
         break;
       case cmd === "capcut" || cmd === "cc":
         await capcutCommand(sock, chatId, message, args);
+        break;
+      case cmd === "playstore" || cmd === "apk":
+        await playstoreCommand(sock, chatId, message, args);
         break;
 
       case command.startsWith("pdf"): {
