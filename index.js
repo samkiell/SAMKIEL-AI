@@ -571,6 +571,13 @@ async function startXeonBotInc() {
       };
 
       // Plugin status summary (compact ON/OFF)
+      // Load voice chat status
+      let isVoiceChatOn = false;
+      try {
+        const { isVoiceChatEnabled } = require("./commands/voicechat");
+        isVoiceChatOn = isVoiceChatEnabled();
+      } catch (e) {}
+
       const pluginStatus = {
         "Status View":
           settings.featureToggles.AUTO_STATUS_VIEW === "on" ? "ON" : "OFF",
@@ -579,6 +586,7 @@ async function startXeonBotInc() {
         "Auto-React": isAutoReactGlobal ? "ON" : "OFF",
         "Anti-Call": isAntiCallEnabled ? "ON" : "OFF",
         "Auto-Read": settings.featureToggles.SEND_READ ? "ON" : "OFF",
+        "Voice Chat": isVoiceChatOn ? "ON" : "OFF",
       };
 
       // Count active plugins
