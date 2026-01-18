@@ -7,16 +7,11 @@ global.channelInfo = { contextInfo: { forwardingScore: 999 } };
 // MOCK SOCK
 const mockSock = {
   sendMessage: async (chatId, content, options) => {
-    const text =
-      content.text ||
-      content.caption ||
-      (content.image ? "[Image]" : "[Media]");
-    console.log(`[MOCK RESPONSE] ${text}`);
+    // console.log(`[SOCK] Sent:`, content.text || "Media Object");
     return { key: { id: "mock_msg_id" } };
   },
 };
 
-// COMMANDS TO TEST
 const commands = [
   "song",
   "play",
@@ -34,7 +29,7 @@ const commands = [
 ];
 
 async function runTests() {
-  console.log("🚀 Starting Downloader Command Tests...\n");
+  console.log("🚀 Verifying Downloader Commands Integration...\n");
 
   let passed = 0;
   let failed = 0;
@@ -51,28 +46,32 @@ async function runTests() {
     }
 
     try {
-      // 1. Syntax / Require check
       const commandFunc = require(filePath);
+      if (typeof commandFunc !== "function")
+        throw new Error("Does not export a function");
 
-      // 2. Execution check (Dummy Call)
-      // We pass a dummy message requesting help or invalid url to see if it catches it safely
-      const mockMsg = {
-        key: { remoteJid: "status@broadcast", id: "123" },
-        message: { conversation: `.${cmdName}` }, // Empty args usually trigger usage advice
-      };
+      // Basic Sanity Check: Ensure it attempts to run without syntax error
+      // Passing empty message should trigger usage help, not crash.
+      await commandFunc(
+        mockSock,
+        "123@s.whatsapp.net",
+        {
+          key: { id: "123" },
+          message: { conversation: "" },
+        },
+        [],
+      );
 
-      await commandFunc(mockSock, "123@s.whatsapp.net", mockMsg);
-
-      console.log("✅ OK (Loaded & Executed)");
+      console.log("✅ OK");
       passed++;
     } catch (err) {
       console.log(`❌ FAILED`);
-      console.error(err.message);
+      console.error("   Error:", err.message);
       failed++;
     }
   }
 
-  console.log(`\n📊 Test Summary: ${passed} Passed, ${failed} Failed.`);
+  console.log(`\n📊 Summary: ${passed} Valid, ${failed} Invalid.`);
 }
 
 runTests();
