@@ -229,10 +229,7 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🔴 ${p}reddit <link>
   ║ ✧ 🧵 ${p}threads <link>
   ║ ✧ ☁️ ${p}soundcloud <link>
-  ║ ✧ 🎬 ${p}vimeo <link>
-  ║ ✧ 📺 ${p}bilibili <link>
-  ║ ✧ 🎯 ${p}likee <link>
-  ║ ✧ 🎶 ${p}douyin <link>
+
   ║ ✧ ✂️ ${p}capcut <link>
   ║ ✧ 🎮 ${p}playstore <app_name>
   ╚═══════════════════╝
@@ -265,7 +262,7 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 😡 ${p}insult @user
   ║ ✧ 💌 ${p}flirt 
   ║ ✧ 🌙 ${p}goodnight
-  ║ ✧ 🌹 ${p}roseday
+  ║ ✧ 💘 ${p}valentine
   ║ ✧ 🧙‍♂️ ${p}character @user
   ║ ✧ ☠️ ${p}wasted @user
   ║ ✧ ❤️‍🔥 ${p}ship @user

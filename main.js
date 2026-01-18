@@ -136,10 +136,6 @@ const snapchatCommand = require("./commands/snapchat");
 const redditCommand = require("./commands/reddit");
 const threadsCommand = require("./commands/threads");
 const soundcloudCommand = require("./commands/soundcloud");
-const vimeoCommand = require("./commands/vimeo");
-const bilibiliCommand = require("./commands/bilibili");
-const likeeCommand = require("./commands/likee");
-const douyinCommand = require("./commands/douyin");
 const capcutCommand = require("./commands/capcut");
 const {
   createGc,
@@ -160,7 +156,7 @@ const {
 } = require("./lib/reactions");
 const { goodnightCommand } = require("./commands/goodnight");
 const movieCommand = require("./commands/movie");
-const { rosedayCommand } = require("./commands/roseday");
+const { valentineCommand } = require("./commands/valentine");
 const imagineCommand = require("./commands/imagine");
 const { reminiCommand } = require("./commands/remini");
 const removebg = require("./commands/removebg");
@@ -1095,18 +1091,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
       case cmd === "soundcloud" || cmd === "sc":
         await soundcloudCommand(sock, chatId, message, args);
         break;
-      case cmd === "vimeo" || cmd === "vm":
-        await vimeoCommand(sock, chatId, message, args);
-        break;
-      case cmd === "bilibili" || cmd === "bil":
-        await bilibiliCommand(sock, chatId, message, args);
-        break;
-      case cmd === "likee" || cmd === "lk":
-        await likeeCommand(sock, chatId, message, args);
-        break;
-      case cmd === "douyin" || cmd === "dy":
-        await douyinCommand(sock, chatId, message, args);
-        break;
+
       case cmd === "capcut" || cmd === "cc":
         await capcutCommand(sock, chatId, message, args);
         break;
@@ -1591,8 +1576,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
       case cmd === "goodnight" || command === "lovenight" || command === "gn":
         await goodnightCommand(sock, chatId);
         break;
-      case cmd === "roseday":
-        await rosedayCommand(sock, chatId);
+      case cmd === "valentine" || cmd === "val":
+        await valentineCommand(sock, chatId);
         break;
       case cmd === "imagine" ||
         cmd === "gen" ||
