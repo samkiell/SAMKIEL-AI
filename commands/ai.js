@@ -1,12 +1,13 @@
 /**
- * AI Command (v2.0) - GPT, Gemini, DeepSeek
- * 5+ Fallback APIs per model
- * Proper animation handling
+ * AI Command (v2.1) - Groq, GPT, Gemini, DeepSeek
+ * Primary: Groq API (free tier)
+ * Fallback: 5+ free APIs per model
  */
 
 const axios = require("axios");
 const { appendMessage, getContext } = require("../lib/aiMemory");
 const { loadPrefix } = require("../lib/prefix");
+const settings = require("../settings");
 
 const TIMEOUT = 30000;
 
@@ -194,6 +195,49 @@ const DEEPSEEK_APIS = [
 ];
 
 /**
+ * Groq API - Free tier with fast inference
+ * Models: llama-3.3-70b-versatile, mixtral-8x7b-32768, gemma2-9b-it
+ */
+async function tryGroqAPI(query, model = "llama-3.3-70b-versatile") {
+  const apiKey = settings.groqApiKey;
+  if (!apiKey) {
+    console.log("Groq: No API key configured");
+    return null;
+  }
+
+  try {
+    const response = await axios.post(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        model: model,
+        messages: [
+          { role: "system", content: SYSTEM_INSTRUCTION },
+          { role: "user", content: query },
+        ],
+        temperature: 0.7,
+        max_tokens: 2048,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        timeout: TIMEOUT,
+      },
+    );
+
+    const answer = response.data?.choices?.[0]?.message?.content;
+    if (answer && answer.length > 5) {
+      console.log(`✅ Groq API (${model}) succeeded`);
+      return answer;
+    }
+  } catch (e) {
+    console.log(`❌ Groq API failed: ${e.message}`);
+  }
+  return null;
+}
+
+/**
  * Try multiple APIs with fallback
  */
 async function tryApis(apis, query) {
@@ -317,16 +361,23 @@ async function aiCommand(sock, chatId, message) {
 
     let answer = null;
 
-    // Route to appropriate AI
+    // Route to appropriate AI - Try Groq first if configured, then fallback APIs
     if (commandPart === "gpt" || commandPart === "chatgpt") {
-      answer = await tryApis(GPT_APIS, query);
+      // Try Groq Llama (acts like GPT)
+      answer = await tryGroqAPI(query, "llama-3.3-70b-versatile");
+      if (!answer) answer = await tryApis(GPT_APIS, query);
     } else if (commandPart === "gemini" || commandPart === "bard") {
-      answer = await tryApis(GEMINI_APIS, query);
+      // Try Groq Gemma (similar to Gemini)
+      answer = await tryGroqAPI(query, "gemma2-9b-it");
+      if (!answer) answer = await tryApis(GEMINI_APIS, query);
     } else if (commandPart === "deepseek" || commandPart === "ds") {
-      answer = await tryApis(DEEPSEEK_APIS, query);
+      // Try Groq Mixtral (good for reasoning like DeepSeek)
+      answer = await tryGroqAPI(query, "mixtral-8x7b-32768");
+      if (!answer) answer = await tryApis(DEEPSEEK_APIS, query);
     } else {
-      // Default to GPT
-      answer = await tryApis(GPT_APIS, query);
+      // Default: Try Groq first, then GPT APIs
+      answer = await tryGroqAPI(query, "llama-3.3-70b-versatile");
+      if (!answer) answer = await tryApis(GPT_APIS, query);
     }
 
     // Stop animation FIRST

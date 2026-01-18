@@ -197,6 +197,42 @@ Respond naturally.`;
     },
   ];
 
+  // Try Groq API first if configured
+  const settings = require("../settings");
+  if (settings.groqApiKey) {
+    try {
+      const axios = require("axios");
+      const response = await axios.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        {
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: instruction },
+            { role: "user", content: userMessage },
+          ],
+          temperature: 0.8,
+          max_tokens: 1024,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${settings.groqApiKey}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 15000,
+        },
+      );
+
+      const answer = response.data?.choices?.[0]?.message?.content;
+      if (answer && answer.length > 2) {
+        console.log("✅ Chatbot: Groq API succeeded");
+        return answer.trim();
+      }
+    } catch (e) {
+      console.log(`❌ Chatbot: Groq failed - ${e.message}`);
+    }
+  }
+
+  // Fallback to free APIs
   for (const api of CHATBOT_APIS) {
     try {
       const controller = new AbortController();

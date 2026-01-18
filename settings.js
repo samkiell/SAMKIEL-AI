@@ -51,6 +51,12 @@ const settings = {
   giphyApiKey: "qnl7ssQChTdPjsKta2Ax2LMaGXz303tq",
   updateZipUrl:
     "https://github.com/samkiell/SAMKIEL-AI/archive/refs/heads/main.zip",
+
+  // --- AI API KEYS ---
+  // Get free Groq API key at: https://console.groq.com/keys
+  // Get OpenAI API key at: https://platform.openai.com/api-keys
+  groqApiKey: "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", // String: Groq API key (free tier available)
+  openaiApiKey: "", // String: OpenAI API key (paid)
 };
 
 module.exports = settings;
