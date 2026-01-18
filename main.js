@@ -583,7 +583,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
           message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
         if (quotedMessage?.audioMessage) {
           const fileName = quotedMessage.audioMessage.fileName || "song.mp3";
-          const searchQuery = fileName.replace(".mp3", "");
+          const searchQuery = fileName
+            .replace(".mp3", "")
+            .replace(/[_-]/g, " ");
 
           await sendText(
             sock,
@@ -592,58 +594,162 @@ async function handleMessages(sock, messageUpdate, printLog) {
             { quoted: message },
           );
 
-          // Reuse play logic but send as document
-          const playLogic = require("./commands/play");
-          // We need a way to trigger document send.
-          // Let's modify play.js to accept an option or just handle it here.
-          // Since play.js is already complex, let's just implement the download here
-          // or call a dedicated song document handler.
+          try {
+            const axios = require("axios");
 
-          // For now, let's use the songCommand but modify it to send document
-          // Actually, I'll just Implement a quick download here using the same providers
-          const { videos } = await yts(searchQuery);
-          if (videos && videos.length > 0) {
+            // Search YouTube for the song
+            const { videos } = await yts(searchQuery);
+            if (!videos || videos.length === 0) {
+              return await sendText(
+                sock,
+                chatId,
+                "❌ Could not find the song.",
+                { quoted: message },
+              );
+            }
+
             const video = videos[0];
-            // Import the downloaders from play.js if possible or just use a helper
-            // Better: just call the playCommand with an extra flag?
-            // Baileys sendMessage supports document: {url}
+            const youtubeUrl = video.url;
+            let audioUrl = null;
+            let title = video.title;
 
-            // Re-using the logic from play.js (simplified for this one-off)
-            // In a real codebase, I'd refactor this into a lib.
+            // ROBUST API CHAIN (Same as play.js)
+            // 1) David Cyril API (Primary - Working)
             try {
-              const axios = require("axios");
-              const getAsithaAudio = async (youtubeUrl) => {
-                const apiKey =
-                  "0c97d662e61301ae4fa667fbb8001051e00c02f8369c756c10a1404a95fe0edb";
-                const apiUrl = `https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/ytapi?url=${encodeURIComponent(youtubeUrl)}&fo=2&qu=128&apiKey=${apiKey}`;
-                const res = await axios.get(apiUrl, { timeout: 60000 });
-                return res.data?.downloadData?.url;
-              };
-
-              const audioUrl = await getAsithaAudio(video.url);
-              if (audioUrl) {
-                await sock.sendMessage(
-                  chatId,
-                  {
-                    document: { url: audioUrl },
-                    mimetype: "audio/mpeg",
-                    fileName: `${video.title}.mp3`,
-                    caption: `*${video.title}* - Document Version`,
-                  },
-                  { quoted: message },
-                );
-                return;
+              const res = await axios.get(
+                `https://apis.davidcyril.name.ng/download/ytaudio?url=${encodeURIComponent(youtubeUrl)}&apikey=harriet`,
+                { timeout: 30000 },
+              );
+              if (res.data?.success && res.data?.result?.download_url) {
+                audioUrl = res.data.result.download_url;
+                title = res.data.result.title || title;
               }
             } catch (e) {
-              console.log("MP3 document fallback triggered");
+              console.log("MP3 Doc: David Cyril failed");
             }
+
+            // 2) Keith API (Fallback 1)
+            if (!audioUrl) {
+              try {
+                const res = await axios.get(
+                  `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(youtubeUrl)}`,
+                  { timeout: 30000 },
+                );
+                if (res.data?.status && res.data?.data?.dl) {
+                  audioUrl = res.data.data.dl;
+                  title = res.data.data.title || title;
+                }
+              } catch (e) {
+                console.log("MP3 Doc: Keith failed");
+              }
+            }
+
+            // 3) Gifted API (Fallback 2)
+            if (!audioUrl) {
+              try {
+                const res = await axios.get(
+                  `https://api.giftedtech.my.id/api/download/ytmp3?apikey=gifted&url=${encodeURIComponent(youtubeUrl)}`,
+                  { timeout: 30000 },
+                );
+                if (res.data?.result?.download_url) {
+                  audioUrl = res.data.result.download_url;
+                  title = res.data.result.title || title;
+                }
+              } catch (e) {
+                console.log("MP3 Doc: Gifted failed");
+              }
+            }
+
+            // 4) BK4 Mirror (Fallback 3)
+            if (!audioUrl) {
+              try {
+                const res = await axios.get(
+                  `https://bk4.vercel.app/ytmp3?videoUrl=${encodeURIComponent(youtubeUrl)}`,
+                  { timeout: 30000 },
+                );
+                if (res.data?.download) {
+                  audioUrl = res.data.download;
+                  title = res.data.title || title;
+                }
+              } catch (e) {
+                console.log("MP3 Doc: BK4 failed");
+              }
+            }
+
+            // 5) Widipe API (Fallback 4)
+            if (!audioUrl) {
+              try {
+                const res = await axios.get(
+                  `https://widipe.com/download/ytdl?url=${encodeURIComponent(youtubeUrl)}`,
+                  { timeout: 30000 },
+                );
+                if (res.data?.result?.mp3) {
+                  audioUrl = res.data.result.mp3;
+                  title = res.data.result.title || title;
+                }
+              } catch (e) {
+                console.log("MP3 Doc: Widipe failed");
+              }
+            }
+
+            // 6) Cobalt API (Fallback 5)
+            if (!audioUrl) {
+              try {
+                const res = await axios.post(
+                  "https://api.cobalt.tools/api/json",
+                  {
+                    url: youtubeUrl,
+                    vCodec: "h264",
+                    vQuality: "720",
+                    aFormat: "mp3",
+                    isAudioOnly: true,
+                  },
+                  {
+                    headers: {
+                      Accept: "application/json",
+                      "Content-Type": "application/json",
+                    },
+                    timeout: 30000,
+                  },
+                );
+                if (res.data?.url) {
+                  audioUrl = res.data.url;
+                }
+              } catch (e) {
+                console.log("MP3 Doc: Cobalt failed");
+              }
+            }
+
+            // Send as document if we got an audio URL
+            if (audioUrl) {
+              await sock.sendMessage(
+                chatId,
+                {
+                  document: { url: audioUrl },
+                  mimetype: "audio/mpeg",
+                  fileName: `${title.replace(/[<>:"/\\|?*]/g, "")}.mp3`,
+                  caption: `📄 *${title}*\n\n_Document format_`,
+                },
+                { quoted: message },
+              );
+              return;
+            }
+
+            await sendText(
+              sock,
+              chatId,
+              "❌ All download APIs failed. Try again later.",
+              { quoted: message },
+            );
+          } catch (e) {
+            console.error("MP3 Document Error:", e.message);
+            await sendText(
+              sock,
+              chatId,
+              "❌ Failed to convert to document format.",
+              { quoted: message },
+            );
           }
-          await sendText(
-            sock,
-            chatId,
-            "❌ Failed to convert to document format.",
-            { quoted: message },
-          );
         }
         break;
       }
