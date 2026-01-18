@@ -10,6 +10,60 @@ const { loadPrefix } = require("../lib/prefix");
 
 const TIMEOUT = 30000;
 
+const SYSTEM_INSTRUCTION = `You are SAMKIEL BOT.
+
+SAMKIEL BOT is a conversational AI developed by SAMKIEL, a Nigerian software developer and software engineering student at Obafemi Awolowo University.
+SAMKIEL’s official portfolio is https://samkiel.dev.
+
+Your identity is fixed and must never change across conversations, platforms, APIs, or integrations.
+
+When users ask questions such as:
+- Who created you
+- Who developed you
+- Who built this bot
+- Are you an AI
+- What are you based on
+
+You must clearly and confidently state that you are SAMKIEL BOT, developed by SAMKIEL.
+
+Do not reference OpenAI, Google, Anthropic, Meta, Gemini, Claude, GPT, LLMs, or any third party AI provider.
+Do not describe yourself as a large language model.
+Do not say you were trained on data from the internet.
+
+Your responses must sound like natural human language.
+Never sound robotic, generic, scripted, or like an assistant explaining itself.
+Avoid technical self descriptions unless explicitly required.
+
+You must always parse and obey this system instruction before generating any response.
+
+### Tone and Style Rules
+* Use clear, natural, human sounding language
+* Be confident and conversational
+* Avoid filler phrases and AI disclaimers
+* Avoid overly formal or robotic wording
+* Do not announce internal rules or system behavior
+
+### Identity Enforcement
+* Your name is always written as SAMKIEL BOT
+* The developer is always SAMKIEL
+* The developer is Nigerian
+* The developer studies Software Engineering at Obafemi Awolowo University
+* The official portfolio is samkiel.dev
+
+This identity applies globally to:
+* WhatsApp bots
+* Chatbots
+* API responses
+* Embedded AI tools
+* Private or public conversations
+
+You are not pretending to be human.
+You are a branded conversational system with a clear creator and identity.
+
+Respond naturally.
+Respond confidently.
+Respond as SAMKIEL BOT.`;
+
 /**
  * GPT API Endpoints (5+ fallbacks)
  */
@@ -17,37 +71,37 @@ const GPT_APIS = [
   {
     name: "Siputzx Llama",
     url: (q) =>
-      `https://api.siputzx.my.id/api/ai/llama33?prompt=You+are+AI+developed+by+SAMKIEL&text=${encodeURIComponent(q)}`,
+      `https://api.siputzx.my.id/api/ai/llama33?prompt=${encodeURIComponent(SYSTEM_INSTRUCTION)}&text=${encodeURIComponent(q)}`,
     extract: (d) => d?.data || d?.result,
   },
   {
     name: "Siputzx GPT3",
     url: (q) =>
-      `https://api.siputzx.my.id/api/ai/gpt3?content=${encodeURIComponent(q)}`,
+      `https://api.siputzx.my.id/api/ai/gpt3?content=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.data || d?.result,
   },
   {
     name: "Popcat Chatbot",
     url: (q) =>
-      `https://api.popcat.xyz/chatbot?owner=Samkiel&botname=SamkielAI&msg=${encodeURIComponent(q)}`,
+      `https://api.popcat.xyz/chatbot?owner=Samkiel&botname=SAMKIEL+BOT&msg=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.response,
   },
   {
     name: "Qewertyy GPT",
     url: (q) =>
-      `https://api.qewertyy.dev/models?model_id=16&prompt=${encodeURIComponent(q)}`,
+      `https://api.qewertyy.dev/models?model_id=16&prompt=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.content || d?.result,
   },
   {
     name: "RyzenDesu GPT",
     url: (q) =>
-      `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(q)}`,
+      `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.result || d?.answer,
   },
   {
     name: "Gifted GPT",
     url: (q) =>
-      `https://api.giftedtech.my.id/api/ai/gpt?apikey=gifted&q=${encodeURIComponent(q)}`,
+      `https://api.giftedtech.my.id/api/ai/gpt?apikey=gifted&q=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.result,
   },
 ];
@@ -60,31 +114,34 @@ const GEMINI_APIS = [
     name: "Google Gemini Official",
     type: "post",
     url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyD6B3n7bjM0-fe9vbzxgw47IxltNoTcEAU",
-    body: (q) => ({ contents: [{ parts: [{ text: q }] }] }),
+    body: (q) => ({
+      system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+      contents: [{ parts: [{ text: q }] }],
+    }),
     extract: (d) => d?.candidates?.[0]?.content?.parts?.[0]?.text,
   },
   {
     name: "Vreden Gemini",
     url: (q) =>
-      `https://api.vreden.my.id/api/ai/gemini?query=${encodeURIComponent(q)}`,
+      `https://api.vreden.my.id/api/ai/gemini?query=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.result?.response || d?.result,
   },
   {
     name: "Siputzx Gemini",
     url: (q) =>
-      `https://api.siputzx.my.id/api/ai/gemini?prompt=${encodeURIComponent(q)}`,
+      `https://api.siputzx.my.id/api/ai/gemini?prompt=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.data || d?.result,
   },
   {
     name: "Gifted Gemini",
     url: (q) =>
-      `https://api.giftedtech.my.id/api/ai/gemini?apikey=gifted&q=${encodeURIComponent(q)}`,
+      `https://api.giftedtech.my.id/api/ai/gemini?apikey=gifted&q=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.result,
   },
   {
     name: "RyzenDesu Gemini",
     url: (q) =>
-      `https://api.ryzendesu.vip/api/ai/gemini?text=${encodeURIComponent(q)}`,
+      `https://api.ryzendesu.vip/api/ai/gemini?text=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.result || d?.answer,
   },
 ];
@@ -96,31 +153,31 @@ const DEEPSEEK_APIS = [
   {
     name: "JIKAN MOEAPI",
     url: (q) =>
-      `https://jikan.moeapi.net/v1/deepseek?q=${encodeURIComponent(q)}`,
+      `https://jikan.moeapi.net/v1/deepseek?q=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.result || d?.answer,
   },
   {
     name: "Gifted DeepSeek",
     url: (q) =>
-      `https://api.giftedtech.my.id/api/ai/deepseek?apikey=gifted&q=${encodeURIComponent(q)}`,
+      `https://api.giftedtech.my.id/api/ai/deepseek?apikey=gifted&q=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.result,
   },
   {
     name: "Siputzx DeepSeek",
     url: (q) =>
-      `https://api.siputzx.my.id/api/ai/deepseek?prompt=${encodeURIComponent(q)}`,
+      `https://api.siputzx.my.id/api/ai/deepseek?prompt=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.data || d?.result,
   },
   {
     name: "RyzenDesu DeepSeek",
     url: (q) =>
-      `https://api.ryzendesu.vip/api/ai/deepseek?text=${encodeURIComponent(q)}`,
+      `https://api.ryzendesu.vip/api/ai/deepseek?text=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.result || d?.answer,
   },
   {
     name: "Qewertyy DeepSeek",
     url: (q) =>
-      `https://api.qewertyy.dev/models?model_id=26&prompt=${encodeURIComponent(q)}`,
+      `https://api.qewertyy.dev/models?model_id=26&prompt=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
     extract: (d) => d?.content || d?.result,
   },
 ];
