@@ -197,8 +197,42 @@ Respond naturally.`;
     },
   ];
 
-  // Try Groq API first if configured
+  // Try Mistral AI first (Primary)
   const settings = require("../settings");
+  if (settings.mistralApiKey) {
+    try {
+      const axios = require("axios");
+      const response = await axios.post(
+        "https://api.mistral.ai/v1/chat/completions",
+        {
+          model: "mistral-large-latest",
+          messages: [
+            { role: "system", content: instruction },
+            { role: "user", content: userMessage },
+          ],
+          temperature: 0.8,
+          max_tokens: 1024,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${settings.mistralApiKey}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 15000,
+        },
+      );
+
+      const answer = response.data?.choices?.[0]?.message?.content;
+      if (answer && answer.length > 2) {
+        console.log("✅ Chatbot: Mistral AI succeeded");
+        return answer.trim();
+      }
+    } catch (e) {
+      console.log(`❌ Chatbot: Mistral failed - ${e.message}`);
+    }
+  }
+
+  // Try Groq API as backup
   if (settings.groqApiKey) {
     try {
       const axios = require("axios");

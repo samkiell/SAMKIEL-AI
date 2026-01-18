@@ -53,9 +53,14 @@ const settings = {
     "https://github.com/samkiell/SAMKIEL-AI/archive/refs/heads/main.zip",
 
   // --- AI API KEYS ---
-  // Get free Groq API key at: https://console.groq.com/keys
-  // Get OpenAI API key at: https://platform.openai.com/api-keys
-  groqApiKey: "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", // String: Groq API key (free tier available)
+  // Mistral AI (Primary) - https://console.mistral.ai/
+  mistralApiKey: "bT7gsfnbCth6Uhn36jGTepeYxKGwyKlX", // String: Mistral AI API key
+  mistralOrgId: "4c084686-312f-4cb9-867c-23b589fe6185", // String: Mistral AI Organization ID
+
+  // Groq (Backup) - https://console.groq.com/keys
+  groqApiKey: "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", // String: Groq API key (free tier)
+
+  // OpenAI (Optional) - https://platform.openai.com/api-keys
   openaiApiKey: "", // String: OpenAI API key (paid)
 };
 
