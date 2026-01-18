@@ -3,12 +3,6 @@ const isAdmin = require("../lib/isAdmin");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 const fs = require("fs");
 const path = require("path");
-
-const { isOwner } = require("../lib/isOwner");
-const isAdmin = require("../lib/isAdmin");
-const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
-const fs = require("fs");
-const path = require("path");
 const { loadPrefix } = require("../lib/prefix");
 
 /**
@@ -181,7 +175,7 @@ async function createGc(sock, chatId, message, args, senderId) {
   const groupName = args.join(" ");
   if (!groupName) {
     return sock.sendMessage(chatId, {
-      text: "⚠️ Provide a group name.\nExample: .gc create My Group\n\n*Powered by SAMKIEL BOT*",
+      text: `⚠️ Provide a group name.\nExample: ${p}gc create My Group\n\n*Powered by SAMKIEL BOT*`,
       quoted: message,
     });
   }

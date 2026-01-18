@@ -16,13 +16,17 @@ async function autoReadCommand(sock, chatId, message) {
   const args = text.trim().split(/\s+/);
   const mode = args[1]?.toLowerCase();
 
+  const { loadPrefix } = require("../lib/prefix");
+  const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
+
   if (!mode || (mode !== "on" && mode !== "off")) {
     await sock.sendMessage(
       chatId,
       {
-        text: "❌ Usage: .autoread on (enable) or .autoread off (disable)",
+        text: `❌ Usage: ${p}autoread on (enable) or ${p}autoread off (disable)`,
       },
-      { quoted: message }
+      { quoted: message },
     );
     return;
   }
@@ -50,7 +54,7 @@ async function autoReadCommand(sock, chatId, message) {
       {
         text: `✅ Auto Read (Blue Tick) has been turned *${mode.toUpperCase()}*!`,
       },
-      { quoted: message }
+      { quoted: message },
     );
   } catch (err) {
     console.error("Error saving autoread config:", err);
@@ -59,7 +63,7 @@ async function autoReadCommand(sock, chatId, message) {
       {
         text: "❌ Failed to save configuration, but setting is active for this session.",
       },
-      { quoted: message }
+      { quoted: message },
     );
   }
 }
