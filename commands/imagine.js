@@ -78,17 +78,45 @@ async function imagineCommand(sock, chatId, message) {
     const enhancedPrompt = enhancePrompt(imagePrompt);
 
     // Make API request with timeout
-    const response = await axios.get(
-      `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true`,
-      {
-        responseType: "arraybuffer",
-        timeout: 120000, // 2 minutes for image gen
-      },
-    );
+    let imageData = null;
+
+    // 1. Polination AI
+    try {
+      const response = await axios.get(
+        `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true`,
+        {
+          responseType: "arraybuffer",
+          timeout: 120000, // 2 minutes for image gen
+        },
+      );
+      if (response.data && response.data.length > 0) {
+        imageData = response.data;
+      }
+    } catch (e) {
+      console.log("Polination AI failed");
+    }
+
+    // 2. Kord AI Image Fallback
+    if (!imageData) {
+      try {
+        const response = await axios.get(
+          `https://api.kord.live/api/ai-image?prompt=${encodeURIComponent(imagePrompt)}`,
+          { timeout: 120000 },
+        );
+        if (response.data?.status && response.data?.url) {
+          const imgRes = await axios.get(response.data.url, {
+            responseType: "arraybuffer",
+          });
+          imageData = imgRes.data;
+        }
+      } catch (e) {
+        console.log("Kord AI Image failed");
+      }
+    }
 
     // Check if response contains valid image data
-    if (!response.data || response.data.length === 0) {
-      throw new Error("Empty response from image generation API");
+    if (!imageData) {
+      throw new Error("Empty response from image generation APIs");
     }
 
     // Send the generated image
@@ -96,7 +124,7 @@ async function imagineCommand(sock, chatId, message) {
     await sock.sendMessage(
       chatId,
       {
-        image: response.data, // Directly use the arraybuffer
+        image: imageData, // Directly use the arraybuffer
         caption: `🎨 Image Generated Successfully\nPrompt: "${imagePrompt}"\n\n*Powered by SAMKIEL BOT*`,
       },
       {

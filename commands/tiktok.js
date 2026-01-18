@@ -73,6 +73,7 @@ async function tiktokCommand(sock, chatId, message) {
     try {
       // Try multiple APIs in sequence
       const apis = [
+        `https://api.kord.live/api/tiktok?url=${encodeURIComponent(url)}`,
         `https://api.princetechn.com/api/download/tiktok?apikey=prince&url=${encodeURIComponent(
           url,
         )}`,
@@ -98,6 +99,13 @@ async function tiktokCommand(sock, chatId, message) {
           const response = await axios.get(apiUrl, { timeout: 10000 });
 
           if (response.data) {
+            // Handle Kord API structure
+            if (response.data.status && response.data.video) {
+              videoUrl = response.data.video;
+              audioUrl = response.data.audio;
+              title = response.data.title;
+              break;
+            }
             // Handle different API response formats
             if (response.data.result && response.data.result.videoUrl) {
               // PrinceTech API format

@@ -201,6 +201,7 @@ const silenceCommand = require("./commands/silence");
 const ratelimitCommand = require("./commands/ratelimit");
 const snapshotCommand = require("./commands/snapshot");
 const failsafeCommand = require("./commands/failsafe");
+const { handleVoiceMessage } = require("./commands/voice");
 
 // New Architecture Libraries
 const { logAction, ACTIONS } = require("./lib/auditLog");
@@ -296,6 +297,15 @@ async function handleMessages(sock, messageUpdate, printLog) {
       // Section 5: Record activity for listonline
       recordUserActivity(chatId, senderId);
     }
+
+    // Handle voice messages (processes audio and responds with voice)
+    const voiceHandled = await handleVoiceMessage(
+      sock,
+      chatId,
+      message,
+      senderId,
+    );
+    if (voiceHandled) return;
 
     let userMessage =
       message.message?.conversation?.trim() ||

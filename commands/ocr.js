@@ -67,11 +67,34 @@ async function ocrCommand(sock, chatId, message) {
       );
     }
 
-    const ocrUrl = `https://api.ocr.space/parse/imageurl?apikey=helloworld&url=${imageUrl}`;
-    const { data } = await axios.get(ocrUrl);
+    let text = "";
 
-    if (data?.ParsedResults && data.ParsedResults.length > 0) {
-      const text = data.ParsedResults[0].ParsedText;
+    // 1. OCR.space
+    try {
+      const ocrUrl = `https://api.ocr.space/parse/imageurl?apikey=helloworld&url=${imageUrl}`;
+      const { data } = await axios.get(ocrUrl);
+      if (data?.ParsedResults && data.ParsedResults.length > 0) {
+        text = data.ParsedResults[0].ParsedText;
+      }
+    } catch (e) {
+      console.log("OCR.space failed");
+    }
+
+    // 2. Kord OCR Fallback
+    if (!text || !text.trim()) {
+      try {
+        const { data } = await axios.get(
+          `https://api.kord.live/api/ocr?url=${imageUrl}`,
+        );
+        if (data?.status && data.text) {
+          text = data.text;
+        }
+      } catch (e) {
+        console.log("Kord OCR failed");
+      }
+    }
+
+    if (text && text.trim()) {
       if (!text.trim())
         return await sendText(sock, chatId, "⚠️ No text found in image.");
 

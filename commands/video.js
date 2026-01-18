@@ -45,7 +45,7 @@ async function getRuhendVideo(url) {
 async function getWidipeVideo(url) {
   const res = await axios.get(
     `https://widipe.com/download/ytdl?url=${encodeURIComponent(url)}`,
-    AXIOS_DEFAULTS
+    AXIOS_DEFAULTS,
   );
   if (res.data?.result?.mp4) {
     return {
@@ -59,7 +59,7 @@ async function getWidipeVideo(url) {
 async function getBk9Video(url) {
   const res = await axios.get(
     `https://bk9.fun/download/youtube?url=${encodeURIComponent(url)}`,
-    AXIOS_DEFAULTS
+    AXIOS_DEFAULTS,
   );
   if (res.data?.BK9?.video?.url) {
     return {
@@ -73,9 +73,9 @@ async function getBk9Video(url) {
 async function getDarkYasiyaVideo(url) {
   const res = await axios.get(
     `https://api.dark-yasiya-api.vercel.app/download/ytmp4?url=${encodeURIComponent(
-      url
+      url,
     )}`,
-    AXIOS_DEFAULTS
+    AXIOS_DEFAULTS,
   );
   if (res.data?.status && res.data?.result?.url) {
     return {
@@ -89,9 +89,9 @@ async function getDarkYasiyaVideo(url) {
 async function getIzumiVideo(url) {
   const res = await axios.get(
     `https://izumiiiiiiii.dpdns.org/downloader/youtube?url=${encodeURIComponent(
-      url
+      url,
     )}&format=720`,
-    AXIOS_DEFAULTS
+    AXIOS_DEFAULTS,
   );
   if (res.data?.result?.download) {
     return {
@@ -107,9 +107,9 @@ async function getAsithaVideo(url) {
     "0c97d662e61301ae4fa667fbb8001051e00c02f8369c756c10a1404a95fe0edb";
   const res = await axios.get(
     `https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/ytapi?url=${encodeURIComponent(
-      url
+      url,
     )}&fo=1&qu=720&apiKey=${apiKey}`,
-    AXIOS_DEFAULTS
+    AXIOS_DEFAULTS,
   );
   if (res.data?.downloadData?.url) {
     return {
@@ -118,6 +118,20 @@ async function getAsithaVideo(url) {
     };
   }
   throw new Error("Asitha API returned no video");
+}
+
+async function getKordVideo(url) {
+  const res = await axios.get(
+    `https://api.kord.live/api/ytdown?url=${encodeURIComponent(url)}`,
+    AXIOS_DEFAULTS,
+  );
+  if (res.data?.status && res.data?.download) {
+    return {
+      download: res.data.download,
+      title: res.data.title,
+    };
+  }
+  throw new Error("Kord API returned no video");
 }
 
 async function videoCommand(sock, chatId, message) {
@@ -137,7 +151,7 @@ async function videoCommand(sock, chatId, message) {
           text: `What video do you want to download? Usage: *${p}video <search query or url>*`,
           ...global.channelInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
       return;
     }
@@ -164,7 +178,7 @@ async function videoCommand(sock, chatId, message) {
               text: "❌ No videos found for your search!",
               ...global.channelInfo,
             },
-            { quoted: message }
+            { quoted: message },
           );
           return;
         }
@@ -176,7 +190,7 @@ async function videoCommand(sock, chatId, message) {
         await sock.sendMessage(
           chatId,
           { text: "❌ Error searching YouTube.", ...global.channelInfo },
-          { quoted: message }
+          { quoted: message },
         );
         return;
       }
@@ -193,7 +207,7 @@ async function videoCommand(sock, chatId, message) {
           caption: `*${captionTitle}*\n\n⏳ Found! Downloading video... 0%`,
           ...global.channelInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
       key = initialMsg.key;
 
@@ -228,6 +242,7 @@ async function videoCommand(sock, chatId, message) {
     // Priority: Ruhend (Local/Powerful) -> External APIs -> Fallback
     const providers = [
       getRuhendVideo,
+      getKordVideo,
       getAsithaVideo,
       getWidipeVideo,
       getBk9Video,
@@ -254,7 +269,7 @@ async function videoCommand(sock, chatId, message) {
           text: "❌ Failed to download video from all sources. Please try again later.",
           ...global.channelInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
       return;
     }
@@ -302,7 +317,7 @@ async function videoCommand(sock, chatId, message) {
           }*\n\n> *_Downloaded by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 _*`,
           ...global.channelInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
 
       // Cleanup
@@ -312,7 +327,7 @@ async function videoCommand(sock, chatId, message) {
     } catch (downloadError) {
       console.error(
         "Temp download failed:",
-        downloadError.message || String(downloadError)
+        downloadError.message || String(downloadError),
       );
       // Fallback to sending URL directly if file download fails
       await sock.sendMessage(
@@ -328,7 +343,7 @@ async function videoCommand(sock, chatId, message) {
           }*\n\n> *_Downloaded by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋 _*`,
           ...global.channelInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
     }
   } catch (error) {
@@ -339,7 +354,7 @@ async function videoCommand(sock, chatId, message) {
         text: "❌ Critical error: " + (error?.message || "Unknown error"),
         ...global.channelInfo,
       },
-      { quoted: message }
+      { quoted: message },
     );
   }
 }

@@ -46,7 +46,22 @@ async function instagramCommand(sock, chatId, message) {
     let success = false;
 
     // --- ROBUST API CHAIN ---
-    // 1. Ruhend Scraper (Primary - Library)
+    // 1. Kord API (New Primary)
+    if (!success) {
+      try {
+        const { data } = await axios.get(
+          `https://api.kord.live/api/instagram?url=${encodeURIComponent(url)}`,
+        );
+        if (data?.status && data.data && data.data.length > 0) {
+          mediaData = data.data.map((item) => ({ url: item.url }));
+          success = true;
+        }
+      } catch (e) {
+        console.log("IG: Kord failed");
+      }
+    }
+
+    // 2. Ruhend Scraper (Backup - Library)
     if (!success) {
       try {
         const data = await igdl(url);
