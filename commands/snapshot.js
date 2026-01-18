@@ -6,7 +6,7 @@
 
 const os = require("os");
 const botState = require("../lib/botState");
-const { loadPrefix } = require("./prefix");
+const { loadPrefix } = require("../lib/prefix");
 const settings = require("../settings");
 
 // Track bot start time
