@@ -24,6 +24,9 @@ async function pollCommand(sock, chatId, message, args) {
     );
   }
 
+  // Adding reaction for feedback
+  await sock.sendMessage(chatId, { react: { text: "⏳", key: message.key } });
+
   const name = parts[0];
   const rawValues = parts.slice(1);
   const values = [...new Set(rawValues)]; // Ensure unique options
