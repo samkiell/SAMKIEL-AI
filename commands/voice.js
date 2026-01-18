@@ -18,12 +18,40 @@ if (!fs.existsSync(TEMP_DIR)) {
 }
 
 /**
- * Check if message is a voice note
+ * Check if message is a voice note or audio
  */
-function isVoiceMessage(message) {
-  return !!(
-    message.message?.audioMessage?.ptt || message.message?.audioMessage
-  );
+function isVoiceMessage(m) {
+  if (!m.message) return false;
+
+  // Standard path
+  if (m.message.audioMessage) return true;
+
+  // Nested paths (ViewOnce, Ephemeral, etc.)
+  const msg = m.message;
+  if (msg.viewOnceMessageV2?.message?.audioMessage) return true;
+  if (msg.viewOnceMessage?.message?.audioMessage) return true;
+  if (msg.ephemeralMessage?.message?.audioMessage) return true;
+  if (msg.documentWithCaptionMessage?.message?.audioMessage) return true;
+
+  return false;
+}
+
+/**
+ * Get internal audio message object
+ */
+function getAudioData(m) {
+  if (!m.message) return null;
+  const msg = m.message;
+  if (msg.audioMessage) return msg.audioMessage;
+  if (msg.viewOnceMessageV2?.message?.audioMessage)
+    return msg.viewOnceMessageV2.message.audioMessage;
+  if (msg.viewOnceMessage?.message?.audioMessage)
+    return msg.viewOnceMessage.message.audioMessage;
+  if (msg.ephemeralMessage?.message?.audioMessage)
+    return msg.ephemeralMessage.message.audioMessage;
+  if (msg.documentWithCaptionMessage?.message?.audioMessage)
+    return msg.documentWithCaptionMessage.message.audioMessage;
+  return null;
 }
 
 /**
@@ -221,7 +249,10 @@ async function handleVoiceMessage(sock, chatId, message, senderId) {
     return false;
   }
 
-  console.log("🎤 Voice message detected from:", senderId);
+  const audioData = getAudioData(message);
+  const isPtt = audioData?.ptt || false;
+
+  console.log(`🎤 Voice message detected! Sender: ${senderId}, PTT: ${isPtt}`);
 
   // React to show we're processing
   try {

@@ -298,6 +298,12 @@ async function handleMessages(sock, messageUpdate, printLog) {
       recordUserActivity(chatId, senderId);
     }
 
+    // Debug: Log message types
+    const mType = Object.keys(message.message || {})[0];
+    if (mType === "audioMessage") {
+      console.log(`🎵 Audio/Voice message received from ${senderId}`);
+    }
+
     // Handle voice messages (processes audio and responds with voice)
     const voiceHandled = await handleVoiceMessage(
       sock,
