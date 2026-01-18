@@ -174,6 +174,14 @@ async function createGc(sock, chatId, message, args, senderId) {
   }
   const groupName = args.join(" ");
   if (!groupName) {
+    // Ideally we would pass 'p' or prefix down, but for now lets load it again or handle it.
+    // Since this is an internal helper, we might not want to re-require.
+    // However, the cleanest quick fix is to check args or pass context.
+    // Let's re-require for safety as this is an independent function scope if called elsewhere.
+    const { loadPrefix } = require("../lib/prefix");
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
+
     return sock.sendMessage(chatId, {
       text: `⚠️ Provide a group name.\nExample: ${p}gc create My Group\n\n*Powered by SAMKIEL BOT*`,
       quoted: message,
