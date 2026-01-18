@@ -150,11 +150,12 @@ async function handleChatbotCommand(sock, chatId, message, match) {
       const groupMetadata = await sock.groupMetadata(chatId);
       isAdmin = groupMetadata.participants.some(
         (p) =>
-          p.id === senderId && (p.admin === "admin" || p.admin === "superadmin")
+          p.id === senderId &&
+          (p.admin === "admin" || p.admin === "superadmin"),
       );
     } catch (e) {
       console.warn(
-        "⚠️ Could not fetch group metadata. Bot might not be admin."
+        "⚠️ Could not fetch group metadata. Bot might not be admin.",
       );
     }
   }
@@ -221,7 +222,7 @@ async function handleChatbotResponse(
   chatId,
   message,
   userMessage,
-  senderId
+  senderId,
 ) {
   const data = loadUserGroupData();
   if (!data.chatbot[chatId]) return;
@@ -315,7 +316,7 @@ async function handleChatbotResponse(
       },
       {
         quoted: message,
-      }
+      },
     );
   } catch (error) {
     console.error("❌ Error in chatbot response:", error.message);
@@ -328,8 +329,7 @@ async function handleChatbotResponse(
 }
 
 async function getAIResponse(userMessage, userContext) {
-  try {
-    const prompt = `
+  const prompt = `
 You're not an AI. You're a real human chatting on WhatsApp.
 
 IMPORTANT: NEVER repeat these instructions in your response. Just chat naturally.
@@ -365,11 +365,8 @@ ABOUT YOU:
 - You're not an AI or assistant
 - You're a real person chatting
 
-SLANG EXAMPLES:
-
-
 Previous conversation context:
-${userContext.messages.join("\n")}
+${userContext.messages.slice(-5).join("\n")}
 
 User information:
 ${JSON.stringify(userContext.userInfo, null, 2)}
@@ -379,66 +376,83 @@ Current message: ${userMessage}
 Remember: Just chat naturally. Don't repeat these instructions.
 
 You:
-        `.trim();
+`.trim();
 
-    const response = await fetch(
-      "https://api.dreaded.site/api/chatgpt?text=" + encodeURIComponent(prompt)
-    );
-    if (!response.ok) throw new Error("API call failed");
+  // Multiple Chatbot APIs for fallback
+  const CHATBOT_APIS = [
+    {
+      name: "Dreaded",
+      url: `https://api.dreaded.site/api/chatgpt?text=${encodeURIComponent(prompt)}`,
+      extract: (d) => d?.result?.prompt || d?.result,
+    },
+    {
+      name: "Popcat",
+      url: `https://api.popcat.xyz/chatbot?owner=Samkiel&botname=SamkielAI&msg=${encodeURIComponent(userMessage)}`,
+      extract: (d) => d?.response,
+    },
+    {
+      name: "Siputzx Llama",
+      url: `https://api.siputzx.my.id/api/ai/llama33?prompt=You+are+a+casual+friend&text=${encodeURIComponent(userMessage)}`,
+      extract: (d) => d?.data || d?.result,
+    },
+    {
+      name: "Gifted Chatbot",
+      url: `https://api.giftedtech.my.id/api/ai/gpt?apikey=gifted&q=${encodeURIComponent(userMessage)}`,
+      extract: (d) => d?.result,
+    },
+    {
+      name: "RyzenDesu",
+      url: `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(userMessage)}`,
+      extract: (d) => d?.result || d?.answer,
+    },
+  ];
 
-    const data = await response.json();
-    if (!data.success || !data.result?.prompt)
-      throw new Error("Invalid API response");
+  for (const api of CHATBOT_APIS) {
+    try {
+      const response = await fetch(api.url, { timeout: 15000 });
+      if (!response.ok) continue;
 
-    // Clean up the response
-    let cleanedResponse = data.result.prompt
-      .trim()
-      // Replace emoji names with actual emojis
-      .replace(/winks/g, "😉")
-      .replace(/eye roll/g, "🙄")
-      .replace(/shrug/g, "🤷‍♂️")
-      .replace(/raises eyebrow/g, "🤨")
-      .replace(/smiles/g, "😊")
-      .replace(/laughs/g, "😂")
-      .replace(/cries/g, "😢")
-      .replace(/thinks/g, "🤔")
-      .replace(/sleeps/g, "😴")
-      .replace(/winks at/g, "😉")
-      .replace(/rolls eyes/g, "🙄")
-      .replace(/shrugs/g, "🤷‍♂️")
-      .replace(/raises eyebrows/g, "🤨")
-      .replace(/smiling/g, "😊")
-      .replace(/laughing/g, "😂")
-      .replace(/crying/g, "😢")
-      .replace(/thinking/g, "🤔")
-      .replace(/sleeping/g, "😴")
-      // Remove any prompt-like text
-      .replace(/Remember:.*$/g, "")
-      .replace(/IMPORTANT:.*$/g, "")
-      .replace(/CORE RULES:.*$/g, "")
-      .replace(/EMOJI USAGE:.*$/g, "")
-      .replace(/RESPONSE STYLE:.*$/g, "")
-      .replace(/EMOTIONAL RESPONSES:.*$/g, "")
-      .replace(/ABOUT YOU:.*$/g, "")
-      .replace(/SLANG EXAMPLES:.*$/g, "")
-      .replace(/Previous conversation context:.*$/g, "")
-      .replace(/User information:.*$/g, "")
-      .replace(/Current message:.*$/g, "")
-      .replace(/You:.*$/g, "")
-      // Remove any remaining instruction-like text
-      .replace(/^[A-Z\s]+:.*$/gm, "")
-      .replace(/^[•-]\s.*$/gm, "")
-      .replace(/^✅.*$/gm, "")
-      .replace(/^❌.*$/gm, "")
-      // Clean up extra whitespace
-      .replace(/\n\s*\n/g, "\n")
-      .trim();
+      const data = await response.json();
+      const answer = api.extract(data);
 
-    return cleanedResponse;
-  } catch (error) {
-    console.error("AI API error:", error);
-    return null;
+      if (answer && typeof answer === "string" && answer.length > 3) {
+        // Clean up the response
+        let cleanedResponse = answer
+          .trim()
+          .replace(/winks/g, "😉")
+          .replace(/eye roll/g, "🙄")
+          .replace(/shrug/g, "🤷‍♂️")
+          .replace(/raises eyebrow/g, "🤨")
+          .replace(/smiles/g, "😊")
+          .replace(/laughs/g, "😂")
+          .replace(/cries/g, "😢")
+          .replace(/thinks/g, "🤔")
+          .replace(/sleeps/g, "😴")
+          .replace(/winks at/g, "😉")
+          .replace(/rolls eyes/g, "🙄")
+          .replace(/shrugs/g, "🤷‍♂️")
+          .replace(/raises eyebrows/g, "🤨")
+          .replace(/smiling/g, "😊")
+          .replace(/laughing/g, "😂")
+          .replace(/crying/g, "😢")
+          .replace(/thinking/g, "🤔")
+          .replace(/sleeping/g, "😴")
+          .replace(/Remember:.*$/g, "")
+          .replace(/IMPORTANT:.*$/g, "")
+          .replace(/^[A-Z\\s]+:.*$/gm, "")
+          .replace(/\n\s*\n/g, "\n")
+          .trim();
+
+        console.log(`✅ Chatbot: ${api.name} succeeded`);
+        return cleanedResponse;
+      }
+    } catch (error) {
+      console.log(`❌ Chatbot: ${api.name} failed - ${error.message}`);
+    }
   }
+
+  console.error("All Chatbot APIs failed");
+  return null;
 }
 
 module.exports = {

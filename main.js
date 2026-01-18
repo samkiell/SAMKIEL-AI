@@ -132,6 +132,15 @@ const spotifyCommand = require("./commands/spotify");
 const twitterCommand = require("./commands/twitter");
 const pinterestCommand = require("./commands/pinterest");
 const shortsCommand = require("./commands/shorts");
+const snapchatCommand = require("./commands/snapchat");
+const redditCommand = require("./commands/reddit");
+const threadsCommand = require("./commands/threads");
+const soundcloudCommand = require("./commands/soundcloud");
+const vimeoCommand = require("./commands/vimeo");
+const bilibiliCommand = require("./commands/bilibili");
+const likeeCommand = require("./commands/likee");
+const douyinCommand = require("./commands/douyin");
+const capcutCommand = require("./commands/capcut");
 
 const aiCommand = require("./commands/ai");
 const { handleTranslateCommand } = require("./commands/translate");

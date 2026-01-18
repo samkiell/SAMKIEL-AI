@@ -228,38 +228,120 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
     "baileys_store.json",
   ];
   const copied = [];
-  // Preserve ownerNumber from existing settings.js if present
+
+  // ====================================
+  // PRESERVE CONFIGS BEFORE UPDATE
+  // ====================================
   let preservedOwner = null;
   let preservedBotOwner = null;
+  let preservedPrefix = null;
+  let preservedCommandMode = null;
+
+  // Preserve settings from settings.js
   try {
     const currentSettings = require("../settings");
-    preservedOwner =
-      currentSettings && currentSettings.ownerNumber
-        ? String(currentSettings.ownerNumber)
-        : null;
-    preservedBotOwner =
-      currentSettings && currentSettings.botOwner
-        ? String(currentSettings.botOwner)
-        : null;
+    preservedOwner = currentSettings?.ownerNumber
+      ? String(currentSettings.ownerNumber)
+      : null;
+    preservedBotOwner = currentSettings?.botOwner
+      ? String(currentSettings.botOwner)
+      : null;
+    preservedPrefix = currentSettings?.prefix || null;
+    preservedCommandMode =
+      currentSettings?.featureToggles?.COMMAND_MODE || null;
   } catch {}
+
+  // Preserve prefix from data/prefix.json
+  let prefixData = null;
+  const prefixFilePath = path.join(process.cwd(), "data", "prefix.json");
+  try {
+    if (fs.existsSync(prefixFilePath)) {
+      prefixData = fs.readFileSync(prefixFilePath, "utf-8");
+    }
+  } catch {}
+
+  // Preserve mode from data/mode.json
+  let modeData = null;
+  const modeFilePath = path.join(process.cwd(), "data", "mode.json");
+  try {
+    if (fs.existsSync(modeFilePath)) {
+      modeData = fs.readFileSync(modeFilePath, "utf-8");
+    }
+  } catch {}
+
+  // Preserve botState from data/botState.json
+  let botStateData = null;
+  const botStateFilePath = path.join(process.cwd(), "data", "botState.json");
+  try {
+    if (fs.existsSync(botStateFilePath)) {
+      botStateData = fs.readFileSync(botStateFilePath, "utf-8");
+    }
+  } catch {}
+
+  // Copy new files
   copyRecursive(srcRoot, process.cwd(), ignore, "", copied);
+
+  // ====================================
+  // RESTORE CONFIGS AFTER UPDATE
+  // ====================================
+
+  // Restore settings.js
   if (preservedOwner) {
     try {
       const settingsPath = path.join(process.cwd(), "settings.js");
       if (fs.existsSync(settingsPath)) {
         let text = fs.readFileSync(settingsPath, "utf8");
         text = text.replace(
-          /ownerNumber:\s*'[^']*'/,
+          /ownerNumber:\s*['"][^'"]*['"]/,
           `ownerNumber: '${preservedOwner}'`,
         );
         if (preservedBotOwner) {
           text = text.replace(
-            /botOwner:\s*'[^']*'/,
+            /botOwner:\s*['"][^'"]*['"]/,
             `botOwner: '${preservedBotOwner}'`,
+          );
+        }
+        if (preservedPrefix) {
+          text = text.replace(
+            /prefix:\s*['"][^'"]*['"]/,
+            `prefix: '${preservedPrefix}'`,
+          );
+        }
+        if (preservedCommandMode) {
+          text = text.replace(
+            /COMMAND_MODE:\s*['"][^'"]*['"]/,
+            `COMMAND_MODE: '${preservedCommandMode}'`,
           );
         }
         fs.writeFileSync(settingsPath, text);
       }
+    } catch {}
+  }
+
+  // Ensure data directory exists
+  const dataDir = path.join(process.cwd(), "data");
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+
+  // Restore prefix.json
+  if (prefixData) {
+    try {
+      fs.writeFileSync(prefixFilePath, prefixData);
+    } catch {}
+  }
+
+  // Restore mode.json
+  if (modeData) {
+    try {
+      fs.writeFileSync(modeFilePath, modeData);
+    } catch {}
+  }
+
+  // Restore botState.json
+  if (botStateData) {
+    try {
+      fs.writeFileSync(botStateFilePath, botStateData);
     } catch {}
   }
   // Cleanup extracted directory
