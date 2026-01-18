@@ -36,7 +36,7 @@ async function playCommand(sock, chatId, message) {
     if (!searchQuery) {
       console.log("No search query provided");
       return await sock.sendMessage(chatId, {
-        text: "What song do you want to download?",
+        text: "What song do you want to download?\n\n*Powered by SAMKIEL BOT*",
       });
     }
 
@@ -49,7 +49,7 @@ async function playCommand(sock, chatId, message) {
     if (!videos || videos.length === 0) {
       console.log("No songs found!");
       return await sock.sendMessage(chatId, {
-        text: "No songs found!",
+        text: "No songs found!\n\n*Powered by SAMKIEL BOT*",
       });
     }
 
@@ -228,7 +228,7 @@ async function playCommand(sock, chatId, message) {
     if (!success || !audioData) {
       console.log("All APIs failed");
       return await sock.sendMessage(chatId, {
-        text: "Failed to fetch audio from all sources. Please try again later.",
+        text: "Failed to fetch audio from all sources. Please try again later.\n\n*Powered by SAMKIEL BOT*",
       });
     }
 
@@ -259,7 +259,7 @@ async function playCommand(sock, chatId, message) {
   } catch (error) {
     console.error("Error in play command:", error);
     await sock.sendMessage(chatId, {
-      text: "Download failed. Please try again later.",
+      text: "Download failed. Please try again later.\n\n*Powered by SAMKIEL BOT*",
     });
   }
 }
