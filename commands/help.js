@@ -158,6 +158,8 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🌐 ${p}deploy
   ║ ✧ 🆔 ${p}lid
   ║ ✧ 📖 ${p}bible <text>
+  ║ ✧ 💰 ${p}crypto <symbol>
+  ║ ✧ ⚽ ${p}score <league>
   ╚═══════════════════╝ 
 
   ╔═══════════════════╗
