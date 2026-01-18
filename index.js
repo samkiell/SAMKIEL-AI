@@ -139,64 +139,70 @@ const store = {
 let phoneNumber = "2348087357158";
 // Automatically sync owner from settings to owner.json
 const ownerDataPath = "./data/owner.json";
+let ownerData = { superOwner: [], owners: [] };
+
 try {
-  let ownerData = { superOwner: [], owners: [] };
   if (fs.existsSync(ownerDataPath)) {
-    ownerData = JSON.parse(fs.readFileSync(ownerDataPath, "utf8"));
+    const rawData = fs.readFileSync(ownerDataPath, "utf8").trim();
+    if (rawData) {
+      ownerData = JSON.parse(rawData);
+    }
   }
 
   const currentOwnerNum = normalizeToDigits(settings.ownerNumber);
-  if (!currentOwnerNum) throw new Error("settings.ownerNumber is empty");
+  if (currentOwnerNum) {
+    // Ensure arrays
+    ownerData.superOwner = Array.isArray(ownerData.superOwner)
+      ? ownerData.superOwner
+      : ownerData.superOwner
+        ? [ownerData.superOwner]
+        : [];
+    ownerData.owners = Array.isArray(ownerData.owners) ? ownerData.owners : [];
 
-  // Ensure arrays
-  ownerData.superOwner = Array.isArray(ownerData.superOwner)
-    ? ownerData.superOwner
-    : ownerData.superOwner
-      ? [ownerData.superOwner]
-      : [];
-  ownerData.owners = Array.isArray(ownerData.owners) ? ownerData.owners : [];
-
-  // Normalize existing values (strip @s.whatsapp.net, @lid, device ids, etc.)
-  ownerData.superOwner = Array.from(
-    new Set(ownerData.superOwner.map(normalizeToDigits).filter(Boolean)),
-  );
-
-  ownerData.owners = ownerData.owners
-    .map((o) => {
-      // Support legacy shapes where owner could be a string or used "jid"
-      if (typeof o === "string" || typeof o === "number") {
-        const v = normalizeToDigits(o);
-        return v ? { number: v, lid: v } : null;
-      }
-      const num = normalizeToDigits(o?.number || o?.jid);
-      if (!num) return null;
-      const lid = normalizeToDigits(o?.lid) || num;
-      return { number: num, lid };
-    })
-    .filter(Boolean);
-
-  // Ensure superOwner contains settings owner
-  if (!ownerData.superOwner.includes(currentOwnerNum)) {
-    ownerData.superOwner.unshift(currentOwnerNum);
-  }
-
-  // Ensure owners list contains settings owner (store as numeric LID, not JID)
-  const exists = ownerData.owners.some(
-    (o) => normalizeToDigits(o.number) === currentOwnerNum,
-  );
-  if (!exists) {
-    ownerData.owners.push({ number: currentOwnerNum, lid: currentOwnerNum });
-    console.log(
-      chalk.green(`Automatically added owner ${currentOwnerNum} to owner.json`),
+    // Normalize existing values
+    ownerData.superOwner = Array.from(
+      new Set(ownerData.superOwner.map(normalizeToDigits).filter(Boolean)),
     );
-  }
 
-  fs.writeFileSync(ownerDataPath, JSON.stringify(ownerData, null, 2));
+    ownerData.owners = ownerData.owners
+      .map((o) => {
+        if (typeof o === "string" || typeof o === "number") {
+          const v = normalizeToDigits(o);
+          return v ? { number: v, lid: v } : null;
+        }
+        const num = normalizeToDigits(o?.number || o?.jid);
+        if (!num) return null;
+        const lid = normalizeToDigits(o?.lid) || num;
+        return { number: num, lid };
+      })
+      .filter(Boolean);
+
+    // Ensure superOwner contains settings owner
+    if (!ownerData.superOwner.includes(currentOwnerNum)) {
+      ownerData.superOwner.unshift(currentOwnerNum);
+    }
+
+    // Ensure owners list contains settings owner
+    const exists = ownerData.owners.some(
+      (o) => normalizeToDigits(o.number) === currentOwnerNum,
+    );
+    if (!exists) {
+      ownerData.owners.push({ number: currentOwnerNum, lid: currentOwnerNum });
+      console.log(
+        chalk.green(
+          `Automatically added owner ${currentOwnerNum} to owner.json`,
+        ),
+      );
+    }
+
+    fs.writeFileSync(ownerDataPath, JSON.stringify(ownerData, null, 2));
+  }
 } catch (err) {
   console.error("Failed to sync owner.json from settings:", err);
+  // ownerData remains at default { superOwner: [], owners: [] } if parse fails
 }
 
-let owner = JSON.parse(fs.readFileSync("./data/owner.json"));
+let owner = ownerData;
 
 global.botname = "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋";
 global.themeemoji = "•";
