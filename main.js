@@ -42,6 +42,13 @@ const { demoteCommand } = require("./commands/demote");
 const muteCommand = require("./commands/mute");
 const unmuteCommand = require("./commands/unmute");
 const stickerCommand = require("./commands/sticker");
+const urlCommand = require("./commands/url");
+const { ocrCommand } = require("./commands/ocr");
+const {
+  tempmailCommand,
+  checkmailCommand,
+  readmailCommand,
+} = require("./commands/tempmail");
 const isAdmin = require("./lib/isAdmin");
 const warnCommand = require("./commands/warn");
 const warningsCommand = require("./commands/warnings");
@@ -860,6 +867,21 @@ async function handleMessages(sock, messageUpdate, printLog) {
         break;
       case cmd === "sticker" || command === "s":
         await stickerCommand(sock, chatId, message);
+        break;
+      case cmd === "url" || cmd === "tourl":
+        await urlCommand(sock, chatId, message);
+        break;
+      case cmd === "ocr":
+        await ocrCommand(sock, chatId, message);
+        break;
+      case cmd === "tempmail":
+        await tempmailCommand(sock, chatId);
+        break;
+      case cmd === "checkmail":
+        await checkmailCommand(sock, chatId, message, args);
+        break;
+      case cmd === "readmail":
+        await readmailCommand(sock, chatId, message, args);
         break;
       case command.startsWith("warnings"):
         const mentionedJidListWarnings =

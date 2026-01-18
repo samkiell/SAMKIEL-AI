@@ -161,6 +161,7 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 📖 ${p}bible <text>
   ║ ✧ 💰 ${p}crypto <symbol>
   ║ ✧ ⚽ ${p}score <league>
+  ║ ✧ 📧 ${p}tempmail
   ╚═══════════════════╝ 
 
   ╔═══════════════════╗
@@ -244,6 +245,8 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🤣 ${p}meme
   ║ ✧ ✍️ ${p}take <packname>
   ║ ✧ 🔀 ${p}emojimix <emj1>+<emj2>
+  ║ ✧ 🔗 ${p}tourl <reply media>
+  ║ ✧ 📝 ${p}ocr <reply image>
   ╚═══════════════════╝  
 
   ╔═══════════════════╗
