@@ -353,3 +353,4 @@ async function aiCommand(sock, chatId, message) {
 }
 
 module.exports = aiCommand;
+module.exports.SYSTEM_INSTRUCTION = SYSTEM_INSTRUCTION;
