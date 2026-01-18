@@ -53,7 +53,7 @@ async function updateViaGit() {
   }
 
   const commits = await run(
-    `git log --pretty=format:"%h %s (%an)" ${oldRev}..${newRev}`,
+    `git log --pretty=format:"%h %s" ${oldRev}..${newRev} -n 5`,
   ).catch(() => "");
 
   const files = await run(`git diff --name-status ${oldRev} ${newRev}`).catch(

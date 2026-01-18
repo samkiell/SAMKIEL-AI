@@ -1,20 +1,24 @@
+/**
+ * Temporary Email Commands
+ * Uses tempmail.lol API
+ */
+
 const axios = require("axios");
 const { sendText } = require("../lib/sendResponse");
 const { loadPrefix } = require("../lib/prefix");
 
-// Browser-like headers
 const HEADERS = {
   "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-  Accept: "application/json, text/plain, */*",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+  Accept: "application/json",
 };
 
-// Store tokens for checking mail later
+// Store tokens in memory
 const emailTokens = new Map();
 
 async function tempmailCommand(sock, chatId) {
-  const currentPrefix = loadPrefix();
-  const p = currentPrefix === "off" ? "" : currentPrefix;
+  console.log(`[TEMPMAIL] Generating email...`);
+  const p = loadPrefix() === "off" ? "" : loadPrefix();
 
   try {
     const { data } = await axios.get("https://api.tempmail.lol/generate", {
@@ -22,94 +26,95 @@ async function tempmailCommand(sock, chatId) {
       headers: HEADERS,
     });
 
+    console.log(`[TEMPMAIL] API Response:`, JSON.stringify(data));
+
     if (data?.address && data?.token) {
-      // Store token for later use
       emailTokens.set(data.address, data.token);
+      console.log(`[TEMPMAIL] Email generated: ${data.address}`);
 
       return await sendText(
         sock,
         chatId,
-        `📧 *Temporary Email Generated*\n\n📩 *Email:* \`${data.address}\`\n\nUse \`${p}checkmail ${data.address}\` to check inbox.\n\n*Powered by SAMKIEL BOT*`,
+        `📧 Temporary Email Generated\n\n📩 Email: ${data.address}\n\nUse ${p}checkmail ${data.address} to check inbox.`,
       );
+    } else {
+      console.log(`[TEMPMAIL] Invalid response - no address or token`);
     }
   } catch (e) {
-    console.log("Tempmail: Tempmail.lol failed -", e.message);
+    console.log(`[TEMPMAIL] API Error: ${e.message}`);
+    if (e.response) {
+      console.log(`[TEMPMAIL] Response:`, JSON.stringify(e.response.data));
+    }
   }
 
   await sendText(
     sock,
     chatId,
-    "❌ Tempmail service is currently unavailable. Please try again later.\n\n*Powered by SAMKIEL BOT*",
+    "❌ Tempmail service unavailable. Try again later.",
   );
 }
 
 async function checkmailCommand(sock, chatId, message, args) {
-  const currentPrefix = loadPrefix();
-  const p = currentPrefix === "off" ? "" : currentPrefix;
+  console.log(`[CHECKMAIL] Args:`, args);
+  const p = loadPrefix() === "off" ? "" : loadPrefix();
   const email = args[0];
 
   if (!email || !email.includes("@")) {
     return await sendText(
       sock,
       chatId,
-      `Usage: ${p}checkmail <email_address>\nExample: ${p}checkmail demo@example.com\n\n*Powered by SAMKIEL BOT*`,
+      `Usage: ${p}checkmail <email>\nExample: ${p}checkmail test@example.com`,
     );
   }
 
-  // Get stored token
   const token = emailTokens.get(email);
+  console.log(
+    `[CHECKMAIL] Token for ${email}: ${token ? "FOUND" : "NOT FOUND"}`,
+  );
 
   if (!token) {
     return await sendText(
       sock,
       chatId,
-      `❌ Token not found for this email.\n\nPlease generate a new email using \`${p}tempmail\`\n\n*Powered by SAMKIEL BOT*`,
+      `Token not found for this email.\nGenerate a new email using ${p}tempmail`,
     );
   }
 
   try {
+    console.log(`[CHECKMAIL] Checking inbox...`);
     const { data } = await axios.get(`https://api.tempmail.lol/auth/${token}`, {
       timeout: 15000,
       headers: HEADERS,
     });
+
+    console.log(`[CHECKMAIL] Response:`, JSON.stringify(data));
 
     if (data?.email && Array.isArray(data.email)) {
       if (data.email.length === 0) {
         return await sendText(
           sock,
           chatId,
-          `📭 Inbox empty for ${email}\n\nCheck again later!\n\n*Powered by SAMKIEL BOT*`,
+          `📭 Inbox empty for ${email}\n\nCheck again later.`,
         );
       }
 
-      let response = `📧 *Inbox for ${email}*\n\n`;
+      let response = `📧 Inbox for ${email}\n\n`;
       for (const msg of data.email.slice(0, 5)) {
         const body = (msg.body || "No content").substring(0, 300);
-        response += `🔹 *From:* ${msg.from}\n*Subject:* ${msg.subject || "No Subject"}\n\n${body}\n\n---\n`;
+        response += `From: ${msg.from}\nSubject: ${msg.subject || "No Subject"}\n\n${body}\n\n---\n`;
       }
-      response += `\n*Powered by SAMKIEL BOT*`;
       return await sendText(sock, chatId, response);
     }
   } catch (e) {
-    console.log("Checkmail failed:", e.message);
+    console.log(`[CHECKMAIL] Error: ${e.message}`);
   }
 
-  await sendText(
-    sock,
-    chatId,
-    "❌ Could not check inbox. Please try again.\n\n*Powered by SAMKIEL BOT*",
-  );
+  await sendText(sock, chatId, "❌ Could not check inbox. Try again.");
 }
 
 async function readmailCommand(sock, chatId, message, args) {
-  const currentPrefix = loadPrefix();
-  const p = currentPrefix === "off" ? "" : currentPrefix;
-
-  return await sendText(
-    sock,
-    chatId,
-    `ℹ️ The \`${p}checkmail\` command now shows the full email content.\n\n*Powered by SAMKIEL BOT*`,
-  );
+  const p = loadPrefix() === "off" ? "" : loadPrefix();
+  return await sendText(sock, chatId, `Use ${p}checkmail to view emails.`);
 }
 
 module.exports = { tempmailCommand, checkmailCommand, readmailCommand };

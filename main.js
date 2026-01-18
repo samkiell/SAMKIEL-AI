@@ -193,6 +193,11 @@ const pinCommand = require("./commands/pin");
 const livescoreCommand = require("./commands/livescore");
 const pmCommand = require("./commands/pm");
 const cryptoCommand = require("./commands/crypto");
+const {
+  tempmailCommand,
+  checkmailCommand,
+  readmailCommand,
+} = require("./commands/tempmail");
 const { sendText, shouldHaveBranding } = require("./lib/sendResponse");
 
 // New Architecture Commands
@@ -1670,6 +1675,18 @@ async function handleMessages(sock, messageUpdate, printLog) {
         break;
       case cmd === "lid":
         await lidCommand(sock, chatId, senderId, message);
+        break;
+
+      case cmd === "tempmail":
+        console.log(`[TEMPMAIL] Command triggered`);
+        await tempmailCommand(sock, chatId);
+        break;
+      case cmd === "checkmail":
+        console.log(`[CHECKMAIL] Command triggered with args:`, args);
+        await checkmailCommand(sock, chatId, message, args);
+        break;
+      case cmd === "readmail":
+        await readmailCommand(sock, chatId, message, args);
         break;
 
       case cmd === "pm":
