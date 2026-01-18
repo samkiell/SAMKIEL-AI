@@ -59,14 +59,16 @@ async function pdfCommand(sock, chatId, text, message) {
 
     // Font support for emojis
     const emojiFonts = [
-      "C:/Windows/Fonts/seguiemj.ttf", // Windows 10+
-      "C:/Windows/Fonts/Segoe UI Emoji/seguiemj.ttf", // Windows Alternative
+      "C:/Windows/Fonts/seguiemj.ttf", // Windows 10+ (Segoe UI Emoji) - BEST FOR EMOJIS
+      "C:/Windows/Fonts/arialuni.ttf", // Arial Unicode MS
+      "C:/Windows/Fonts/Arial.ttf", // Standard Arial
+      "C:/Windows/Fonts/Segoe UI.ttf",
       "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf", // Linux (Ubuntu/Debian)
       "/usr/share/fonts/opentype/noto/NotoColorEmoji.ttf", // Linux Alternative
       "/usr/share/fonts/google-noto-emoji-fonts/NotoColorEmoji.ttf", // Fedora
       "/System/Library/Fonts/Apple Color Emoji.ttc", // macOS
       "/System/Library/Fonts/Apple Color Emoji.ttf", // macOS Alternative
-      path.join(__dirname, "../assets/emoji.ttf"), // Local asset (if user provides one)
+      path.join(__dirname, "../assets/emoji.ttf"), // Local asset
     ];
 
     let fontLoaded = false;
