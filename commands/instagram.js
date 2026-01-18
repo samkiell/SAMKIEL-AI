@@ -1,4 +1,5 @@
 const { igdl } = require("ruhend-scraper");
+const axios = require("axios");
 const { loadPrefix } = require("../lib/prefix");
 
 // Store processed message IDs to prevent duplicates
@@ -6,85 +7,142 @@ const processedMessages = new Set();
 
 async function instagramCommand(sock, chatId, message) {
   try {
-    // Check if message has already been processed
-    if (processedMessages.has(message.key.id)) {
-      return;
-    }
-
-    // Add message ID to processed set
+    // Check if message has already been processed (Deduplication)
+    if (processedMessages.has(message.key.id)) return;
     processedMessages.add(message.key.id);
-
-    // Clean up old message IDs after 5 minutes
-    setTimeout(() => {
-      processedMessages.delete(message.key.id);
-    }, 5 * 60 * 1000);
+    setTimeout(() => processedMessages.delete(message.key.id), 5 * 60 * 1000);
 
     const text =
       message.message?.conversation ||
       message.message?.extendedTextMessage?.text;
 
     if (!text) {
-      const currentPrefix = loadPrefix();
-      const p = currentPrefix === "off" ? "" : currentPrefix;
+      const p = loadPrefix() === "off" ? "" : loadPrefix();
       return await sock.sendMessage(chatId, {
-        text: `Please provide an Instagram link for the video.\nUsage: ${p}ig <link>`,
+        text: `Please provide an Instagram link.\nUsage: ${p}ig <link>`,
         ...global.channelInfo,
       });
     }
 
-    // Check for various Instagram URL formats
-    const instagramPatterns = [
+    const igPatterns = [
       /https?:\/\/(?:www\.)?instagram\.com\//,
       /https?:\/\/(?:www\.)?instagr\.am\//,
-      /https?:\/\/(?:www\.)?instagram\.com\/p\//,
-      /https?:\/\/(?:www\.)?instagram\.com\/reel\//,
-      /https?:\/\/(?:www\.)?instagram\.com\/tv\//,
     ];
+    const urlMatch =
+      text.match(/https?:\/\/(?:www\.)?instagram\.com\/\S+/) ||
+      text.match(/https?:\/\/(?:www\.)?instagr\.am\/\S+/);
+    const url = urlMatch ? urlMatch[0] : null;
 
-    const isValidUrl = instagramPatterns.some((pattern) => pattern.test(text));
-
-    if (!isValidUrl) {
+    if (!url) {
       return await sock.sendMessage(chatId, {
-        text: "That is not a valid Instagram link. Please provide a valid Instagram post, reel, or video link.",
+        text: "That is not a valid Instagram link.",
         ...global.channelInfo,
       });
     }
 
-    await sock.sendMessage(chatId, {
-      react: { text: "🔄", key: message.key },
-    });
+    await sock.sendMessage(chatId, { react: { text: "🔄", key: message.key } });
 
-    const downloadData = await igdl(text);
+    let mediaData = [];
+    let success = false;
 
-    if (!downloadData || !downloadData.data || downloadData.data.length === 0) {
+    // --- ROBUST API CHAIN ---
+    // 1. Ruhend Scraper (Primary - Library)
+    if (!success) {
+      try {
+        const data = await igdl(url);
+        if (data && data.data && data.data.length > 0) {
+          mediaData = data.data;
+          success = true;
+        }
+      } catch (e) {
+        console.log("IG: Ruhend failed");
+      }
+    }
+
+    // 2. Siputzx API
+    if (!success) {
+      try {
+        const { data } = await axios.get(
+          `https://api.siputzx.my.id/api/d/igdl?url=${encodeURIComponent(url)}`,
+        );
+        if (data?.data && data.data.length > 0) {
+          mediaData = data.data;
+          success = true;
+        }
+      } catch (e) {
+        console.log("IG: Siputzx failed");
+      }
+    }
+
+    // 3. Gifted API
+    if (!success) {
+      try {
+        const { data } = await axios.get(
+          `https://api.giftedtech.my.id/api/download/instagram?apikey=gifted&url=${encodeURIComponent(url)}`,
+        );
+        if (data?.result && data.result.length > 0) {
+          mediaData = data.result;
+          success = true;
+        }
+      } catch (e) {
+        console.log("IG: Gifted failed");
+      }
+    }
+
+    // 4. Cobalt API
+    if (!success) {
+      try {
+        const res = await axios.post(
+          "https://api.cobalt.tools/api/json",
+          { url: url },
+          {
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        if (res.data?.url) {
+          mediaData = [{ url: res.data.url, type: "video" }]; // Assume video/image based on url
+          success = true;
+        } else if (res.data?.picker) {
+          mediaData = res.data.picker.map((p) => ({
+            url: p.url,
+            type: p.type,
+          }));
+          success = true;
+        }
+      } catch (e) {
+        console.log("IG: Cobalt failed");
+      }
+    }
+
+    if (!success || mediaData.length === 0) {
       return await sock.sendMessage(chatId, {
-        text: "No media found at the provided link.",
+        text: "❌ Failed to download Instagram media. All APIs busy.",
         ...global.channelInfo,
       });
     }
 
-    const mediaData = downloadData.data;
-    for (let i = 0; i < Math.min(20, mediaData.length); i++) {
+    // Send Media
+    for (let i = 0; i < Math.min(10, mediaData.length); i++) {
       const media = mediaData[i];
       const mediaUrl = media.url;
-
-      // Check if URL ends with common video extensions
       const isVideo =
         /\.(mp4|mov|avi|mkv|webm)$/i.test(mediaUrl) ||
         media.type === "video" ||
-        text.includes("/reel/") ||
-        text.includes("/tv/");
+        url.includes("/reel/") ||
+        url.includes("/tv/");
 
       if (isVideo) {
         await sock.sendMessage(
           chatId,
           {
             video: { url: mediaUrl },
-            mimetype: "video/mp4",
             caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
             ...global.channelInfo,
           },
-          { quoted: message }
+          { quoted: message },
         );
       } else {
         await sock.sendMessage(
@@ -94,14 +152,14 @@ async function instagramCommand(sock, chatId, message) {
             caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
             ...global.channelInfo,
           },
-          { quoted: message }
+          { quoted: message },
         );
       }
     }
   } catch (error) {
     console.error("Error in Instagram command:", error);
     await sock.sendMessage(chatId, {
-      text: "An error occurred while processing the request.",
+      text: "An error occurred while processing.",
       ...global.channelInfo,
     });
   }
