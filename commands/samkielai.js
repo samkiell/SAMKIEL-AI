@@ -60,10 +60,17 @@ async function samkielaiCommand(sock, chatId, message) {
       });
     } catch (e) {}
 
+    // Debug: Log all available settings keys
+    console.log(
+      `[SAMKIELAI] Settings keys: ${Object.keys(settings).join(", ")}`,
+    );
+
     const apiKey = settings.mistralApiKey;
     const agentId = settings.mistralAgentId;
 
-    console.log(`[SAMKIELAI] API Key: ${apiKey ? "SET" : "MISSING"}`);
+    console.log(
+      `[SAMKIELAI] API Key: ${apiKey ? "SET (" + apiKey.substring(0, 5) + "...)" : "MISSING"}`,
+    );
     console.log(`[SAMKIELAI] Agent ID: ${agentId || "MISSING"}`);
 
     if (!apiKey || !agentId) {
