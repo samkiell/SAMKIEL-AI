@@ -2,59 +2,88 @@ const axios = require("axios");
 const { sendText } = require("../lib/sendResponse");
 const { loadPrefix } = require("../lib/prefix");
 
-// Browser-like headers to avoid 403
+// Browser-like headers
 const HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   Accept: "application/json, text/plain, */*",
-  "Accept-Language": "en-US,en;q=0.9",
 };
 
 async function tempmailCommand(sock, chatId) {
   const currentPrefix = loadPrefix();
   const p = currentPrefix === "off" ? "" : currentPrefix;
 
-  const providers = [
-    {
-      name: "Siputzx",
-      url: "https://api.siputzx.my.id/api/tools/tempmail/gen",
-      extract: (d) => d?.data?.email || d?.email,
-    },
-    {
-      name: "Vreden",
-      url: "https://api.vreden.my.id/api/tools/tempmail/gen",
-      extract: (d) => d?.data?.email || d?.email,
-    },
-    {
-      name: "Gifted",
-      url: "https://api.giftedtech.my.id/api/tools/tempmail?apikey=gifted",
-      extract: (d) => d?.result?.email || d?.email,
-    },
-    {
-      name: "1secmail",
-      url: "https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1",
-      extract: (d) => d?.[0],
-    },
-  ];
+  // Try Guerrillamail first (most reliable)
+  try {
+    const { data } = await axios.get(
+      "https://api.guerrillamail.com/ajax.php?f=get_email_address",
+      { timeout: 15000, headers: HEADERS },
+    );
 
-  for (const provider of providers) {
-    try {
-      const { data } = await axios.get(provider.url, {
-        timeout: 10000,
-        headers: HEADERS,
-      });
-      const email = provider.extract(data);
+    if (data?.email_addr) {
+      return await sendText(
+        sock,
+        chatId,
+        `📧 *Temporary Email Generated*\n\n📩 *Email:* ${data.email_addr}\n\nUse \`${p}checkmail ${data.email_addr}\` to check inbox.\n\n*Powered by SAMKIEL BOT*`,
+      );
+    }
+  } catch (e) {
+    console.log("Tempmail: Guerrillamail failed -", e.message);
+  }
 
-      if (email) {
+  // Try Tempmail.lol
+  try {
+    const { data } = await axios.get("https://api.tempmail.lol/generate", {
+      timeout: 15000,
+      headers: HEADERS,
+    });
+
+    if (data?.address) {
+      return await sendText(
+        sock,
+        chatId,
+        `📧 *Temporary Email Generated*\n\n📩 *Email:* ${data.address}\n*Token:* \`${data.token}\`\n\nUse \`${p}checkmail ${data.address}\` to check inbox.\n\n*Powered by SAMKIEL BOT*`,
+      );
+    }
+  } catch (e) {
+    console.log("Tempmail: Tempmail.lol failed -", e.message);
+  }
+
+  // Try Mail.tm
+  try {
+    // Get domain first
+    const domainsRes = await axios.get("https://api.mail.tm/domains", {
+      timeout: 10000,
+      headers: HEADERS,
+    });
+    const domain = domainsRes.data?.["hydra:member"]?.[0]?.domain;
+
+    if (domain) {
+      // Generate random email
+      const randomUser =
+        "samkiel" + Math.random().toString(36).substring(2, 10);
+      const email = `${randomUser}@${domain}`;
+
+      // Create account
+      const createRes = await axios.post(
+        "https://api.mail.tm/accounts",
+        { address: email, password: "TempPass123!" },
+        {
+          timeout: 10000,
+          headers: { ...HEADERS, "Content-Type": "application/json" },
+        },
+      );
+
+      if (createRes.data?.address) {
         return await sendText(
           sock,
           chatId,
-          `📧 *Temporary Email Generated*\n\n📩 *Email:* ${email}\n\nUse \`${p}checkmail ${email}\` to check inbox.\n\n*Powered by SAMKIEL BOT*`,
+          `📧 *Temporary Email Generated*\n\n📩 *Email:* ${createRes.data.address}\n\nUse \`${p}checkmail ${createRes.data.address}\` to check inbox.\n\n*Powered by SAMKIEL BOT*`,
         );
       }
-    } catch (error) {
-      console.log(`Tempmail (${provider.name}) failed: ${error.message}`);
     }
+  } catch (e) {
+    console.log("Tempmail: Mail.tm failed -", e.message);
   }
 
   await sendText(
@@ -73,36 +102,48 @@ async function checkmailCommand(sock, chatId, message, args) {
     return await sendText(
       sock,
       chatId,
-      `Usage: ${p}checkmail <email_address>\nExample: ${p}checkmail demo@1secmail.com\n\n*Powered by SAMKIEL BOT*`,
+      `Usage: ${p}checkmail <email_address>\nExample: ${p}checkmail demo@guerrillamail.com\n\n*Powered by SAMKIEL BOT*`,
     );
   }
 
-  const [login, domain] = email.split("@");
+  // Try Guerrillamail check
+  try {
+    const { data } = await axios.get(
+      `https://api.guerrillamail.com/ajax.php?f=check_email&seq=0&email_addr=${encodeURIComponent(email)}`,
+      { timeout: 15000, headers: HEADERS },
+    );
 
-  // Try multiple check APIs
-  const checkApis = [
-    {
-      name: "Siputzx",
-      url: `https://api.siputzx.my.id/api/tools/tempmail/inbox?email=${encodeURIComponent(email)}`,
-      extract: (d) => d?.data || d?.messages || [],
-    },
-    {
-      name: "1secmail",
-      url: `https://www.1secmail.com/api/v1/?action=getMessages&login=${login}&domain=${domain}`,
-      extract: (d) => d || [],
-    },
-  ];
+    if (data?.list && Array.isArray(data.list)) {
+      if (data.list.length === 0) {
+        return await sendText(
+          sock,
+          chatId,
+          `📭 Inbox empty for ${email}\n\n*Powered by SAMKIEL BOT*`,
+        );
+      }
 
-  for (const api of checkApis) {
-    try {
-      const { data } = await axios.get(api.url, {
-        timeout: 10000,
-        headers: HEADERS,
-      });
-      const messages = api.extract(data);
+      let response = `📧 *Inbox for ${email}*\n\n`;
+      for (const msg of data.list.slice(0, 5)) {
+        response += `🔹 *From:* ${msg.mail_from}\n*Subject:* ${msg.mail_subject}\n*ID:* ${msg.mail_id}\n(Use ${p}readmail ${email} ${msg.mail_id} to read)\n---\n`;
+      }
+      response += `\n*Powered by SAMKIEL BOT*`;
+      return await sendText(sock, chatId, response);
+    }
+  } catch (e) {
+    console.log("Checkmail: Guerrillamail failed -", e.message);
+  }
 
-      if (Array.isArray(messages)) {
-        if (messages.length === 0) {
+  // Try Tempmail.lol check
+  try {
+    const token = args[1]; // If provided
+    if (token) {
+      const { data } = await axios.get(
+        `https://api.tempmail.lol/auth/${token}`,
+        { timeout: 15000, headers: HEADERS },
+      );
+
+      if (data?.email) {
+        if (!data.email.length) {
           return await sendText(
             sock,
             chatId,
@@ -111,24 +152,21 @@ async function checkmailCommand(sock, chatId, message, args) {
         }
 
         let response = `📧 *Inbox for ${email}*\n\n`;
-        for (const msg of messages.slice(0, 5)) {
-          const from = msg.from || msg.sender || "Unknown";
-          const subject = msg.subject || "No Subject";
-          const id = msg.id || msg.messageId || "0";
-          response += `🔹 *From:* ${from}\n*Subject:* ${subject}\n*ID:* ${id}\n(Use ${p}readmail ${email} ${id} to read)\n---\n`;
+        for (const msg of data.email.slice(0, 5)) {
+          response += `🔹 *From:* ${msg.from}\n*Subject:* ${msg.subject}\n---\n${msg.body?.substring(0, 200) || "No content"}\n---\n`;
         }
         response += `\n*Powered by SAMKIEL BOT*`;
         return await sendText(sock, chatId, response);
       }
-    } catch (error) {
-      console.log(`Checkmail (${api.name}) failed: ${error.message}`);
     }
+  } catch (e) {
+    console.log("Checkmail: Tempmail.lol failed -", e.message);
   }
 
   await sendText(
     sock,
     chatId,
-    "❌ Error checking mail. Service might be down.\n\n*Powered by SAMKIEL BOT*",
+    "❌ Could not check inbox. Make sure you're using a valid email from the tempmail command.\n\n*Powered by SAMKIEL BOT*",
   );
 }
 
@@ -146,54 +184,29 @@ async function readmailCommand(sock, chatId, message, args) {
     );
   }
 
-  const [login, domain] = email.split("@");
+  // Try Guerrillamail read
+  try {
+    const { data } = await axios.get(
+      `https://api.guerrillamail.com/ajax.php?f=fetch_email&email_id=${id}`,
+      { timeout: 15000, headers: HEADERS },
+    );
 
-  const readApis = [
-    {
-      name: "Siputzx",
-      url: `https://api.siputzx.my.id/api/tools/tempmail/read?email=${encodeURIComponent(email)}&id=${id}`,
-      extract: (d) => ({
-        subject: d?.data?.subject || d?.subject,
-        from: d?.data?.from || d?.from,
-        body: d?.data?.body || d?.data?.textBody || d?.body || d?.textBody,
-      }),
-    },
-    {
-      name: "1secmail",
-      url: `https://www.1secmail.com/api/v1/?action=readMessage&login=${login}&domain=${domain}&id=${id}`,
-      extract: (d) => ({
-        subject: d?.subject,
-        from: d?.from,
-        body: d?.textBody || d?.body,
-      }),
-    },
-  ];
-
-  for (const api of readApis) {
-    try {
-      const { data } = await axios.get(api.url, {
-        timeout: 10000,
-        headers: HEADERS,
-      });
-      const mail = api.extract(data);
-
-      if (mail && (mail.subject || mail.body)) {
-        const textBody = mail.body || "No text content";
-        return await sendText(
-          sock,
-          chatId,
-          `📩 *Subject:* ${mail.subject || "No Subject"}\n*From:* ${mail.from || "Unknown"}\n\n${textBody}\n\n*Powered by SAMKIEL BOT*`,
-        );
-      }
-    } catch (error) {
-      console.log(`Readmail (${api.name}) failed: ${error.message}`);
+    if (data?.mail_body) {
+      const body = data.mail_body.replace(/<[^>]*>/g, "").substring(0, 1000); // Strip HTML
+      return await sendText(
+        sock,
+        chatId,
+        `📩 *Subject:* ${data.mail_subject || "No Subject"}\n*From:* ${data.mail_from || "Unknown"}\n\n${body}\n\n*Powered by SAMKIEL BOT*`,
+      );
     }
+  } catch (e) {
+    console.log("Readmail: Guerrillamail failed -", e.message);
   }
 
   await sendText(
     sock,
     chatId,
-    "❌ Error reading mail.\n\n*Powered by SAMKIEL BOT*",
+    "❌ Could not read email.\n\n*Powered by SAMKIEL BOT*",
   );
 }
 
