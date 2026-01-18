@@ -542,6 +542,12 @@ You can explore all available commands below 👇`,
 
     // Command handlers
     switch (true) {
+      case cmd === "ping":
+        await pingCommand(sock, chatId, message);
+        break;
+      case cmd === "alive":
+        await aliveCommand(sock, chatId, message);
+        break;
       case userMessage.toLowerCase() === "mp3": {
         const quotedMessage =
           message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
@@ -1039,12 +1045,6 @@ You can explore all available commands below 👇`,
         const mentionedJidListDemote =
           message.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
         await demoteCommand(sock, chatId, mentionedJidListDemote, message);
-        break;
-      case cmd === "ping":
-        await pingCommand(sock, chatId, message);
-        break;
-      case cmd === "alive":
-        await aliveCommand(sock, chatId, message);
         break;
       case cmd === "blur":
         const quotedMessage =
