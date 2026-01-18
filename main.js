@@ -1081,6 +1081,33 @@ async function handleMessages(sock, messageUpdate, printLog) {
       case cmd === "shorts" || cmd === "ytshorts":
         await shortsCommand(sock, chatId, message, args);
         break;
+      case cmd === "snapchat" || cmd === "snap":
+        await snapchatCommand(sock, chatId, message, args);
+        break;
+      case cmd === "reddit" || cmd === "rd":
+        await redditCommand(sock, chatId, message, args);
+        break;
+      case cmd === "threads" || cmd === "th":
+        await threadsCommand(sock, chatId, message, args);
+        break;
+      case cmd === "soundcloud" || cmd === "sc":
+        await soundcloudCommand(sock, chatId, message, args);
+        break;
+      case cmd === "vimeo" || cmd === "vm":
+        await vimeoCommand(sock, chatId, message, args);
+        break;
+      case cmd === "bilibili" || cmd === "bil":
+        await bilibiliCommand(sock, chatId, message, args);
+        break;
+      case cmd === "likee" || cmd === "lk":
+        await likeeCommand(sock, chatId, message, args);
+        break;
+      case cmd === "douyin" || cmd === "dy":
+        await douyinCommand(sock, chatId, message, args);
+        break;
+      case cmd === "capcut" || cmd === "cc":
+        await capcutCommand(sock, chatId, message, args);
+        break;
 
       case command.startsWith("pdf"): {
         let text = userMessage

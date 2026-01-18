@@ -283,6 +283,15 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🐦 ${p}twitter <link>
   ║ ✧ 📌 ${p}pinterest <link>
   ║ ✧ 📹 ${p}shorts <link>
+  ║ ✧ 👻 ${p}snapchat <link>
+  ║ ✧ 🔴 ${p}reddit <link>
+  ║ ✧ 🧵 ${p}threads <link>
+  ║ ✧ ☁️ ${p}soundcloud <link>
+  ║ ✧ 🎬 ${p}vimeo <link>
+  ║ ✧ 📺 ${p}bilibili <link>
+  ║ ✧ 🎯 ${p}likee <link>
+  ║ ✧ 🎶 ${p}douyin <link>
+  ║ ✧ ✂️ ${p}capcut <link>
   ╚═══════════════════╝
 
 ✉️ Join our community for updates:
