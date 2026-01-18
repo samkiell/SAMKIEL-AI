@@ -27,15 +27,9 @@ function extractSpotifyId(url) {
 }
 
 /**
- * API 1: Spotify to YouTube via Search (Reliable method)
+ * API: Spotify to YouTube via Search (Reliable method)
  */
-async function downloadViaYouTube(
-  trackName,
-  artistName,
-  sock,
-  chatId,
-  message,
-) {
+async function downloadViaYouTube(trackName, artistName) {
   const searchQuery = `${trackName} ${artistName} official audio`;
   const { videos } = await yts(searchQuery);
 
@@ -46,55 +40,116 @@ async function downloadViaYouTube(
   const video = videos[0];
   const youtubeUrl = video.url;
 
-  // Use our proven audio download chain
-  const apis = [
-    {
-      name: "David Cyril",
-      fn: async () => {
-        const res = await axios.get(
-          `https://apis.davidcyril.name.ng/download/ytaudio?url=${encodeURIComponent(youtubeUrl)}&apikey=harriet`,
-          { timeout: TIMEOUT },
-        );
-        if (res.data?.success && res.data?.result?.download_url)
-          return res.data.result.download_url;
-        throw new Error("No URL");
-      },
-    },
-    {
-      name: "Siputzx",
-      fn: async () => {
-        const res = await axios.get(
-          `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(youtubeUrl)}`,
-          { timeout: TIMEOUT },
-        );
-        if (res.data?.status && res.data?.data?.dl) return res.data.data.dl;
-        throw new Error("No URL");
-      },
-    },
-    {
-      name: "Gifted",
-      fn: async () => {
-        const res = await axios.get(
-          `https://api.giftedtech.my.id/api/download/ytmp3?apikey=gifted&url=${encodeURIComponent(youtubeUrl)}`,
-          { timeout: TIMEOUT },
-        );
-        if (res.data?.result?.download_url) return res.data.result.download_url;
-        throw new Error("No URL");
-      },
-    },
-  ];
+  // --- ROBUST AUDIO DOWNLOAD CHAIN ---
+  // Same as play.js
 
   let audioUrl = null;
-  for (const api of apis) {
+  let success = false;
+
+  // 1. Keith API
+  if (!success) {
     try {
-      audioUrl = await api.fn();
-      if (audioUrl) break;
+      const res = await axios.get(
+        `https://keith-api.vercel.app/api/ytmp3?url=${encodeURIComponent(youtubeUrl)}`,
+        { timeout: TIMEOUT },
+      );
+      if (res.data?.success && res.data?.downloadUrl) {
+        audioUrl = res.data.downloadUrl;
+        success = true;
+      }
     } catch (e) {
-      console.log(`Spotify: ${api.name} failed`);
+      console.log("Spotify: Keith failed");
     }
   }
 
-  if (!audioUrl) throw new Error("All download APIs failed");
+  // 2. Widipe API
+  if (!success) {
+    try {
+      const res = await axios.get(
+        `https://widipe.com.pl/api/m/dl?url=${encodeURIComponent(youtubeUrl)}`,
+        { timeout: TIMEOUT },
+      );
+      if (res.data?.status && res.data?.result?.dl) {
+        audioUrl = res.data.result.dl;
+        success = true;
+      }
+    } catch (e) {
+      console.log("Spotify: Widipe failed");
+    }
+  }
+
+  // 3. BK4 Mirror
+  if (!success) {
+    try {
+      const res = await axios.get(
+        `https://bk4-api.vercel.app/download/yt?url=${encodeURIComponent(youtubeUrl)}`,
+        { timeout: TIMEOUT },
+      );
+      if (res.data?.status && res.data?.data?.mp3) {
+        audioUrl = res.data.data.mp3;
+        success = true;
+      }
+    } catch (e) {
+      console.log("Spotify: BK4 failed");
+    }
+  }
+
+  // 4. Cobalt API
+  if (!success) {
+    try {
+      const res = await axios.post(
+        "https://api.cobalt.tools/api/json",
+        { url: youtubeUrl, isAudioOnly: true },
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          timeout: TIMEOUT,
+        },
+      );
+      if (res.data?.url) {
+        audioUrl = res.data.url;
+        success = true;
+      }
+    } catch (e) {
+      console.log("Spotify: Cobalt failed");
+    }
+  }
+
+  // 5. David Cyril (Fallback)
+  if (!success) {
+    try {
+      const res = await axios.get(
+        `https://apis.davidcyril.name.ng/download/ytmp3?url=${encodeURIComponent(youtubeUrl)}`,
+        { timeout: TIMEOUT },
+      );
+      if (res.data?.success && res.data?.result?.download_url) {
+        audioUrl = res.data.result.download_url;
+        success = true;
+      }
+    } catch (e) {
+      console.log("Spotify: David Cyril failed");
+    }
+  }
+
+  // 6. Gifted (Fallback)
+  if (!success) {
+    try {
+      const res = await axios.get(
+        `https://api.giftedtech.my.id/api/download/ytmp3?apikey=gifted&url=${encodeURIComponent(youtubeUrl)}`,
+        { timeout: TIMEOUT },
+      );
+      if (res.data?.result?.download_url) {
+        audioUrl = res.data.result.download_url;
+        success = true;
+      }
+    } catch (e) {
+      console.log("Spotify: Gifted failed");
+    }
+  }
+
+  if (!success || !audioUrl) throw new Error("All download APIs failed");
 
   return {
     audioUrl,
@@ -111,13 +166,7 @@ async function spotifyCommand(sock, chatId, message, args) {
     return await sendText(
       sock,
       chatId,
-      "🎵 *Spotify Download*\n\n" +
-        "*Usage:*\n" +
-        "• .spotify <spotify link>\n" +
-        "• .spotify <song name>\n\n" +
-        "*Example:*\n" +
-        "• .spotify https://open.spotify.com/track/...\n" +
-        "• .spotify Blinding Lights The Weeknd",
+      "🎵 *Spotify Download*\n\nUsage: .spotify <link or song name>",
     );
   }
 
@@ -133,16 +182,12 @@ async function spotifyCommand(sock, chatId, message, args) {
     // If it's a Spotify link, try to get track info
     if (isSpotifyLink) {
       const trackId = extractSpotifyId(query);
-      if (!trackId) {
+      if (!trackId)
         return await sendText(sock, chatId, "❌ Invalid Spotify link");
-      }
 
-      // Try to get track info from Spotify embed
       try {
         const embedUrl = `https://open.spotify.com/embed/track/${trackId}`;
         const res = await axios.get(embedUrl, { timeout: 10000 });
-
-        // Parse title from embed HTML
         const titleMatch = res.data.match(/<title>([^<]+)<\/title>/);
         if (titleMatch) {
           const fullTitle = titleMatch[1].replace(" | Spotify", "");
@@ -151,19 +196,13 @@ async function spotifyCommand(sock, chatId, message, args) {
           artistName = parts[1] || "";
         }
       } catch (e) {
-        console.log("Spotify: Could not fetch track info, using ID");
+        console.log("Spotify: Meta fetch failed, using ID");
         trackName = trackId;
       }
     }
 
     // Download via YouTube
-    const result = await downloadViaYouTube(
-      trackName,
-      artistName,
-      sock,
-      chatId,
-      message,
-    );
+    const result = await downloadViaYouTube(trackName, artistName);
 
     // Send audio
     await sock.sendMessage(
