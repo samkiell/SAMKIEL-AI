@@ -1806,27 +1806,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
       }
 
       default:
-        if (isGroup) {
-          // Handle non-command group messages
-          if (userMessage) {
-            // Make sure there's a message
-            await handleChatbotResponse(
-              sock,
-              chatId,
-              message,
-              userMessage,
-              senderId,
-            );
-          }
-          await Antilink(message, sock);
-          await handleBadwordDetection(
-            sock,
-            chatId,
-            message,
-            userMessage,
-            senderId,
-          );
-        }
+        // Non-command messages are already handled above (chatbot, antilink, badword)
         break;
     }
 

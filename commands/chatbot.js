@@ -40,7 +40,7 @@ async function handleChatbotCommand(
     return await sock.sendMessage(
       chatId,
       {
-        text: "Chatbot enabled for this group.",
+        text: "✅ Chatbot enabled for this group.\n\nI will reply when someone mentions 'bot' or 'samkiel'.",
       },
       { quoted: message },
     );
@@ -49,7 +49,7 @@ async function handleChatbotCommand(
     return await sock.sendMessage(
       chatId,
       {
-        text: "Chatbot disabled for this group.",
+        text: "❌ Chatbot disabled for this group.",
       },
       { quoted: message },
     );
@@ -58,7 +58,7 @@ async function handleChatbotCommand(
     return await sock.sendMessage(
       chatId,
       {
-        text: `Chatbot is ${status?.enabled ? "enabled" : "disabled"}.\n\nUsage: ${p}chatbot on/off`,
+        text: `Chatbot is ${status?.enabled ? "✅ enabled" : "❌ disabled"}.\n\nUsage: ${p}chatbot on/off`,
       },
       { quoted: message },
     );
@@ -72,34 +72,37 @@ async function handleChatbotResponse(
   userMessage,
   senderId,
 ) {
-  if (!userMessage || userMessage.length < 2) return;
+  if (!userMessage || userMessage.length < 3) return;
 
   const chatbotData = await getChatbot(chatId);
   if (!chatbotData?.enabled) return;
 
-  const botMentions = ["bot", "samkiel", settings.botName?.toLowerCase()];
+  // Check if message mentions bot
+  const botMentions = [
+    "bot",
+    "samkiel",
+    settings.botName?.toLowerCase(),
+  ].filter(Boolean);
   const lowerMessage = userMessage.toLowerCase();
-  const shouldRespond = botMentions.some((m) => lowerMessage.includes(m));
+  const shouldRespond = botMentions.some((m) => m && lowerMessage.includes(m));
 
   if (!shouldRespond) return;
 
   try {
     let answer = null;
 
-    const apiKey = settings.mistralApiKey;
-    const agentId = settings.mistralAgentId;
-
-    if (apiKey && agentId) {
+    // Try Mistral first (primary)
+    if (settings.mistralApiKey && settings.mistralAgentId) {
       try {
         const response = await axios.post(
           "https://api.mistral.ai/v1/conversations",
           {
-            agent_id: agentId,
+            agent_id: settings.mistralAgentId,
             inputs: [{ role: "user", content: userMessage }],
           },
           {
             headers: {
-              Authorization: `Bearer ${apiKey}`,
+              Authorization: `Bearer ${settings.mistralApiKey}`,
               "Content-Type": "application/json",
             },
             timeout: TIMEOUT,
@@ -110,16 +113,26 @@ async function handleChatbotResponse(
           response.data?.outputs?.[0]?.content ||
           response.data?.message?.content ||
           response.data?.choices?.[0]?.message?.content;
-      } catch (e) {}
+      } catch (e) {
+        console.error("Chatbot Mistral error:", e.message);
+      }
     }
 
+    // Try Groq as backup
     if (!answer && settings.groqApiKey) {
       try {
         const response = await axios.post(
           "https://api.groq.com/openai/v1/chat/completions",
           {
             model: "llama-3.3-70b-versatile",
-            messages: [{ role: "user", content: userMessage }],
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are SAMKIEL BOT, a friendly WhatsApp assistant. Keep responses concise and helpful.",
+              },
+              { role: "user", content: userMessage },
+            ],
             temperature: 0.7,
             max_tokens: 500,
           },
@@ -133,19 +146,22 @@ async function handleChatbotResponse(
         );
 
         answer = response.data?.choices?.[0]?.message?.content;
-      } catch (e) {}
+      } catch (e) {
+        console.error("Chatbot Groq error:", e.message);
+      }
     }
 
     if (answer && answer.length > 2) {
       const cleanAnswer = answer.replace(/\*\*([^*]+)\*\*/g, "*$1*").trim();
-
       await sock.sendMessage(
         chatId,
         { text: cleanAnswer },
         { quoted: message },
       );
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error("Chatbot error:", error.message);
+  }
 }
 
 module.exports = { handleChatbotCommand, handleChatbotResponse };

@@ -190,8 +190,10 @@ async function viewOnceCommand(sock, chatId, message, isDm = false) {
 
         await sock.sendMessage(targetJid, {
           audio: fs.readFileSync(tempFile),
-          mimetype: "audio/mp4",
-          ptt: true,
+          mimetype: audioMimetype.includes("ogg")
+            ? "audio/ogg; codecs=opus"
+            : audioMimetype,
+          ptt: isPtt,
         });
 
         fs.unlinkSync(tempFile);
