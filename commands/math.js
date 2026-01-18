@@ -13,6 +13,9 @@ const {
 
 const TIMEOUT = 30000;
 
+// Get the math system prompt once (static)
+const MATH_SYSTEM_PROMPT = getMathSystemPrompt();
+
 /**
  * DeepSeek API Endpoints optimized for mathematical reasoning
  */
@@ -20,31 +23,31 @@ const MATH_APIS = [
   {
     name: "JIKAN MOEAPI",
     url: (q) =>
-      `https://jikan.moeapi.net/v1/deepseek?q=${encodeURIComponent(getMathSystemPrompt() + "\n\nProblem: " + q)}`,
+      `https://jikan.moeapi.net/v1/deepseek?q=${encodeURIComponent(MATH_SYSTEM_PROMPT + "\n\nProblem: " + q)}`,
     extract: (d) => d?.result || d?.answer,
   },
   {
     name: "Gifted DeepSeek",
     url: (q) =>
-      `https://api.giftedtech.my.id/api/ai/deepseek?apikey=gifted&q=${encodeURIComponent(getMathSystemPrompt() + "\n\nProblem: " + q)}`,
+      `https://api.giftedtech.my.id/api/ai/deepseek?apikey=gifted&q=${encodeURIComponent(MATH_SYSTEM_PROMPT + "\n\nProblem: " + q)}`,
     extract: (d) => d?.result,
   },
   {
     name: "Siputzx DeepSeek",
     url: (q) =>
-      `https://api.siputzx.my.id/api/ai/deepseek?prompt=${encodeURIComponent(getMathSystemPrompt() + "\n\nProblem: " + q)}`,
+      `https://api.siputzx.my.id/api/ai/deepseek?prompt=${encodeURIComponent(MATH_SYSTEM_PROMPT + "\n\nProblem: " + q)}`,
     extract: (d) => d?.data || d?.result,
   },
   {
     name: "RyzenDesu DeepSeek",
     url: (q) =>
-      `https://api.ryzendesu.vip/api/ai/deepseek?text=${encodeURIComponent(getMathSystemPrompt() + "\n\nProblem: " + q)}`,
+      `https://api.ryzendesu.vip/api/ai/deepseek?text=${encodeURIComponent(MATH_SYSTEM_PROMPT + "\n\nProblem: " + q)}`,
     extract: (d) => d?.result || d?.answer,
   },
   {
     name: "Qewertyy DeepSeek",
     url: (q) =>
-      `https://api.qewertyy.dev/models?model_id=26&prompt=${encodeURIComponent(getMathSystemPrompt() + "\n\nProblem: " + q)}`,
+      `https://api.qewertyy.dev/models?model_id=26&prompt=${encodeURIComponent(MATH_SYSTEM_PROMPT + "\n\nProblem: " + q)}`,
     extract: (d) => d?.content || d?.result,
   },
 ];
