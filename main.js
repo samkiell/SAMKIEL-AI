@@ -120,7 +120,7 @@ const {
   handleMessageRevocation,
   storeMessage,
 } = require("./commands/antidelete");
-const { bibleCommand } = require("./commands/bible");
+const bibleCommand = require("./commands/bible");
 const clearTmpCommand = require("./commands/cleartmp");
 const setProfilePicture = require("./commands/setpp");
 const instagramCommand = require("./commands/instagram");
