@@ -170,6 +170,7 @@ const {
   recordUserActivity,
 } = require("./commands/listonline");
 const pinCommand = require("./commands/pin");
+const pmCommand = require("./commands/pm");
 const { sendText, shouldHaveBranding } = require("./lib/sendResponse");
 
 // Global settings
@@ -1416,6 +1417,10 @@ You can explore all available commands below 👇`,
         break;
       case cmd === "lid":
         await lidCommand(sock, chatId, senderId, message);
+        break;
+
+      case cmd === "pm":
+        await pmCommand(sock, chatId, senderId, message, args);
         break;
 
       case cmd === "prefix":
