@@ -1058,6 +1058,21 @@ async function handleMessages(sock, messageUpdate, printLog) {
       case cmd === "fact" || cmd === "facts" || cmd === "trivia":
         await factCommand(sock, chatId, args);
         break;
+
+      // NEW DOWNLOADERS
+      case cmd === "spotify" || cmd === "sp":
+        await spotifyCommand(sock, chatId, message, args);
+        break;
+      case cmd === "twitter" || cmd === "tw" || cmd === "x":
+        await twitterCommand(sock, chatId, message, args);
+        break;
+      case cmd === "pinterest" || cmd === "pin":
+        await pinterestCommand(sock, chatId, message, args);
+        break;
+      case cmd === "shorts" || cmd === "ytshorts":
+        await shortsCommand(sock, chatId, message, args);
+        break;
+
       case command.startsWith("pdf"): {
         let text = userMessage
           .slice(userMessage.toLowerCase().indexOf("pdf") + 3)
