@@ -277,16 +277,28 @@ async function updateCommand(sock, chatId, message, zipOverride) {
     );
     return;
   }
+
+  // Check for force flag
+  const text =
+    message.message?.conversation ||
+    message.message?.extendedTextMessage?.text ||
+    "";
+  const args = text.split(/\s+/).slice(1);
+  const forceUpdate =
+    args.includes("--force") || args.includes("force") || args.includes("-f");
+
   try {
-    // Minimal UX
     await sock.sendMessage(
       chatId,
-      { text: "🔄 Updating the bot, please wait…" },
+      {
+        text: forceUpdate
+          ? "🔄 Force updating the bot..."
+          : "🔄 Updating the bot, please wait…",
+      },
       { quoted: message },
     );
 
     if (await hasGitRepo()) {
-      // silent
       const { oldRev, newRev, alreadyUpToDate, commits, files } =
         await updateViaGit();
 
@@ -294,10 +306,14 @@ async function updateCommand(sock, chatId, message, zipOverride) {
         typeof newRev === "string" ? newRev.slice(0, 7) : newRev;
 
       let updateInfo = "";
-      if (alreadyUpToDate) {
+      if (alreadyUpToDate && !forceUpdate) {
         updateInfo = `✅ Already up to date: ${shortNewRev}`;
+        await sendText(sock, chatId, updateInfo, { quoted: message });
+        return; // Don't restart if already up to date and not forcing
+      } else if (alreadyUpToDate && forceUpdate) {
+        updateInfo = `🔄 Force update: ${shortNewRev}\n\nReinstalling dependencies...`;
       } else {
-        updateInfo = `✅ Updated to: ${shortNewRev}\n\n*Recent Changes SC:*\n${commits || "No commit details available."}`;
+        updateInfo = `✅ Updated to: ${shortNewRev}\n\n*Recent Changes:*\n${commits || "No commit details."}`;
       }
 
       await run("npm install --no-audit --no-fund");
