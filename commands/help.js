@@ -107,198 +107,209 @@ No detailed description available for this command yet, but you can use it with:
     ? fs.readdirSync(commandsDir).filter((file) => file.endsWith(".js")).length
     : 0;
 
-  const helpMessage = `╭──〔 🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}* 〕──╮
-  │ ⏱️ *Uptime:* ${uptime}
-  │ 🧠 *Memory:* ${memStr}
-  │ 💾 *Disk:* ${diskStr}
-  │ 👤 *User:* ${pushName || "User"}
-  │ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
-  │ ⚙️ *Commands:* ${totalCommands}
-  │ 📌 *Prefix:* ${currentPrefix === "off" ? "None" : currentPrefix}
-  │ 🌟 *Version:* ${settings.version || "3.7.3"}
-  │ 🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
-  │ 🌐 *Website:* ${settings.website || "https://samkielbot.app"}
-  ╰──────────────────╯
+  const helpMessage = `╔═══════════════════╗
+  🤖 *${settings.botName || "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋"}*
+  ║ ⏱️ *Uptime:* ${uptime}
+  ║ 🧠 *Memory:* ${memStr}
+  ║ 💾 *Disk:* ${diskStr}
+  ║ 👤 *User:* ${pushName || "User"}
+  ║ 👤 *Owner:* ${settings.ownerName || "SAMKIEL"}
+  ║ ⚙️ *Commands:* ${totalCommands}
+  ║ 📌 *Prefix:* ${currentPrefix === "off" ? "None" : currentPrefix}
+  ║ 🌟 *Version:* ${settings.version || "3.7.3"}
+  ║ 🛠️ *Developer:* ${settings.developer || "ѕαмкιєℓ.∂єν"}
+  ║ 🌐 *Website:* ${settings.website || "https://samkielbot.app"}
+  ╚═══════════════════╝
 
-  ╭──〔 🤖 *AI Commands* 〕──
-  │ ✧ 🤖 ${p}gpt
-  │ ✧ 🧠 ${p}gemini
-  │ ✧ 🧬 ${p}deepseek
-  │ ✧ 🎨 ${p}imagine
-  │ ✧ 🖼️ ${p}remini
-  │ ✧ 🎥 ${p}sora
-  │ ✧ ✂️ ${p}removebg
-  ╰──────────────────────
+  ╔═══════════════════╗
+  🤖 *AI Commands:*
+  ║ ✧ 🤖 ${p}gpt
+  ║ ✧ 🧠 ${p}gemini
+  ║ ✧ 🧬 ${p}deepseek
+  ║ ✧ 🎨 ${p}imagine
+  ║ ✧ 🖼️ ${p}remini
+  ║ ✧ 🎥 ${p}sora
+  ║ ✧ ✂️ ${p}removebg
+  ╚═══════════════════╝
 
-  ╭──〔 📐 *Math Commands* 〕──
-  │ ✧ 🧮 ${p}math <problem>
-  │ ✧ 🔢 ${p}cal <expression>
-  │ ✧ 📊 ${p}calculate <expression>
-  │ ✧ ✏️ ${p}solve <equation>
-  ╰──────────────────────
+  ╔═══════════════════╗
+  📐 *Math Commands:*
+  ║ ✧ 🧮 ${p}math <problem>
+  ║ ✧ 🔢 ${p}cal <expression>
+  ║ ✧ 📊 ${p}calculate <expression>
+  ║ ✧ ✏️ ${p}solve <equation>
+  ╚═══════════════════╝
 
-  ╭──〔 🌐 *General Commands* 〕──
-  │ ✧ 🛎️ ${p}help 
-  │ ✧ 📢 ${p}channel
-  │ ✧ 🏓 ${p}ping
-  │ ✧ 🟢 ${p}alive
-  │ ✧ 🗣️ ${p}tts <text>
-  │ ✧ 📌 ${p}prefix
-  │ ✧ 👤 ${p}owner
-  │ ✧ 😂 ${p}joke
-  │ ✧ 💭 ${p}quote
-  │ ✧ 🤔 ${p}fact
-  │ ✧ 🌦️ ${p}weather <city>
-  │ ✧ 📽️ ${p}movie <name>
-  │ ✧ 📰 ${p}news
-  │ ✧ 🐛 ${p}report
-  │ ✧ 📄 ${p}pdf <text>
-  │ ✧ 🎨 ${p}attp <text>
-  │ ✧ 🎵 ${p}lyrics <song_title>
-  │ ✧ 🎱 ${p}8ball <question>
-  │ ✧ 🏷️ ${p}groupinfo
-  │ ✧ 👥 ${p}staff or ${p}admins 
-  │ ✧ 🆚 ${p}deyplay
-  │ ✧ 🌍 ${p}trt <text> <lang>
-  │ ✧ 📸 ${p}ss <link>
-  │ ✧ 🌐 ${p}deploy
-  │ ✧ 🆔 ${p}lid
-  │ ✧ 📖 ${p}bible <text>
-  │ ✧ 💰 ${p}crypto <symbol>
-  │ ✧ ⚽ ${p}score <league>
-  │ ✧ 📧 ${p}tempmail
-  │ ✧ 📊 ${p}poll <q>|<opt>
-  ╰──────────────────────
+  ╔═══════════════════╗
+  🌐 *General Commands:*
+  ║ ✧ 🛎️ ${p}help 
+  ║ ✧ 📢 ${p}channel
+  ║ ✧ 🏓 ${p}ping
+  ║ ✧ 🟢 ${p}alive
+  ║ ✧ 🗣️ ${p}tts <text>
+  ║ ✧ 📌 ${p}prefix
+  ║ ✧ 👤 ${p}owner
+  ║ ✧ 😂 ${p}joke
+  ║ ✧ 💭 ${p}quote
+  ║ ✧ 🤔 ${p}fact
+  ║ ✧ 🌦️ ${p}weather <city>
+  ║ ✧ 📽️ ${p}movie <name>
+  ║ ✧ 📰 ${p}news
+  ║ ✧ 🐛 ${p}report
+  ║ ✧ 📄 ${p}pdf <text>
+  ║ ✧ 🎨 ${p}attp <text>
+  ║ ✧ 🎵 ${p}lyrics <song_title>
+  ║ ✧ 🎱 ${p}8ball <question>
+  ║ ✧ 🏷️ ${p}groupinfo
+  ║ ✧ 👥 ${p}staff or ${p}admins 
+  ║ ✧ 🆚 ${p}deyplay
+  ║ ✧ 🌍 ${p}trt <text> <lang>
+  ║ ✧ 📸 ${p}ss <link>
+  ║ ✧ 🌐 ${p}deploy
+  ║ ✧ 🆔 ${p}lid
+  ║ ✧ 📖 ${p}bible <text>
+  ║ ✧ 💰 ${p}crypto <symbol>
+  ║ ✧ ⚽ ${p}score <league>
+  ║ ✧ 📧 ${p}tempmail
+  ║ ✧ 📊 ${p}poll <q>|<opt>
+  ╚═══════════════════╝
 
-  ╭──〔 👮‍♂️ *Admin Commands* 〕──
-  │ ✧ ➕ ${p}add <number>
-  │ ✧ 🔨 ${p}ban @user
-  │ ✧ ⬆️ ${p}promote @user
-  │ ✧ ⬇️ ${p}demote @user
-  │ ✧ ⏱️ ${p}mute <minutes>
-  │ ✧ 🔊 ${p}unmute
-  │ ✧ ❌ ${p}delete or ${p}del
-  │ ✧ 🚫 ${p}kick @user
-  │ ✧ 📊 ${p}warnings @user
-  │ ✧ ⚠️ ${p}warn @user
-  │ ✧ 🔗 ${p}antilink
-  │ ✧ 🛡️ ${p}antibadword
-  │ ✧ 🧹 ${p}clear
-  │ ✧ 📣 ${p}tag <message>
-  │ ✧ 📢 ${p}tagall
-  │ ✧ 🤖 ${p}chatbot
-  │ ✧ 🔄 ${p}resetlink
-  │ ✧ 🔌 ${p}plugin
-  │ ✧ 💾 ${p}savestatus [dm]
-  │ ✧ 👥 ${p}listonline
-  │ ✧ 📌 ${p}pin
-  │ ✧ 📍 ${p}unpin
-  ╰──────────────────────
+  ╔═══════════════════╗
+  👮‍♂️ *Admin Commands:*
+  ║ ✧ ➕ ${p}add <number>
+  ║ ✧ 🔨 ${p}ban @user
+  ║ ✧ ⬆️ ${p}promote @user
+  ║ ✧ ⬇️ ${p}demote @user
+  ║ ✧ ⏱️ ${p}mute <minutes>
+  ║ ✧ 🔊 ${p}unmute
+  ║ ✧ ❌ ${p}delete or ${p}del
+  ║ ✧ 🚫 ${p}kick @user
+  ║ ✧ 📊 ${p}warnings @user
+  ║ ✧ ⚠️ ${p}warn @user
+  ║ ✧ 🔗 ${p}antilink
+  ║ ✧ 🛡️ ${p}antibadword
+  ║ ✧ 🧹 ${p}clear
+  ║ ✧ 📣 ${p}tag <message>
+  ║ ✧ 📢 ${p}tagall
+  ║ ✧ 🤖 ${p}chatbot
+  ║ ✧ 🔄 ${p}resetlink
+  ║ ✧ 🔌 ${p}plugin
+  ║ ✧ 💾 ${p}savestatus [dm]
+  ║ ✧ 👥 ${p}listonline
+  ║ ✧ 📌 ${p}pin
+  ║ ✧ 📍 ${p}unpin
+  ╚═══════════════════╝
 
-  ╭──〔 🔒 *Owner Commands* 〕──
-  │ ✧ 🛠️ ${p}mode
-  │ ✧ 📤 ${p}autostatus
-  │ ✧ 🆔 ${p}sudo
-  │ ✧ 🔄 ${p}update
-  │ ✧ 🗑️ ${p}clearsession
-  │ ✧ 🔍 ${p}antidelete
-  │ ✧ 🧽 ${p}cleartmp
-  │ ✧ 🖼️ ${p}setpp <reply to image>
-  │ ✧ 🤖 ${p}autoreact
-  │ ✧ 🛠️ ${p}setprefix <symbol>
-  │ ✧ 🚫 ${p}disablebot
-  │ ✧ ✅ ${p}enablebot
-  │ ✧ 📞 ${p}anticall on/off
-  │ ✧ ✔️ ${p}autoread on/off
-  │ ✧ 📢 ${p}togglestart on/off
-  │ ✧ 🔒 ${p}lockdown on/off
-  │ ✧ 🔇 ${p}silence <time>
-  │ ✧ ⏱️ ${p}ratelimit <n/time>
-  │ ✧ 📋 ${p}auditlog [count]
-  │ ✧ 📸 ${p}snapshot
-  │ ✧ 🛡️ ${p}failsafe
-  │ ✧ 💬 ${p}pm <on/off/set>
-  ╰──────────────────────
+  ╔═══════════════════╗
+  🔒 *Owner Commands:*
+  ║ ✧ 🛠️ ${p}mode
+  ║ ✧ 📤 ${p}autostatus
+  ║ ✧ 🆔 ${p}sudo
+  ║ ✧ 🔄 ${p}update
+  ║ ✧ 🗑️ ${p}clearsession
+  ║ ✧ 🔍 ${p}antidelete
+  ║ ✧ 🧽 ${p}cleartmp
+  ║ ✧ 🖼️ ${p}setpp <reply to image>
+  ║ ✧ 🤖 ${p}autoreact
+  ║ ✧ 🛠️ ${p}setprefix <symbol>
+  ║ ✧ 🚫 ${p}disablebot
+  ║ ✧ ✅ ${p}enablebot
+  ║ ✧ 📞 ${p}anticall on/off
+  ║ ✧ ✔️ ${p}autoread on/off
+  ║ ✧ 📢 ${p}togglestart on/off
+  ║ ✧ 🔒 ${p}lockdown on/off
+  ║ ✧ 🔇 ${p}silence <time>
+  ║ ✧ ⏱️ ${p}ratelimit <n/time>
+  ║ ✧ 📋 ${p}auditlog [count]
+  ║ ✧ 📸 ${p}snapshot
+  ║ ✧ 🛡️ ${p}failsafe
+  ║ ✧ 💬 ${p}pm <on/off/set>
+  ╚═══════════════════╝
 
-  ╭──〔 📥 *Downloader* 〕──
-  │ ✧ 🎵 ${p}play <song_name>
-  │ ✧ 🎧 ${p}song <song_name>
-  │ ✧ 📹 ${p}video <query/url>
-  │ ✧ 📸 ${p}instagram <link>
-  │ ✧ 📘 ${p}facebook <link>
-  │ ✧ 🎬 ${p}tiktok <link>
-  │ ✧ 🎵 ${p}spotify <link/song>
-  │ ✧ 🐦 ${p}twitter <link>
-  │ ✧ 📌 ${p}pinterest <link>
-  │ ✧ 📹 ${p}shorts <link>
-  │ ✧ 👻 ${p}snapchat <link>
-  │ ✧ 🔴 ${p}reddit <link>
-  │ ✧ 🧵 ${p}threads <link>
-  │ ✧ ☁️ ${p}soundcloud <link>
-  │ ✧ ✂️ ${p}capcut <link>
-  │ ✧ 🎮 ${p}playstore <app_name>
-  ╰──────────────────────
+  ╔═══════════════════╗
+  📥 *Downloader:*
+  ║ ✧ 🎵 ${p}play <song_name>
+  ║ ✧ 🎧 ${p}song <song_name>
+  ║ ✧ 📹 ${p}video <query/url>
+  ║ ✧ 📸 ${p}instagram <link>
+  ║ ✧ 📘 ${p}facebook <link>
+  ║ ✧ 🎬 ${p}tiktok <link>
+  ║ ✧ 🎵 ${p}spotify <link/song>
+  ║ ✧ 🐦 ${p}twitter <link>
+  ║ ✧ 📌 ${p}pinterest <link>
+  ║ ✧ 📹 ${p}shorts <link>
+  ║ ✧ 👻 ${p}snapchat <link>
+  ║ ✧ 🔴 ${p}reddit <link>
+  ║ ✧ 🧵 ${p}threads <link>
+  ║ ✧ ☁️ ${p}soundcloud <link>
+  ║ ✧ ✂️ ${p}capcut <link>
+  ║ ✧ 🎮 ${p}playstore <app_name>
+  ╚═══════════════════╝
 
-  ╭──〔 🎨 *Image/Sticker* 〕──
-  │ ✧ 🌀 ${p}blur <image>
-  │ ✧ 🌅 ${p}simage <reply to sticker>
-  │ ✧ 🖼️ ${p}sticker <reply to image>
-  │ ✧ 🎴 ${p}tgsticker <Link>
-  │ ✧ 🤣 ${p}meme
-  │ ✧ ✍️ ${p}take <packname>
-  │ ✧ 🔀 ${p}emojimix <emj1>+<emj2>
-  │ ✧ 🔗 ${p}tourl <reply media>
-  │ ✧ 📝 ${p}ocr <reply image>
-  ╰──────────────────────
+  ╔═══════════════════╗
+  🎨 *Image/Sticker:*
+  ║ ✧ 🌀 ${p}blur <image>
+  ║ ✧ 🌅 ${p}simage <reply to sticker>
+  ║ ✧ 🖼️ ${p}sticker <reply to image>
+  ║ ✧ 🎴 ${p}tgsticker <Link>
+  ║ ✧ 🤣 ${p}meme
+  ║ ✧ ✍️ ${p}take <packname>
+  ║ ✧ 🔀 ${p}emojimix <emj1>+<emj2>
+  ║ ✧ 🔗 ${p}tourl <reply media>
+  ║ ✧ 📝 ${p}ocr <reply image>
+  ╚═══════════════════╝
 
-  ╭──〔 🎮 *Games* 〕──
-  │ ✧ 🎮 ${p}tictactoe @user
-  │ ✧ 🧩 ${p}hangman
-  │ ✧ 🔡 ${p}guess <letter>
-  │ ✧ 🧠 ${p}trivia
-  │ ✧ ❓ ${p}answer <answer>
-  │ ✧ 💬 ${p}truth
-  │ ✧ 🎯 ${p}dare
-  │ ✧ 🔠 ${p}leap start/join
-  ╰──────────────────────
+  ╔═══════════════════╗
+  🎮 *Games:*
+  ║ ✧ 🎮 ${p}tictactoe @user
+  ║ ✧ 🧩 ${p}hangman
+  ║ ✧ 🔡 ${p}guess <letter>
+  ║ ✧ 🧠 ${p}trivia
+  ║ ✧ ❓ ${p}answer <answer>
+  ║ ✧ 💬 ${p}truth
+  ║ ✧ 🎯 ${p}dare
+  ║ ✧ 🔠 ${p}leap start/join
+  ╚═══════════════════╝
 
-  ╭──〔 🎯 *Fun* 〕──
-  │ ✧ 🌟 ${p}compliment @user
-  │ ✧ 😡 ${p}insult @user
-  │ ✧ 💌 ${p}flirt 
-  │ ✧ 🌙 ${p}goodnight
-  │ ✧ 💘 ${p}valentine
-  │ ✧ 🧙‍♂️ ${p}character @user
-  │ ✧ ☠️ ${p}wasted @user
-  │ ✧ ❤️‍🔥 ${p}ship @user
-  │ ✧ 😘 ${p}simp @user
-  │ ✧ 🤦‍♂️ ${p}stupid @user [text]
-  ╰──────────────────────
+  ╔═══════════════════╗
+  🎯 *Fun:*
+  ║ ✧ 🌟 ${p}compliment @user
+  ║ ✧ 😡 ${p}insult @user
+  ║ ✧ 💌 ${p}flirt 
+  ║ ✧ 🌙 ${p}goodnight
+  ║ ✧ 💘 ${p}valentine
+  ║ ✧ 🧙‍♂️ ${p}character @user
+  ║ ✧ ☠️ ${p}wasted @user
+  ║ ✧ ❤️‍🔥 ${p}ship @user
+  ║ ✧ 😘 ${p}simp @user
+  ║ ✧ 🤦‍♂️ ${p}stupid @user [text]
+  ╚═══════════════════╝
 
-  ╭──〔 🔤 *Textmaker* 〕──
-  │ ✧ ✨ ${p}metallic <text>
-  │ ✧ ❄️ ${p}ice <text>
-  │ ✧ ⛄ ${p}snow <text>
-  │ ✧ 🌟 ${p}impressive <text>
-  │ ✧ 🖥️ ${p}matrix <text>
-  │ ✧ 💡 ${p}light <text>
-  │ ✧ 🌈 ${p}neon <text>
-  │ ✧ 😈 ${p}devil <text>
-  │ ✧ 💜 ${p}purple <text>
-  │ ✧ ⚡ ${p}thunder <text>
-  │ ✧ 🍃 ${p}leaves <text>
-  │ ✧ 🎞️ ${p}1917 <text>
-  │ ✧ 🛡️ ${p}arena <text>
-  │ ✧ 🖥️ ${p}hacker <text>
-  │ ✧ 🏖️ ${p}sand <text>
-  │ ✧ 🎤 ${p}blackpink <text>
-  │ ✧ 🖥️ ${p}glitch <text>
-  │ ✧ 🔥 ${p}fire <text>
-  ╰──────────────────────
+  ╔═══════════════════╗
+  🔤 *Textmaker:*
+  ║ ✧ ✨ ${p}metallic <text>
+  ║ ✧ ❄️ ${p}ice <text>
+  ║ ✧ ⛄ ${p}snow <text>
+  ║ ✧ 🌟 ${p}impressive <text>
+  ║ ✧ 🖥️ ${p}matrix <text>
+  ║ ✧ 💡 ${p}light <text>
+  ║ ✧ 🌈 ${p}neon <text>
+  ║ ✧ 😈 ${p}devil <text>
+  ║ ✧ 💜 ${p}purple <text>
+  ║ ✧ ⚡ ${p}thunder <text>
+  ║ ✧ 🍃 ${p}leaves <text>
+  ║ ✧ 🎞️ ${p}1917 <text>
+  ║ ✧ 🛡️ ${p}arena <text>
+  ║ ✧ 🖥️ ${p}hacker <text>
+  ║ ✧ 🏖️ ${p}sand <text>
+  ║ ✧ 🎤 ${p}blackpink <text>
+  ║ ✧ 🖥️ ${p}glitch <text>
+  ║ ✧ 🔥 ${p}fire <text>
+  ╚═══════════════════╝
 
-✉️ Join our community for updates:
-https://chat.whatsapp.com/GwVMsm7rRRE7cEIIsvojdd
-_Tip: Use ${p}help <command-name> for details (e.g., ${p}help play)_`;
+  ✉️ Join our community for updates:
+  https://chat.whatsapp.com/GwVMsm7rRRE7cEIIsvojdd
+  _Tip: Use ${p}help <command-name> for details (e.g., ${p}help play)_`;
 
   try {
     const imagePath = path.join(__dirname, "../assets/bot_image.jpg");

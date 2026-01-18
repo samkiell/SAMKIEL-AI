@@ -76,15 +76,15 @@ async function ocrCommand(sock, chatId, message) {
         return await sendText(sock, chatId, "⚠️ No text found in image.");
 
       // Send detected text first
-      await sendText(sock, chatId, `📝 *Detected Text:*\n\n${text}`);
+      await sendText(
+        sock,
+        chatId,
+        `📝 *Detected Text:*\n\n${text}\n\n*Powered by SAMKIEL BOT*`,
+      );
 
       // Check if the extracted text contains a math problem
       if (isMathProblem(text)) {
-        await sendText(
-          sock,
-          chatId,
-          "🧮 *Detected math problem! Solving...*",
-        );
+        await sendText(sock, chatId, "🧮 *Detected math problem! Solving...*");
 
         // Create a synthetic message object for mathCommand
         const syntheticMessage = {

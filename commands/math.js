@@ -21,6 +21,18 @@ const MATH_SYSTEM_PROMPT = getMathSystemPrompt();
  */
 const MATH_APIS = [
   {
+    name: "Vreden DeepSeek",
+    url: (q) =>
+      `https://api.vreden.my.id/api/ai/deepseek?query=${encodeURIComponent(MATH_SYSTEM_PROMPT + "\n\nProblem: " + q)}`,
+    extract: (d) => d?.result?.response || d?.result,
+  },
+  {
+    name: "Widipe DeepSeek",
+    url: (q) =>
+      `https://widipe.com.pl/ai/deepseek?text=${encodeURIComponent(MATH_SYSTEM_PROMPT + "\n\nProblem: " + q)}`,
+    extract: (d) => d?.result,
+  },
+  {
     name: "JIKAN MOEAPI",
     url: (q) =>
       `https://jikan.moeapi.net/v1/deepseek?q=${encodeURIComponent(MATH_SYSTEM_PROMPT + "\n\nProblem: " + q)}`,
