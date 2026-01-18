@@ -23,71 +23,6 @@ const AXIOS_DEFAULTS = {
   },
 };
 
-async function tryRequest(getter, attempts = 3) {
-  let lastError;
-  for (let attempt = 1; attempt <= attempts; attempt++) {
-    try {
-      return await getter();
-    } catch (err) {
-      lastError = err;
-      if (attempt < attempts) {
-        await new Promise((r) => setTimeout(r, 1000 * attempt));
-      }
-    }
-  }
-  throw lastError;
-}
-
-async function getIzumiDownloadByUrl(youtubeUrl) {
-  const apiUrl = `https://izumiiiiiiii.dpdns.org/downloader/youtube?url=${encodeURIComponent(
-    youtubeUrl,
-  )}&format=mp3`;
-  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
-  if (res?.data?.result?.download) return res.data.result;
-  throw new Error("Izumi youtube?url returned no download");
-}
-
-async function getIzumiDownloadByQuery(query) {
-  const apiUrl = `https://izumiiiiiiii.dpdns.org/downloader/youtube-play?query=${encodeURIComponent(
-    query,
-  )}`;
-  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
-  if (res?.data?.result?.download) return res.data.result;
-  throw new Error("Izumi youtube-play returned no download");
-}
-
-async function getOkatsuDownloadByUrl(youtubeUrl) {
-  const apiUrl = `https://okatsu-rolezapiiz.vercel.app/downloader/ytmp3?url=${encodeURIComponent(
-    youtubeUrl,
-  )}`;
-  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
-  // Okatsu response shape: { status, creator, title, format, thumb, duration, cached, dl }
-  if (res?.data?.dl) {
-    return {
-      download: res.data.dl,
-      title: res.data.title,
-      thumbnail: res.data.thumb,
-    };
-  }
-  throw new Error("Okatsu ytmp3 returned no download");
-}
-
-async function getAsithaAudio(youtubeUrl) {
-  const apiKey =
-    "0c97d662e61301ae4fa667fbb8001051e00c02f8369c756c10a1404a95fe0edb";
-  const apiUrl = `https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/ytapi?url=${encodeURIComponent(
-    youtubeUrl,
-  )}&fo=2&qu=128&apiKey=${apiKey}`;
-  const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
-  if (res?.data?.downloadData?.url) {
-    return {
-      url: res.data.downloadData.url,
-      title: null,
-    };
-  }
-  throw new Error("Asitha API returned no download");
-}
-
 async function playCommand(sock, chatId, message) {
   try {
     console.log("playCommand called");
@@ -173,54 +108,11 @@ async function playCommand(sock, chatId, message) {
     // Variables already declared above
 
     // 1) Primary: Widipe API (New Reliable Source)
-    try {
-      console.log("Trying Widipe API...");
-      const apiUrl = `https://widipe.com.pl/api/m/dl?url=${encodeURIComponent(urlYt)}`;
-      const res = await axios.get(apiUrl, AXIOS_DEFAULTS);
+    // ------------------------------------------
+    // ROBUST API CHAIN (Prioritizing Working APIs)
+    // ------------------------------------------
 
-      // Response format: { status: true, result: { title, thumbnail, timestamp, views, dl, quality } }
-      if (res.data?.status && res.data?.result?.dl) {
-        audioData = {
-          url: res.data.result.dl,
-          title: res.data.result.title,
-        };
-        success = true;
-      } else {
-        throw new Error("Widipe returned invalid data");
-      }
-    } catch (e) {
-      console.log("Widipe API failed:", e.message);
-
-      // 2) Secondary: Cobalt API (Backup)
-      try {
-        console.log("Trying Cobalt API...");
-        const cobaltUrl = "https://api.cobalt.tools/api/json";
-        const res = await axios.post(
-          cobaltUrl,
-          {
-            url: urlYt,
-            isAudioOnly: true,
-          },
-          {
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-          },
-        );
-
-        if (res.data?.url) {
-          audioData = { url: res.data.url, title: video.title };
-          success = true;
-        } else {
-          throw new Error("Cobalt returned no URL");
-        }
-      } catch (err) {
-        console.log("Cobalt API failed:", err.message);
-      }
-    }
-
-    // 3) Tertiary: David Cyril API
+    // 1) David Cyril API (Confirmed Working)
     if (!success) {
       try {
         console.log("Trying David Cyril API...");
@@ -239,10 +131,97 @@ async function playCommand(sock, chatId, message) {
       }
     }
 
-    // 4) Quaternary: Generic Fallback (dlys.so via scrappey or similar, here using a known mirror)
+    // 2) Keith API
     if (!success) {
-      // This is a placeholder for any general purpose downloader if needed,
-      // currently relying on the 3 strong ones above.
+      try {
+        console.log("Trying Keith API...");
+        const res = await axios.get(
+          `https://keith-api.vercel.app/api/ytmp3?url=${encodeURIComponent(urlYt)}`,
+        );
+        if (res.data?.success && res.data?.downloadUrl) {
+          audioData = {
+            url: res.data.downloadUrl,
+            title: res.data.title || "Audio",
+          };
+          success = true;
+        }
+      } catch (e) {
+        console.log("Keith API failed:", e.message);
+      }
+    }
+
+    // 3) Gifted API
+    if (!success) {
+      try {
+        console.log("Trying Gifted API...");
+        const res = await axios.get(
+          `https://api.giftedtech.my.id/api/download/ytmp3?url=${encodeURIComponent(urlYt)}&apikey=gifted`,
+        );
+        if (res.data?.success && res.data?.result?.url) {
+          audioData = {
+            url: res.data.result.url,
+            title: res.data.result.title,
+          };
+          success = true;
+        }
+      } catch (e) {
+        console.log("Gifted API failed:", e.message);
+      }
+    }
+
+    // 4) BK4 API (Placeholder / Similar Tech)
+    if (!success) {
+      try {
+        console.log("Trying BK4 Mirror...");
+        // bk4 often uses similar endpoints to widely available scrapers
+        const res = await axios.get(
+          `https://bk4-api.vercel.app/download/yt?url=${encodeURIComponent(urlYt)}`,
+        );
+        if (res.data?.status && res.data?.data?.mp3) {
+          audioData = { url: res.data.data.mp3, title: video.title };
+          success = true;
+        }
+      } catch (e) {
+        console.log("BK4 Mirror failed:", e.message);
+      }
+    }
+
+    // 5) Widipe API (Previous Primary, now Fallback)
+    if (!success) {
+      try {
+        console.log("Trying Widipe API...");
+        const apiUrl = `https://widipe.com.pl/api/m/dl?url=${encodeURIComponent(urlYt)}`;
+        const res = await axios.get(apiUrl, AXIOS_DEFAULTS);
+        if (res.data?.status && res.data?.result?.dl) {
+          audioData = { url: res.data.result.dl, title: res.data.result.title };
+          success = true;
+        }
+      } catch (e) {
+        console.log("Widipe API failed:", e.message);
+      }
+    }
+
+    // 6) Cobalt API (High Quality Backup)
+    if (!success) {
+      try {
+        console.log("Trying Cobalt API...");
+        const res = await axios.post(
+          "https://api.cobalt.tools/api/json",
+          { url: urlYt, isAudioOnly: true },
+          {
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        if (res.data?.url) {
+          audioData = { url: res.data.url, title: video.title };
+          success = true;
+        }
+      } catch (e) {
+        console.log("Cobalt API failed:", e.message);
+      }
     }
 
     if (!success || !audioData) {
