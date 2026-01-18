@@ -241,7 +241,9 @@ function cleanupTempFile(filepath) {
  * Main voice message handler
  */
 async function handleVoiceMessage(sock, chatId, message, senderId) {
-  if (!isVoiceMessage(message)) {
+  const isVoice = isVoiceMessage(message);
+  if (isVoice) console.log(`🎤 handleVoiceMessage entered for ${chatId}`);
+  if (!isVoice) {
     return false;
   }
 
