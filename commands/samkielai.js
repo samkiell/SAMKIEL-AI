@@ -11,6 +11,7 @@ const { loadPrefix } = require("../lib/prefix");
 const TIMEOUT = 30000;
 
 async function samkielaiCommand(sock, chatId, message) {
+  console.log(`🤖 samkielaiCommand triggered in ${chatId}`);
   try {
     const text =
       message.message?.conversation ||

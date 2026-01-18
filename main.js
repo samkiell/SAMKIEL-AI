@@ -608,6 +608,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
     }
 
     // Command handlers
+    if (cmd)
+      console.log(`[COMMAND] cmd: "${cmd}", userMessage: "${userMessage}"`);
     switch (true) {
       case cmd === "ping":
         await pingCommand(sock, chatId, message);
