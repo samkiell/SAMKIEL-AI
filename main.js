@@ -44,6 +44,7 @@ const unmuteCommand = require("./commands/unmute");
 const stickerCommand = require("./commands/sticker");
 const urlCommand = require("./commands/url");
 const { ocrCommand } = require("./commands/ocr");
+const { pollCommand } = require("./commands/poll");
 const {
   tempmailCommand,
   checkmailCommand,
@@ -873,6 +874,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
         break;
       case cmd === "ocr":
         await ocrCommand(sock, chatId, message);
+        break;
+      case cmd === "poll":
+        await pollCommand(sock, chatId, message, args);
         break;
       case cmd === "tempmail":
         await tempmailCommand(sock, chatId);
