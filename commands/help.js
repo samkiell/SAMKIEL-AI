@@ -203,6 +203,12 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 📞 ${p}anticall on/off
   ║ ✧ ✔️ ${p}autoread on/off
   ║ ✧ 📢 ${p}togglestart on/off
+  ║ ✧ 🔒 ${p}lockdown on/off
+  ║ ✧ 🔇 ${p}silence <time>
+  ║ ✧ ⏱️ ${p}ratelimit <n/time>
+  ║ ✧ 📋 ${p}auditlog [count]
+  ║ ✧ 📸 ${p}snapshot
+  ║ ✧ 🛡️ ${p}failsafe
   ╚═══════════════════╝
 
   ╔═══════════════════╗
