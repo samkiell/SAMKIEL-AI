@@ -243,6 +243,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
     chatId = message.key.remoteJid;
     const senderId = message.key.participant || message.key.remoteJid;
     const isGroup = chatId.endsWith("@g.us");
+    const pushName = message.pushName || "User";
 
     // Handle PERSONAL_MESSAGE feature (Private Chat Only)
     if (settings.featureToggles.PERSONAL_MESSAGE && isGroup) {
