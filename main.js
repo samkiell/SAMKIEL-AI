@@ -1577,6 +1577,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         await aiCommand(sock, chatId, message);
         break;
       case cmd === "math" ||
+        cmd === "maths" ||
         cmd === "cal" ||
         cmd === "calculate" ||
         cmd === "solve":

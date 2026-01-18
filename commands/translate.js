@@ -10,6 +10,9 @@ async function handleTranslateCommand(sock, chatId, message, match) {
     // Show typing indicator
     try {
       await sock.sendPresenceUpdate("composing", chatId);
+      await sock.sendMessage(chatId, {
+        react: { text: "🌍", key: message.key },
+      });
     } catch (e) {}
 
     let textToTranslate = "";

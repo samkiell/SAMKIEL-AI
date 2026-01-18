@@ -110,6 +110,18 @@ const GEMINI_APIS = [
  */
 const DEEPSEEK_APIS = [
   {
+    name: "Vreden DeepSeek",
+    url: (q) =>
+      `https://api.vreden.my.id/api/ai/deepseek?query=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
+    extract: (d) => d?.result?.response || d?.result,
+  },
+  {
+    name: "Widipe DeepSeek",
+    url: (q) =>
+      `https://widipe.com.pl/ai/deepseek?text=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
+    extract: (d) => d?.result,
+  },
+  {
     name: "JIKAN MOEAPI",
     url: (q) =>
       `https://jikan.moeapi.net/v1/deepseek?q=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
