@@ -27,6 +27,15 @@ async function playstoreCommand(sock, chatId, message, args) {
 
     const apis = [
       {
+        name: "Kord APK",
+        url: `https://api.kord.live/api/apk?id=${encodeURIComponent(query)}`,
+        extract: (d) => ({
+          url: d?.download || d?.result?.download || d?.url,
+          name: d?.name || d?.result?.name || "App",
+          size: d?.size || d?.result?.size || "Unknown",
+        }),
+      },
+      {
         name: "Siputzx APK",
         url: `https://api.siputzx.my.id/api/apk/download?id=${encodeURIComponent(query)}`,
         extract: (d) => ({
