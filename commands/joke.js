@@ -43,7 +43,7 @@ module.exports = async function (sock, chatId, message) {
     const joke = response.data.joke;
     await sock.sendMessage(
       chatId,
-      { text: joke, ...global.channelInfo },
+      { text: `${joke}\n\n*Powered by SAMKIEL BOT*`, ...global.channelInfo },
       { quoted: message }
     );
   } catch (error) {
