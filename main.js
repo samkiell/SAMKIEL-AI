@@ -256,6 +256,9 @@ const ownerList = rawOwners.map((j) =>
 );
 
 async function handleMessages(sock, messageUpdate, printLog) {
+  console.log(
+    `📩 INCOMING MESSAGE: ${JSON.stringify(messageUpdate.messages[0]?.message || {}, null, 2).substring(0, 100)}...`,
+  );
   let chatId;
   try {
     const { messages, type } = messageUpdate;
@@ -326,9 +329,14 @@ async function handleMessages(sock, messageUpdate, printLog) {
     const p = currentPrefix === "off" ? "" : currentPrefix;
 
     // Get command body, base command (cmd), and args without prefix
+    const isCmd = isCommand(userMessage);
     const command = getCommand(userMessage); // Full body after prefix
     const cmd = command.split(/\s+/)[0].toLowerCase(); // First word (lowercase)
     const args = command.split(/\s+/).slice(1); // Arguments array
+
+    console.log(
+      `🔎 [CMD DEBUG] isCommand: ${isCmd}, cmd: "${cmd}", userMessage: "${userMessage}"`,
+    );
 
     // Only log command usage
     if (isCommand(userMessage)) {
@@ -356,9 +364,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
     // Check if bot is disabled in this chat
     if (isBotDisabled(chatId) && cmd !== "enablebot") {
+      console.log(`🚫 Bot is disabled in ${chatId}`);
       return;
     }
     if (isBanned(senderId) && cmd !== "unban") {
+      console.log(`🚫 User ${senderId} is banned`);
       // Only respond occasionally to avoid spam
       if (Math.random() < 0.1) {
         await sock.sendMessage(chatId, {
@@ -368,6 +378,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
       }
       return;
     }
+
+    console.log(
+      `🔍 Flow: cmd=${cmd}, isPublic=${settings.featureToggles.COMMAND_MODE}`,
+    );
 
     // Check Mode (Public/Private)
     let modeData;
@@ -1574,6 +1588,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         await tiktokCommand(sock, chatId, message);
         break;
       case cmd === "samkielai" || cmd === "skai":
+        console.log(`🚀 Executing samkielaiCommand handler`);
         await samkielaiCommand(sock, chatId, message);
         break;
       case cmd === "gpt" ||
