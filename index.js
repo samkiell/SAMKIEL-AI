@@ -32,6 +32,7 @@ const {
 const { loadPrefix } = require("./lib/prefix");
 const { getAntiCall } = require("./lib/index");
 const { logAction, ACTIONS } = require("./lib/auditLog");
+const { getBotVoiceInfo } = require("./lib/voiceConfig");
 
 // Log bot startup
 logAction(ACTIONS.BOT_RESTART, "SYSTEM", "startup", {
@@ -590,6 +591,9 @@ async function startXeonBotInc() {
         const uptime = process.uptime();
         const ramUsage = Math.round(process.memoryUsage().rss / 1024 / 1024);
 
+        // Get bot voice info
+        const voiceInfo = getBotVoiceInfo();
+
         const startMsg = `
 ━━━━━━━━━━━━━━━━━━━━━
   🚀 *${settings.botName || "SAMKIEL BOT"}* 🚀
@@ -598,6 +602,7 @@ async function startXeonBotInc() {
 *Mode:*       ${botMode}
 *Prefix:*     ${p}
 *Version:*    ${settings.version || "2.1.3"}
+*Voice:*      ${voiceInfo.id} (${voiceInfo.description})
 *Uptime:*     ${formatUptime(uptime)}
 *RAM:*        ${ramUsage} MB
 
