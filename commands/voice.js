@@ -9,6 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const { downloadMediaMessage } = require("@whiskeysockets/baileys");
 const settings = require("../settings");
+const { toPTT } = require("../lib/converter");
 
 const TEMP_DIR = path.join(__dirname, "../temp");
 
@@ -514,12 +515,15 @@ async function handleVoiceMessage(sock, chatId, message, senderId) {
 
       // Send voice response if we have audio
       if (audioBuffer) {
+        // Convert to Opus/OGG for strict WhatsApp PTT compatibility
+        const pttBuffer = await toPTT(audioBuffer, "mp3");
+
         // Attach transcription as caption (metadata)
         await sock.sendMessage(
           chatId,
           {
-            audio: audioBuffer,
-            mimetype: "audio/mpeg",
+            audio: pttBuffer,
+            mimetype: "audio/ogg; codecs=opus",
             ptt: true,
             caption: cleanText, // Transcription metadata
           },
