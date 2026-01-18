@@ -166,7 +166,7 @@ async function aiCommand(sock, chatId, message) {
       return await sock.sendMessage(
         chatId,
         {
-          text: `Please provide a question after ${p}gpt, ${p}gemini or ${p}deepseek\n\nExample: ${p}gpt write a basic html code`,
+          text: `Please provide a question after ${p}samkielai, ${p}gpt, ${p}gemini or ${p}deepseek\n\nExample: ${p}samkielai who are you?`,
           ...global.channelInfo,
         },
         { quoted: message },
@@ -181,7 +181,7 @@ async function aiCommand(sock, chatId, message) {
       return await sock.sendMessage(
         chatId,
         {
-          text: `Please provide a question after ${p}gpt, ${p}gemini or ${p}deepseek`,
+          text: `Please provide a question after ${p}samkielai, ${p}gpt, ${p}gemini or ${p}deepseek`,
           ...global.channelInfo,
         },
         { quoted: message },
@@ -250,7 +250,9 @@ async function aiCommand(sock, chatId, message) {
     let answer = null;
 
     // Route to appropriate AI - Try Mistral Agent (Primary), then Groq (Backup)
-    if (commandPart === "gpt" || commandPart === "chatgpt") {
+    if (commandPart === "samkielai" || commandPart === "skai") {
+      answer = await tryMistralAPI(query);
+    } else if (commandPart === "gpt" || commandPart === "chatgpt") {
       answer = await tryMistralAPI(query);
       if (!answer) answer = await tryGroqAPI(query, "llama-3.3-70b-versatile");
     } else if (commandPart === "gemini" || commandPart === "bard") {

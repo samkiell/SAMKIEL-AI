@@ -123,6 +123,7 @@ No detailed description available for this command yet, but you can use it with:
 
   ╔═══════════════════╗
   🤖 *AI Commands:*
+  ║ ✧ 🌟 ${p}samkielai
   ║ ✧ 🤖 ${p}gpt
   ║ ✧ 🧠 ${p}gemini
   ║ ✧ 🧬 ${p}deepseek

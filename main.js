@@ -1567,7 +1567,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
       case cmd === "gpt" ||
         cmd === "gemini" ||
         cmd === "deepseek" ||
-        cmd === "ds":
+        cmd === "ds" ||
+        cmd === "samkielai" ||
+        cmd === "skai":
         await aiCommand(sock, chatId, message);
         break;
       case cmd === "math" ||
