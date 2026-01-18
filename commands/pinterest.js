@@ -8,85 +8,126 @@ const { sendText } = require("../lib/sendResponse");
 
 const TIMEOUT = 20000;
 
-/**
- * Validate Pinterest URL
- */
-function isPinterestUrl(url) {
-  return /(?:pinterest\.com|pin\.it)/.test(url);
-}
-
-/**
- * API 1: Pinterest Downloader
- */
-async function downloadViaApi1(url) {
-  const apiUrl = `https://api.siputzx.my.id/api/d/pinterest?url=${encodeURIComponent(url)}`;
-  const { data } = await axios.get(apiUrl, { timeout: TIMEOUT });
-
-  if (data?.status && data?.data) {
-    return {
-      mediaUrl: data.data.image || data.data.video,
-      type: data.data.video ? "video" : "image",
-      title: data.data.title || "Pinterest",
-    };
-  }
-  throw new Error("No media found");
-}
-
-/**
- * API 2: Alternative Pinterest Downloader
- */
-async function downloadViaApi2(url) {
-  const apiUrl = `https://api.giftedtech.my.id/api/download/pinterest?apikey=gifted&url=${encodeURIComponent(url)}`;
-  const { data } = await axios.get(apiUrl, { timeout: TIMEOUT });
-
-  if (data?.result) {
-    const mediaUrl = data.result.video || data.result.image || data.result.url;
-    return {
-      mediaUrl,
-      type: data.result.video ? "video" : "image",
-      title: data.result.title || "Pinterest",
-    };
-  }
-  throw new Error("No media found");
-}
-
 async function pinterestCommand(sock, chatId, message, args) {
   const url = args[0]?.trim();
 
-  if (!url || !isPinterestUrl(url)) {
+  if (!url || !/(?:pinterest\.com|pin\.it)/.test(url)) {
     return await sendText(
       sock,
       chatId,
-      "📌 *Pinterest Download*\n\n" +
-        "*Usage:* .pinterest <link>\n\n" +
-        "*Example:*\n" +
-        ".pinterest https://pinterest.com/pin/123...\n" +
-        ".pinterest https://pin.it/abc123",
+      "📌 *Pinterest Download*\n\nUsage: .pinterest <link>",
     );
   }
 
   try {
     await sendText(sock, chatId, "📌 *Downloading from Pinterest...*");
 
-    let result = null;
+    let media = null;
+    let success = false;
 
-    // Try API 1
-    try {
-      result = await downloadViaApi1(url);
-    } catch (e) {
-      console.log("Pinterest: API 1 failed");
-    }
-
-    // Try API 2
-    if (!result) {
+    // --- ROBUST CHAIN ---
+    // 1. Widipe API
+    if (!success) {
       try {
-        result = await downloadViaApi2(url);
+        const { data } = await axios.get(
+          `https://widipe.com.pl/api/m/pinterest?url=${encodeURIComponent(url)}`,
+          { timeout: TIMEOUT },
+        );
+        if (data?.result?.url || data?.result?.image || data?.result?.video) {
+          const u = data.result.video || data.result.image || data.result.url;
+          media = {
+            url: u,
+            type: u.endsWith(".mp4") ? "video" : "image",
+            title: "Pinterest",
+          };
+          success = true;
+        }
       } catch (e) {
-        console.log("Pinterest: API 2 failed");
+        console.log("Pinterest: Widipe failed");
       }
     }
 
-    if (!result || !result.mediaUrl) {
+    // 2. BK4 Mirror
+    if (!success) {
+      try {
+        const { data } = await axios.get(
+          `https://bk4-api.vercel.app/download/pinterest?url=${encodeURIComponent(url)}`,
+          { timeout: TIMEOUT },
+        );
+        if (data?.status && data?.data?.url) {
+          media = {
+            url: data.data.url,
+            type: data.data.type === "video" ? "video" : "image",
+            title: "Pinterest",
+          };
+          success = true;
+        }
+      } catch (e) {
+        console.log("Pinterest: BK4 failed");
+      }
+    }
+
+    // 3. Cobalt API
+    if (!success) {
+      try {
+        const { data } = await axios.post(
+          "https://api.cobalt.tools/api/json",
+          { url: url },
+          {
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            timeout: TIMEOUT,
+          },
+        );
+        if (data?.url) {
+          media = { url: data.url, type: "image", title: "Pinterest" }; // Assume image unless known otherwise, or check extension
+          if (data.url.includes(".mp4")) media.type = "video";
+          success = true;
+        }
+      } catch (e) {
+        console.log("Pinterest: Cobalt failed");
+      }
+    }
+
+    // 4. Siputzx (Fallback)
+    if (!success) {
+      try {
+        const { data } = await axios.get(
+          `https://api.siputzx.my.id/api/d/pinterest?url=${encodeURIComponent(url)}`,
+          { timeout: TIMEOUT },
+        );
+        if (data?.data?.image || data?.data?.video) {
+          media = {
+            url: data.data.video || data.data.image,
+            type: data.data.video ? "video" : "image",
+            title: data.data.title,
+          };
+          success = true;
+        }
+      } catch (e) {
+        console.log("Pinterest: Siputzx failed");
+      }
+    }
+
+    // 5. Gifted (Fallback)
+    if (!success) {
+      try {
+        const { data } = await axios.get(
+          `https://api.giftedtech.my.id/api/download/pinterest?apikey=gifted&url=${encodeURIComponent(url)}`,
+          { timeout: TIMEOUT },
+        );
+        if (data?.result?.url) {
+          media = { url: data.result.url, type: "image", title: "Pinterest" };
+          success = true;
+        }
+      } catch (e) {
+        console.log("Pinterest: Gifted failed");
+      }
+    }
+
+    if (!media?.url) {
       return await sendText(
         sock,
         chatId,
@@ -94,23 +135,16 @@ async function pinterestCommand(sock, chatId, message, args) {
       );
     }
 
-    // Send media based on type
-    if (result.type === "video") {
+    if (media.type === "video") {
       await sock.sendMessage(
         chatId,
-        {
-          video: { url: result.mediaUrl },
-          caption: `📌 ${result.title}`,
-        },
+        { video: { url: media.url }, caption: `📌 ${media.title}` },
         { quoted: message },
       );
     } else {
       await sock.sendMessage(
         chatId,
-        {
-          image: { url: result.mediaUrl },
-          caption: `📌 ${result.title}`,
-        },
+        { image: { url: media.url }, caption: `📌 ${media.title}` },
         { quoted: message },
       );
     }

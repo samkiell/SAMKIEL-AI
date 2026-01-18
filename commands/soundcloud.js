@@ -15,48 +15,101 @@ async function soundcloudCommand(sock, chatId, message, args) {
     return await sendText(
       sock,
       chatId,
-      "☁️ *SoundCloud Download*\n\n" +
-        "*Usage:* .soundcloud <link>\n\n" +
-        "*Example:*\n" +
-        ".soundcloud https://soundcloud.com/artist/track",
+      "☁️ *SoundCloud Download*\n\nUsage: .soundcloud <link>",
     );
   }
 
   try {
     await sendText(sock, chatId, "☁️ *Downloading from SoundCloud...*");
 
-    const apis = [
-      {
-        name: "Siputzx",
-        url: `https://api.siputzx.my.id/api/d/soundcloud?url=${encodeURIComponent(url)}`,
-        extract: (d) => ({
-          url: d?.data?.dl || d?.data?.url,
-          title: d?.data?.title,
-        }),
-      },
-      {
-        name: "Gifted",
-        url: `https://api.giftedtech.my.id/api/download/soundcloud?apikey=gifted&url=${encodeURIComponent(url)}`,
-        extract: (d) => ({
-          url: d?.result?.url || d?.result?.download_url,
-          title: d?.result?.title,
-        }),
-      },
-      {
-        name: "RyzenDesu",
-        url: `https://api.ryzendesu.vip/api/downloader/soundcloud?url=${encodeURIComponent(url)}`,
-        extract: (d) => ({ url: d?.result || d?.url, title: d?.title }),
-      },
-    ];
-
     let audio = null;
-    for (const api of apis) {
+    let success = false;
+
+    // --- ROBUST CHAIN ---
+    // 1. Widipe API
+    if (!success) {
       try {
-        const { data } = await axios.get(api.url, { timeout: TIMEOUT });
-        audio = api.extract(data);
-        if (audio?.url) break;
+        const { data } = await axios.get(
+          `https://widipe.com.pl/api/m/dl?url=${encodeURIComponent(url)}`,
+          { timeout: TIMEOUT },
+        );
+        if (data?.result?.dl) {
+          audio = { url: data.result.dl, title: data.result.title };
+          success = true;
+        }
       } catch (e) {
-        console.log(`SoundCloud: ${api.name} failed`);
+        console.log("SoundCloud: Widipe failed");
+      }
+    }
+
+    // 2. Cobalt API
+    if (!success) {
+      try {
+        const { data } = await axios.post(
+          "https://api.cobalt.tools/api/json",
+          { url: url, isAudioOnly: true },
+          {
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            timeout: TIMEOUT,
+          },
+        );
+        if (data?.url) {
+          audio = { url: data.url, title: "SoundCloud Audio" };
+          success = true;
+        }
+      } catch (e) {
+        console.log("SoundCloud: Cobalt failed");
+      }
+    }
+
+    // 3. BK4 Mirror
+    if (!success) {
+      try {
+        const { data } = await axios.get(
+          `https://bk4-api.vercel.app/download/soundcloud?url=${encodeURIComponent(url)}`,
+          { timeout: TIMEOUT },
+        );
+        if (data?.status && data?.data?.url) {
+          audio = { url: data.data.url, title: data.data.title };
+          success = true;
+        }
+      } catch (e) {
+        console.log("SoundCloud: BK4 failed");
+      }
+    }
+
+    // 4. Siputzx (Fallback)
+    if (!success) {
+      try {
+        const { data } = await axios.get(
+          `https://api.siputzx.my.id/api/d/soundcloud?url=${encodeURIComponent(url)}`,
+          { timeout: TIMEOUT },
+        );
+        if (data?.data?.dl) {
+          audio = { url: data.data.dl, title: data.data.title };
+          success = true;
+        }
+      } catch (e) {
+        console.log("SoundCloud: Siputzx failed");
+      }
+    }
+
+    // 5. Gifted (Fallback)
+    if (!success) {
+      try {
+        const { data } = await axios.get(
+          `https://api.giftedtech.my.id/api/download/soundcloud?apikey=gifted&url=${encodeURIComponent(url)}`,
+          { timeout: TIMEOUT },
+        );
+        if (data?.result?.download_url) {
+          audio = { url: data.result.download_url, title: data.result.title };
+          success = true;
+        }
+      } catch (e) {
+        console.log("SoundCloud: Gifted failed");
       }
     }
 
@@ -64,7 +117,7 @@ async function soundcloudCommand(sock, chatId, message, args) {
       return await sendText(
         sock,
         chatId,
-        "❌ Could not download from SoundCloud.",
+        "❌ Could not download from SoundCloud. APIs busy.",
       );
     }
 

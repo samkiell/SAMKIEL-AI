@@ -124,7 +124,7 @@ const bibleCommand = require("./commands/bible");
 const clearTmpCommand = require("./commands/cleartmp");
 const setProfilePicture = require("./commands/setpp");
 const instagramCommand = require("./commands/instagram");
-const facebookCommand = require("./commands/facebook");
+const facebookCommand = require("./tests/facebook.js");
 const playCommand = require("./commands/play");
 const songCommand = require("./commands/song");
 const tiktokCommand = require("./commands/tiktok");
@@ -630,26 +630,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
             let audioUrl = null;
             let title = video.title;
 
-            // ROBUST API CHAIN (Synced with song.js)
+            // ROBUST API CHAIN (Prioritizing Reliable Sources)
             let success = false;
 
-            // 1) David Cyril API (Primary)
-            if (!success) {
-              try {
-                const res = await axios.get(
-                  `https://apis.davidcyril.name.ng/download/ytmp3?url=${encodeURIComponent(youtubeUrl)}`,
-                );
-                if (res.data?.success && res.data?.result?.download_url) {
-                  audioUrl = res.data.result.download_url;
-                  title = res.data.result.title || title;
-                  success = true;
-                }
-              } catch (e) {
-                console.log("MP3 Doc: David Cyril failed");
-              }
-            }
-
-            // 2) Keith API
+            // 1) Keith API
             if (!success) {
               try {
                 const res = await axios.get(
@@ -665,39 +649,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
               }
             }
 
-            // 3) Gifted API
-            if (!success) {
-              try {
-                const res = await axios.get(
-                  `https://api.giftedtech.my.id/api/download/ytmp3?url=${encodeURIComponent(youtubeUrl)}&apikey=gifted`,
-                );
-                if (res.data?.success && res.data?.result?.url) {
-                  audioUrl = res.data.result.url;
-                  title = res.data.result.title || title;
-                  success = true;
-                }
-              } catch (e) {
-                console.log("MP3 Doc: Gifted failed");
-              }
-            }
-
-            // 4) BK4 API
-            if (!success) {
-              try {
-                const res = await axios.get(
-                  `https://bk4-api.vercel.app/download/yt?url=${encodeURIComponent(youtubeUrl)}`,
-                );
-                if (res.data?.status && res.data?.data?.mp3) {
-                  audioUrl = res.data.data.mp3;
-                  title = video.title || title;
-                  success = true;
-                }
-              } catch (e) {
-                console.log("MP3 Doc: BK4 failed");
-              }
-            }
-
-            // 5) Widipe API
+            // 2) Widipe API
             if (!success) {
               try {
                 const res = await axios.get(
@@ -713,7 +665,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
               }
             }
 
-            // 6) Cobalt API
+            // 3) Cobalt API
             if (!success) {
               try {
                 const res = await axios.post(
@@ -733,6 +685,54 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 }
               } catch (e) {
                 console.log("MP3 Doc: Cobalt failed");
+              }
+            }
+
+            // 4) BK4 API
+            if (!success) {
+              try {
+                const res = await axios.get(
+                  `https://bk4-api.vercel.app/download/yt?url=${encodeURIComponent(youtubeUrl)}`,
+                );
+                if (res.data?.status && res.data?.data?.mp3) {
+                  audioUrl = res.data.data.mp3;
+                  title = video.title || title;
+                  success = true;
+                }
+              } catch (e) {
+                console.log("MP3 Doc: BK4 failed");
+              }
+            }
+
+            // 5) Gifted API
+            if (!success) {
+              try {
+                const res = await axios.get(
+                  `https://api.giftedtech.my.id/api/download/ytmp3?url=${encodeURIComponent(youtubeUrl)}&apikey=gifted`,
+                );
+                if (res.data?.success && res.data?.result?.url) {
+                  audioUrl = res.data.result.url;
+                  title = res.data.result.title || title;
+                  success = true;
+                }
+              } catch (e) {
+                console.log("MP3 Doc: Gifted failed");
+              }
+            }
+
+            // 6) David Cyril API (Last Resort)
+            if (!success) {
+              try {
+                const res = await axios.get(
+                  `https://apis.davidcyril.name.ng/download/ytmp3?url=${encodeURIComponent(youtubeUrl)}`,
+                );
+                if (res.data?.success && res.data?.result?.download_url) {
+                  audioUrl = res.data.result.download_url;
+                  title = res.data.result.title || title;
+                  success = true;
+                }
+              } catch (e) {
+                console.log("MP3 Doc: David Cyril failed");
               }
             }
 
