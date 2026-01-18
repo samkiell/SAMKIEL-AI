@@ -367,6 +367,22 @@ async function handleMessages(sock, messageUpdate, printLog) {
         "who are you",
         "who are u",
         "what can you do",
+        "yo",
+        "sup",
+        "what's up",
+        "morning",
+        "mornin",
+        "evening",
+        "afternoon",
+        "hie",
+        "hola",
+        "how far",
+        "hey bot",
+        "hello bot",
+        "buddy",
+        "guy",
+        "boss",
+        "admin",
       ];
       if (gKeywords.includes(userMessage.toLowerCase())) {
         const PM_CONFIG_PATH = "./data/pmConfig.json";
@@ -388,9 +404,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
 ┃ 🤖 *I am ${settings.botName || "SAMKIEL BOT"}*
 ┃ 
 ┃ ${pmConfig.message}
-┃
-┃ 🔗 *Portfolio:* ${settings.portfolio || "https://samkiel.dev"}
-┃ 📣 *Channel:* ${global.channelLink}
 ╰━━━━━━━━━━━━━━━━━━━┈⊷`.trim();
 
           await sock.sendMessage(chatId, {
