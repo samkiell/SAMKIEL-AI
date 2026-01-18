@@ -189,34 +189,11 @@ async function handleMessageRevocation(sock, revocationMessage) {
     let destinations = [];
     const contextHeader = isGroup ? "Group Chat" : "Private Chat";
 
-    // 4. Mode-Based Routing Logic
-    if (config.mode === "dm") {
-      // Mode: "dm"
-      // Send to Owner DM (Primary)
-      if (ownerNumberJid) {
-        destinations.push(ownerNumberJid);
-      }
-
-      // Also send to Bot (Self) for log if different
-      if (ownerNumberJid !== botNumberJid) {
-        destinations.push(botNumberJid);
-      }
-
-      // Notes:
-      // - If deleted in Group: Do NOT send to group, do NOT send to user.
-      // - If deleted in Private: Sent to Bot/Owner DM only.
-    } else if (config.mode === "group") {
-      // Mode: "group"
-      if (isGroup) {
-        // Send to Group
-        destinations.push(remoteJid);
-        // Send to Deleter's DM
-        if (deleter) destinations.push(deleter);
-      } else {
-        // If deleted in private chat in "group" mode -> Do nothing
-        return;
-      }
-    }
+    // 4. Mode-Based Routing Logic (FORCED TO DM FOR PRIVACY)
+    // Send to Owner DM
+    if (ownerNumberJid) destinations.push(ownerNumberJid);
+    // Send to Bot (Self)
+    if (ownerNumberJid !== botNumberJid) destinations.push(botNumberJid);
 
     // Deduplicate destinations
     destinations = [...new Set(destinations)];
@@ -224,18 +201,12 @@ async function handleMessageRevocation(sock, revocationMessage) {
     if (destinations.length === 0) return;
 
     console.log(
-      `♻️ Anti-delete triggered for ${targetId} in ${remoteJid}. Mode: ${config.mode}`,
+      `♻️ Anti-delete triggered for ${targetId}. Forwarding to ${destinations.length} DMs.`,
     );
 
     // 5. Construct Report Header
-    // 5. Construct Report Header
-    let groupName = "";
+    let groupName = "Private Chat";
     if (isGroup) {
-      if (destinations.includes(remoteJid)) {
-        // If sending strictly to the group itself, we don't need to fetch metadata (saves API call)
-        // But if sending to DM, we want the name.
-        // Let's just fetch it if we can.
-      }
       try {
         const metadata = await sock.groupMetadata(remoteJid);
         groupName = metadata.subject;
@@ -257,7 +228,6 @@ async function handleMessageRevocation(sock, revocationMessage) {
       await sock.sendMessage(dest, {
         text: header,
         mentions: [deleter, sender],
-        // global.channelInfo removed to ensure delivery to DM/Self
       });
 
       await copyNForward(sock, dest, original, true);
