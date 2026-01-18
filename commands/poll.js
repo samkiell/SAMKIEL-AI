@@ -25,9 +25,29 @@ async function pollCommand(sock, chatId, message, args) {
   }
 
   const name = parts[0];
-  const values = parts.slice(1);
+  const rawValues = parts.slice(1);
+  const values = [...new Set(rawValues)]; // Ensure unique options
+
+  if (values.length < 2) {
+    return await sendText(
+      sock,
+      chatId,
+      "❌ You must provide at least 2 UNIQUE options.\n\n*Powered by SAMKIEL BOT*",
+    );
+  }
+
+  if (values.length > 12) {
+    return await sendText(
+      sock,
+      chatId,
+      "❌ A poll cannot have more than 12 options.\n\n*Powered by SAMKIEL BOT*",
+    );
+  }
 
   try {
+    console.log(
+      `[POLL] Creating poll: "${name}" with ${values.length} options`,
+    );
     await sock.sendMessage(chatId, {
       poll: {
         name: name,
@@ -40,7 +60,9 @@ async function pollCommand(sock, chatId, message, args) {
     await sendText(
       sock,
       chatId,
-      "❌ Failed to create poll.\n\n*Powered by SAMKIEL BOT*",
+      "❌ Failed to create poll. Error: " +
+        (error.message || "Unknown error") +
+        "\n\n*Powered by SAMKIEL BOT*",
     );
   }
 }
