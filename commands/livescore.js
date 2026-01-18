@@ -235,6 +235,7 @@ async function livescoreCommand(sock, chatId, args) {
     msg += `└ 🕒 ${match.status}\n\n`;
   });
 
+  msg += `*Powered by SAMKIEL BOT*`;
   await sendText(sock, chatId, msg.trim());
 }
 

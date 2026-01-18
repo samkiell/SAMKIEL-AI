@@ -202,6 +202,7 @@ async function cryptoCommand(sock, chatId, message, args) {
     response += `└ Rank: #${coinData.rank}\n`;
   }
 
+  response += `\n*Powered by SAMKIEL BOT*`;
   await sock.sendMessage(chatId, { text: response });
 }
 

@@ -97,7 +97,7 @@ async function imagineCommand(sock, chatId, message) {
       chatId,
       {
         image: response.data, // Directly use the arraybuffer
-        caption: `🎨 Image Generated Successfully \n Prompt was: "${imagePrompt}"`,
+        caption: `🎨 Image Generated Successfully\nPrompt: "${imagePrompt}"\n\n*Powered by SAMKIEL BOT*`,
       },
       {
         quoted: message,

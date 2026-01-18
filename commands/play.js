@@ -68,7 +68,7 @@ async function playCommand(sock, chatId, message) {
           image: { url: video.thumbnail },
           caption: `*${video.title}*\n\n*Duration:* ${
             video.timestamp
-          }\n*Views:* ${video.views.toLocaleString()}\n\n⏳ *Downloading Audio...*`,
+          }\n*Views:* ${video.views.toLocaleString()}\n\n⏳ *Downloading Audio...*\n\n*Powered by SAMKIEL BOT*`,
           contextInfo: channelInfo.contextInfo,
         },
         { quoted: message },
@@ -252,7 +252,7 @@ async function playCommand(sock, chatId, message) {
     await sock.sendMessage(
       chatId,
       {
-        text: "Reply to this audio with *'mp3'* to download it in document format.",
+        text: "Reply to this audio with *'mp3'* to download it in document format.\n\n*Powered by SAMKIEL BOT*",
       },
       { quoted: sentAudio },
     );

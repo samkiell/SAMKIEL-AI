@@ -11,7 +11,7 @@ async function tempmailCommand(sock, chatId) {
       await sendText(
         sock,
         chatId,
-        `📧 *Temporary Email Generated*\n\n📩 *Email:* ${email}\n\nUse \`.checkmail ${email}\` to read inbox.`,
+        `📧 *Temporary Email Generated*\n\n📩 *Email:* ${email}\n\nUse \`.checkmail ${email}\` to read inbox.\n\n*Powered by SAMKIEL BOT*`,
       );
     } else {
       await sendText(sock, chatId, "❌ Failed to generate email.");
@@ -47,6 +47,7 @@ async function checkmailCommand(sock, chatId, message, args) {
     for (const msg of data.slice(0, 5)) {
       response += `🔹 *From:* ${msg.from}\n*Subject:* ${msg.subject}\n*ID:* ${msg.id}\n(Use .readmail ${email} ${msg.id} to read)\n---\n`;
     }
+    response += `\n*Powered by SAMKIEL BOT*`;
     await sendText(sock, chatId, response);
   } catch (error) {
     console.error("Checkmail Error:", error);
@@ -69,7 +70,7 @@ async function readmailCommand(sock, chatId, message, args) {
       await sendText(
         sock,
         chatId,
-        `📩 *Subject:* ${data.subject}\n*From:* ${data.from}\n\n${textBody}`,
+        `📩 *Subject:* ${data.subject}\n*From:* ${data.from}\n\n${textBody}\n\n*Powered by SAMKIEL BOT*`,
       );
     }
   } catch (e) {

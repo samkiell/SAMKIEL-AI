@@ -297,7 +297,7 @@ async function aiCommand(sock, chatId, message) {
       await sock.sendMessage(
         chatId,
         {
-          text: answer,
+          text: answer + "\n\n*Powered by SAMKIEL BOT*",
           ...global.channelInfo,
         },
         { quoted: message },

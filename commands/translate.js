@@ -85,7 +85,12 @@ async function handleTranslateCommand(sock, chatId, message, match) {
         // Concatenate all parts (Google sends multi-sentence as separate array elements)
         const translated = res.data[0].map((part) => part[0]).join("");
         if (translated) {
-          return await sendText(sock, chatId, translated, { quoted: message });
+          return await sendText(
+            sock,
+            chatId,
+            `${translated}\n\n*Powered by SAMKIEL BOT*`,
+            { quoted: message },
+          );
         }
       }
     } catch (e) {
@@ -100,7 +105,7 @@ async function handleTranslateCommand(sock, chatId, message, match) {
         return await sendText(
           sock,
           chatId,
-          res.data.responseData.translatedText,
+          `${res.data.responseData.translatedText}\n\n*Powered by SAMKIEL BOT*`,
           { quoted: message },
         );
       }
