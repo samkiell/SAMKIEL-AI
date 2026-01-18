@@ -55,6 +55,7 @@ const settings = {
   // --- AI API KEYS ---
   // Mistral AI (Primary) - https://console.mistral.ai/
   mistralApiKey: "bT7gsfnbCth6Uhn36jGTepeYxKGwyKlX", // String: Mistral AI API key
+  mistralAgentId: "ag_019bd01a354e7052af8d175e7ae327a9", // String: Mistral AI Agent ID
   mistralOrgId: "4c084686-312f-4cb9-867c-23b589fe6185", // String: Mistral AI Organization ID
 
   // Groq (Backup) - https://console.groq.com/keys

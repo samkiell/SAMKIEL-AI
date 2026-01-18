@@ -195,27 +195,24 @@ const DEEPSEEK_APIS = [
 ];
 
 /**
- * Mistral AI API - Primary AI Provider
- * Models: mistral-large-latest, mistral-medium-latest, mistral-small-latest
+ * Mistral AI Agent - Primary AI Provider
+ * Uses custom agent endpoint with agent_id
  */
-async function tryMistralAPI(query, model = "mistral-large-latest") {
+async function tryMistralAPI(query) {
   const apiKey = settings.mistralApiKey;
-  if (!apiKey) {
-    console.log("Mistral: No API key configured");
+  const agentId = settings.mistralAgentId;
+
+  if (!apiKey || !agentId) {
+    console.log("Mistral: No API key or Agent ID configured");
     return null;
   }
 
   try {
     const response = await axios.post(
-      "https://api.mistral.ai/v1/chat/completions",
+      "https://api.mistral.ai/v1/conversations",
       {
-        model: model,
-        messages: [
-          { role: "system", content: SYSTEM_INSTRUCTION },
-          { role: "user", content: query },
-        ],
-        temperature: 0.7,
-        max_tokens: 2048,
+        agent_id: agentId,
+        inputs: [{ role: "user", content: query }],
       },
       {
         headers: {
@@ -226,9 +223,15 @@ async function tryMistralAPI(query, model = "mistral-large-latest") {
       },
     );
 
-    const answer = response.data?.choices?.[0]?.message?.content;
+    // The agent response format may differ - try multiple paths
+    const answer =
+      response.data?.outputs?.[0]?.content ||
+      response.data?.message?.content ||
+      response.data?.choices?.[0]?.message?.content ||
+      response.data?.content;
+
     if (answer && answer.length > 5) {
-      console.log(`✅ Mistral AI (${model}) succeeded`);
+      console.log("✅ Mistral AI Agent succeeded");
       return answer;
     }
   } catch (e) {
@@ -404,25 +407,25 @@ async function aiCommand(sock, chatId, message) {
 
     let answer = null;
 
-    // Route to appropriate AI - Try Mistral first, then Groq, then fallback APIs
+    // Route to appropriate AI - Try Mistral Agent first, then Groq, then fallback APIs
     if (commandPart === "gpt" || commandPart === "chatgpt") {
-      // Try Mistral (Primary), then Groq, then free APIs
-      answer = await tryMistralAPI(query, "mistral-large-latest");
+      // Try Mistral Agent (Primary), then Groq, then free APIs
+      answer = await tryMistralAPI(query);
       if (!answer) answer = await tryGroqAPI(query, "llama-3.3-70b-versatile");
       if (!answer) answer = await tryApis(GPT_APIS, query);
     } else if (commandPart === "gemini" || commandPart === "bard") {
-      // Try Mistral, then Groq Gemma, then Gemini APIs
-      answer = await tryMistralAPI(query, "mistral-medium-latest");
+      // Try Mistral Agent, then Groq Gemma, then Gemini APIs
+      answer = await tryMistralAPI(query);
       if (!answer) answer = await tryGroqAPI(query, "gemma2-9b-it");
       if (!answer) answer = await tryApis(GEMINI_APIS, query);
     } else if (commandPart === "deepseek" || commandPart === "ds") {
-      // Try Mistral, then Groq Mixtral, then DeepSeek APIs
-      answer = await tryMistralAPI(query, "mistral-large-latest");
+      // Try Mistral Agent, then Groq Mixtral, then DeepSeek APIs
+      answer = await tryMistralAPI(query);
       if (!answer) answer = await tryGroqAPI(query, "mixtral-8x7b-32768");
       if (!answer) answer = await tryApis(DEEPSEEK_APIS, query);
     } else {
-      // Default: Try Mistral first, then Groq, then GPT APIs
-      answer = await tryMistralAPI(query, "mistral-large-latest");
+      // Default: Try Mistral Agent first, then Groq, then GPT APIs
+      answer = await tryMistralAPI(query);
       if (!answer) answer = await tryGroqAPI(query, "llama-3.3-70b-versatile");
       if (!answer) answer = await tryApis(GPT_APIS, query);
     }

@@ -197,21 +197,16 @@ Respond naturally.`;
     },
   ];
 
-  // Try Mistral AI first (Primary)
+  // Try Mistral AI Agent first (Primary)
   const settings = require("../settings");
-  if (settings.mistralApiKey) {
+  if (settings.mistralApiKey && settings.mistralAgentId) {
     try {
       const axios = require("axios");
       const response = await axios.post(
-        "https://api.mistral.ai/v1/chat/completions",
+        "https://api.mistral.ai/v1/conversations",
         {
-          model: "mistral-large-latest",
-          messages: [
-            { role: "system", content: instruction },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.8,
-          max_tokens: 1024,
+          agent_id: settings.mistralAgentId,
+          inputs: [{ role: "user", content: userMessage }],
         },
         {
           headers: {
@@ -222,13 +217,19 @@ Respond naturally.`;
         },
       );
 
-      const answer = response.data?.choices?.[0]?.message?.content;
+      // Try multiple response paths
+      const answer =
+        response.data?.outputs?.[0]?.content ||
+        response.data?.message?.content ||
+        response.data?.choices?.[0]?.message?.content ||
+        response.data?.content;
+
       if (answer && answer.length > 2) {
-        console.log("✅ Chatbot: Mistral AI succeeded");
+        console.log("✅ Chatbot: Mistral AI Agent succeeded");
         return answer.trim();
       }
     } catch (e) {
-      console.log(`❌ Chatbot: Mistral failed - ${e.message}`);
+      console.log(`❌ Chatbot: Mistral Agent failed - ${e.message}`);
     }
   }
 
