@@ -118,29 +118,49 @@ async function searchBible(sock, chatId, searchQuery, version = "NIV") {
   try {
     // Determine if user is searching or looking up a reference that failed API
     // BibleGateway is robust for both.
-    const url = `https://www.biblegateway.com/quicksearch/?quicksearch=${encodeURIComponent(searchQuery)}&version=${version.toUpperCase()}`;
+    // Force "search" mode to prevent redirect to passage view
+    // using searchtype=all ensures we get a list of results
+    const url = `https://www.biblegateway.com/search/?search=${encodeURIComponent(searchQuery)}&version=${version.toUpperCase()}&searchtype=all`;
 
     const { data } = await axios.get(url, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
       },
     });
 
     const $ = cheerio.load(data);
     const results = [];
 
-    // BibleGateway general search results
-    $(".search-result-list-item").each((i, el) => {
+    // Selectors for the /search/ page
+    // Layout is usually a list of .bible-item or .search-result-item
+    // We try multiple common selectors for robustness
+    let items = $(".bible-item");
+    if (items.length === 0) items = $(".search-result-item");
+    if (items.length === 0) items = $(".search-result-row");
+
+    items.each((i, el) => {
       if (i >= 5) return;
-      const reference = $(el)
-        .find(".search-result-list-item-header a")
+
+      let reference = $(el)
+        .find(".bible-item-title, .search-result-header")
+        .first()
         .text()
         .trim();
-      const snippet = $(el)
-        .find(".search-result-list-item-preview")
+      let snippet = $(el)
+        .find(
+          ".bible-item-content, .search-result-content, .search-result-list-item-preview",
+        )
+        .first()
         .text()
         .trim();
+
+      // Clean up reference (remove "In Context" etc if present)
+      reference = reference.replace(/\s*In Context.*/i, "").trim();
+
       if (reference && snippet) {
         results.push({ reference, snippet });
       }
