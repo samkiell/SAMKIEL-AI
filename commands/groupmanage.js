@@ -105,14 +105,14 @@ async function groupCommand(sock, chatId, message, args, senderId) {
   if (subCmd === "open") {
     if (!(await checkAdmin())) return;
     try {
-      await sock.groupSettingUpdate(chatId, "announcement", false);
+      await sock.groupSettingUpdate(chatId, "not_announcement");
       return sock.sendMessage(chatId, {
-        text: "✅ Group opened! Everyone can send messages.\n\n*Powered by SAMKIEL BOT*",
+        text: "✅ Group opened! Everyone can send messages.",
         quoted: message,
       });
     } catch (e) {
       return sock.sendMessage(chatId, {
-        text: "❌ Failed to open group.\n\n*Powered by SAMKIEL BOT*",
+        text: "❌ Failed to open group.",
         quoted: message,
       });
     }
@@ -121,14 +121,14 @@ async function groupCommand(sock, chatId, message, args, senderId) {
   if (subCmd === "close") {
     if (!(await checkAdmin())) return;
     try {
-      await sock.groupSettingUpdate(chatId, "announcement", true);
+      await sock.groupSettingUpdate(chatId, "announcement");
       return sock.sendMessage(chatId, {
-        text: "✅ Group closed! Only admins can send messages.\n\n*Powered by SAMKIEL BOT*",
+        text: "✅ Group closed! Only admins can send messages.",
         quoted: message,
       });
     } catch (e) {
       return sock.sendMessage(chatId, {
-        text: "❌ Failed to close group.\n\n*Powered by SAMKIEL BOT*",
+        text: "❌ Failed to close group.",
         quoted: message,
       });
     }
@@ -257,36 +257,41 @@ async function setGroupDesc(sock, chatId, message, args) {
 async function setGroupPP(sock, chatId, message) {
   const quoted =
     message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-  const mime =
-    quoted?.imageMessage?.mimetype || message.message?.imageMessage?.mimetype;
+  const imgMsg = quoted?.imageMessage || message.message?.imageMessage;
 
-  if (!mime || !mime.includes("image")) {
+  if (!imgMsg) {
     return sock.sendMessage(chatId, {
-      text: "⚠️ Reply to an image.\n\n*Powered by SAMKIEL BOT*",
+      text: "⚠️ Reply to an image to set group icon.",
       quoted: message,
     });
   }
 
   try {
-    const stream = await downloadContentFromMessage(
-      quoted ? quoted.imageMessage : message.message.imageMessage,
-      "image",
-    );
+    const stream = await downloadContentFromMessage(imgMsg, "image");
     let buffer = Buffer.from([]);
     for await (const chunk of stream) buffer = Buffer.concat([buffer, chunk]);
 
-    const tempPath = path.join(__dirname, `../tmp/pp_${Date.now()}.jpg`);
+    // Ensure temp directory exists
+    const tmpDir = path.join(__dirname, "../temp");
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+
+    const tempPath = path.join(tmpDir, `pp_${Date.now()}.jpg`);
     fs.writeFileSync(tempPath, buffer);
+
     await sock.updateProfilePicture(chatId, { url: tempPath });
-    fs.unlinkSync(tempPath);
+
+    try {
+      fs.unlinkSync(tempPath);
+    } catch (e) {}
 
     await sock.sendMessage(chatId, {
-      text: "✅ Icon updated.\n\n*Powered by SAMKIEL BOT*",
+      text: "✅ Group icon updated!",
       quoted: message,
     });
   } catch (e) {
+    console.error("setGroupPP error:", e.message);
     await sock.sendMessage(chatId, {
-      text: "❌ Failed to update icon.\n\n*Powered by SAMKIEL BOT*",
+      text: "❌ Failed to update icon. Make sure the image is valid.",
       quoted: message,
     });
   }

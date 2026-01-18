@@ -176,11 +176,7 @@ async function factCommand(sock, chatId, args) {
     );
   }
 
-  await sendText(
-    sock,
-    chatId,
-    `💡 *Did you know?*\n\n${fact}\n\n*Powered by SAMKIEL BOT*`,
-  );
+  await sendText(sock, chatId, `💡 *Did you know?*\n\n${fact}`);
 }
 
 // Command metadata
