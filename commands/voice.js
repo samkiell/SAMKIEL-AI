@@ -93,12 +93,11 @@ async function processVoiceWithMistral(audioPath) {
     const audioBuffer = fs.readFileSync(audioPath);
     const audioBase64 = audioBuffer.toString("base64");
 
-    // Use Chat Completions endpoint with correct schema
-    // Key: type must be "input_audio" and the field is "input_audio" (not "data")
+    // Use Agents Completions endpoint with your specific Agent ID
     const response = await axios.post(
-      "https://api.mistral.ai/v1/chat/completions",
+      "https://api.mistral.ai/v1/agents/completions",
       {
-        model: "voxtral-small-latest",
+        agent_id: settings.mistralVoiceAgentId,
         messages: [
           {
             role: "user",
@@ -106,10 +105,6 @@ async function processVoiceWithMistral(audioPath) {
               {
                 type: "input_audio",
                 input_audio: audioBase64,
-              },
-              {
-                type: "text",
-                text: "Listen to this voice message and respond naturally. Provide a helpful and friendly response.",
               },
             ],
           },

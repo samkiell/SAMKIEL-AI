@@ -60,7 +60,7 @@ const settings = {
 
   // Mistral Voice AI Agent
   mistralVoiceApiKey: "tdMqFoCsueYHaopgaTTke4iIvrS13cry", // String: Mistral Voice API key
-  mistralVoiceAgentId: "ag_019bd02533d47599b9f992edd3aacf3d", // String: Mistral Voice Agent ID
+  mistralVoiceAgentId: "ag_019bd1535f5e7478aa323dbc9ea5cb38", // String: Mistral Voice Agent ID
 
   // Groq (Backup) - https://console.groq.com/keys
   groqApiKey: "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", // String: Groq API key (free tier)
