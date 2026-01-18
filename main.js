@@ -1835,7 +1835,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
     if (command && typeof command === "string") {
       try {
         await addCommandReaction(sock, message, command);
-        console.log(`[AUTO-REACT] Triggered for command: ${command}`);
       } catch (err) {
         console.error("❌ Error in global auto-reaction:", err);
       }
