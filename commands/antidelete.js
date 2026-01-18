@@ -192,12 +192,14 @@ async function handleMessageRevocation(sock, revocationMessage) {
     // 4. Mode-Based Routing Logic
     if (config.mode === "dm") {
       // Mode: "dm"
-      // Send to Bot (Self) as Primary Log
-      destinations.push(botNumberJid);
-
-      // Fallback/Secondary: Send to Owner DM (if different from bot)
-      if (ownerNumberJid !== botNumberJid) {
+      // Send to Owner DM (Primary)
+      if (ownerNumberJid) {
         destinations.push(ownerNumberJid);
+      }
+
+      // Also send to Bot (Self) for log if different
+      if (ownerNumberJid !== botNumberJid) {
+        destinations.push(botNumberJid);
       }
 
       // Notes:
