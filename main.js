@@ -683,7 +683,6 @@ You can explore all available commands below 👇`,
         }
         break;
       case cmd === "anticall":
-        const args = userMessage.trim().split(/\s+/).slice(1);
         await anticallCommand(sock, chatId, message, args);
         break;
       case command.startsWith("listonline"): {
