@@ -77,14 +77,14 @@ async function downloadVoiceMessage(message, sock) {
 }
 
 /**
- * Send audio to Mistral Voice Agent (voxtral-small-latest)
+ * Send audio to Mistral Voice Model (voxtral-small-latest)
+ * Uses Chat Completions API with correct input_audio type
  */
 async function processVoiceWithMistral(audioPath) {
-  const apiKey = settings.mistralVoiceApiKey;
-  const agentId = settings.mistralVoiceAgentId;
+  const apiKey = settings.mistralVoiceApiKey || settings.mistralApiKey;
 
-  if (!apiKey || !agentId) {
-    console.log("Voice: No Mistral Voice API key or Agent ID configured");
+  if (!apiKey) {
+    console.log("Voice: No Mistral API key configured");
     return null;
   }
 
@@ -92,20 +92,24 @@ async function processVoiceWithMistral(audioPath) {
     // Read audio file and convert to base64
     const audioBuffer = fs.readFileSync(audioPath);
     const audioBase64 = audioBuffer.toString("base64");
-    const mimeType = "audio/ogg";
 
+    // Use Chat Completions endpoint with correct schema
+    // Key: type must be "input_audio" and the field is "input_audio" (not "data")
     const response = await axios.post(
-      "https://api.mistral.ai/v1/conversations",
+      "https://api.mistral.ai/v1/chat/completions",
       {
-        agent_id: agentId,
-        inputs: [
+        model: "voxtral-small-latest",
+        messages: [
           {
             role: "user",
             content: [
               {
-                type: "audio",
-                data: audioBase64,
-                mime_type: mimeType,
+                type: "input_audio",
+                input_audio: audioBase64,
+              },
+              {
+                type: "text",
+                text: "Listen to this voice message and respond naturally. Provide a helpful and friendly response.",
               },
             ],
           },
@@ -120,34 +124,14 @@ async function processVoiceWithMistral(audioPath) {
       },
     );
 
-    // Extract text response
-    const textAnswer =
-      response.data?.outputs?.[0]?.content ||
-      response.data?.message?.content ||
-      response.data?.choices?.[0]?.message?.content ||
-      response.data?.content ||
-      response.data?.text;
-
-    // Check for audio response
-    const audioResponse = response.data?.outputs?.find(
-      (o) => o.type === "audio" || o.audio,
-    );
-
-    if (audioResponse?.audio || audioResponse?.data) {
-      console.log("✅ Voice: Got audio response from Mistral");
-      return {
-        text: textAnswer,
-        audio: audioResponse.audio || audioResponse.data,
-        hasAudio: true,
-      };
-    }
+    // Extract text response from Chat Completions format
+    const textAnswer = response.data?.choices?.[0]?.message?.content;
 
     if (textAnswer && textAnswer.length > 2) {
-      console.log("✅ Voice: Mistral Voice Agent succeeded (text only)");
       return { text: textAnswer, hasAudio: false };
     }
 
-    console.log("Voice response:", JSON.stringify(response.data, null, 2));
+    console.log("Voice: Empty response from Mistral");
     return null;
   } catch (error) {
     console.error("Voice processing error:", error.message);
