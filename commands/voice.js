@@ -10,6 +10,7 @@ const path = require("path");
 const { downloadMediaMessage } = require("@whiskeysockets/baileys");
 const settings = require("../settings");
 const { toPTT } = require("../lib/converter");
+const { isVoiceChatEnabled } = require("./voicechat");
 
 const TEMP_DIR = path.join(__dirname, "../temp");
 
@@ -469,6 +470,12 @@ async function handleVoiceMessage(sock, chatId, message, senderId) {
   const isImage = isImageMessage(message);
 
   if (!isVoice && !isImage) {
+    return false;
+  }
+
+  // Check if voice chat mode is enabled
+  // If disabled, ignore voice notes completely
+  if (isVoice && !isVoiceChatEnabled()) {
     return false;
   }
 

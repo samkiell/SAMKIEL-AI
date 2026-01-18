@@ -204,6 +204,12 @@ const snapshotCommand = require("./commands/snapshot");
 const failsafeCommand = require("./commands/failsafe");
 const { handleVoiceMessage } = require("./commands/voice");
 
+// Voice Chat Toggle
+const { voiceChatCommand } = require("./commands/voicechat");
+
+// Owner Management
+const setOwnerCommand = require("./commands/setowner");
+
 // New Architecture Libraries
 const { logAction, ACTIONS } = require("./lib/auditLog");
 const botState = require("./lib/botState");
@@ -537,6 +543,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
       "disablebot",
       "enablebot",
       "anticall",
+      "voicechat",
+      "setowner",
     ];
     const hybridCommands = ["welcome", "goodbye", "chatbot"];
 
@@ -1799,6 +1807,26 @@ async function handleMessages(sock, messageUpdate, printLog) {
       }
       case cmd === "hackgc": {
         await hackgcCommand(sock, chatId, message, senderId);
+        break;
+      }
+
+      // Voice Chat Toggle Command
+      case cmd === "voicechat": {
+        await voiceChatCommand(sock, chatId, message, args);
+        break;
+      }
+
+      // Set Owner Command
+      case cmd === "setowner": {
+        const ownerCheck = await isOwner(senderId, sock);
+        const superCheck = isSuperOwner(senderId);
+        if (ownerCheck || superCheck) {
+          await setOwnerCommand(sock, chatId, message, args);
+        } else {
+          await sock.sendMessage(chatId, {
+            text: "❌ Only owners can use this command.",
+          });
+        }
         break;
       }
 
