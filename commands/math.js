@@ -200,7 +200,7 @@ async function mathCommand(sock, chatId, message) {
       await sock.sendMessage(
         chatId,
         {
-          text: `📐 *Math Solution*\n\n${formattedSolution}`,
+          text: `📐 *Math Solution*\n\n${formattedSolution}\n\n*Powered by SAMKIEL BOT*`,
           ...global.channelInfo,
         },
         { quoted: message },

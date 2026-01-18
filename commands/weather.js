@@ -207,6 +207,7 @@ async function weatherCommand(sock, chatId, city) {
     response += `└ Low: ${weatherData.tempMin.toFixed(1)}°C`;
   }
 
+  response += `\n\n*Powered by SAMKIEL BOT*`;
   await sock.sendMessage(chatId, { text: response });
 }
 
