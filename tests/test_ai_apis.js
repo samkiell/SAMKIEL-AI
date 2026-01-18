@@ -12,29 +12,44 @@ const APIs = [
     extract: (d) => d?.data || d?.result,
   },
   {
-    name: "Ryzendesu GPT",
-    url: "https://api.ryzendesu.vip/api/ai/chatgpt?text=say+hello",
-    extract: (d) => d?.result || d?.answer,
+    name: "BK9 Gemini",
+    url: "https://bk9.fun/ai/gemini?q=say+hello",
+    extract: (d) => d?.BK9 || d?.result || d?.response,
   },
   {
-    name: "Gifted GPT",
-    url: "https://api.giftedtech.my.id/api/ai/gpt?apikey=gifted&q=say+hello",
-    extract: (d) => d?.result,
-  },
-  {
-    name: "Dreaded GPT",
-    url: "https://api.dreaded.site/api/chatgpt?text=say+hello",
-    extract: (d) => d?.result?.prompt || d?.result,
-  },
-  {
-    name: "Widipe OpenAI",
-    url: "https://widipe.com/openai?text=say+hello",
+    name: "Neoxr GPT4",
+    url: "https://api.neoxr.eu/api/gpt4?q=say+hello",
     extract: (d) => d?.result || d?.data,
   },
   {
-    name: "Darkness GPT",
-    url: "https://api.darkness.my.id/api/chatgpt?text=say+hello",
-    extract: (d) => d?.result,
+    name: "Itzpire GPT",
+    url: "https://itzpire.com/ai/gpt?model=gpt-4&q=say+hello",
+    extract: (d) => d?.result || d?.data?.result,
+  },
+  {
+    name: "Hercai",
+    url: "https://hercai.onrender.com/v3/hercai?question=say+hello",
+    extract: (d) => d?.reply || d?.message,
+  },
+  {
+    name: "Paxsenix GPT4o",
+    url: "https://api.paxsenix.biz.id/ai/gpt4o?text=say+hello",
+    extract: (d) => d?.result || d?.message,
+  },
+  {
+    name: "Vihanga ChatGPT",
+    url: "https://vihangayt.me/ai/chatgpt?q=say+hello",
+    extract: (d) => d?.data || d?.result,
+  },
+  {
+    name: "BotCahx OpenAI",
+    url: "https://api.botcahx.eu.org/api/search/openai-gpt?text=say+hello&apikey=free",
+    extract: (d) => d?.result || d?.data,
+  },
+  {
+    name: "Akuari GPT",
+    url: "https://rest-api.akuari.my.id/ai/gpt?chat=say+hello",
+    extract: (d) => d?.respon || d?.result,
   },
 ];
 
@@ -52,35 +67,55 @@ async function testAPI(api) {
     if (result && typeof result === "string" && result.length > 2) {
       return {
         name: api.name,
-        status: "✅ OK",
-        response: result.substring(0, 50) + "...",
+        status: "✅ WORKING",
+        response: result.substring(0, 80),
       };
     } else {
       return {
         name: api.name,
         status: "❌ NO_DATA",
-        raw: JSON.stringify(data).substring(0, 100),
+        raw: JSON.stringify(data).substring(0, 80),
       };
     }
   } catch (error) {
-    return { name: api.name, status: "❌ ERROR", error: error.message };
+    return {
+      name: api.name,
+      status: "❌ FAILED",
+      error: error.message.substring(0, 50),
+    };
   }
 }
 
 async function main() {
   console.log("=== Testing AI APIs ===\n");
 
+  const working = [];
+
   for (const api of APIs) {
-    console.log(`Testing: ${api.name}...`);
+    process.stdout.write(`Testing: ${api.name}... `);
     const result = await testAPI(api);
-    console.log(`  Status: ${result.status}`);
-    if (result.response) console.log(`  Response: ${result.response}`);
-    if (result.error) console.log(`  Error: ${result.error}`);
-    if (result.raw) console.log(`  Raw: ${result.raw}`);
-    console.log("");
+    console.log(result.status);
+
+    if (result.status.includes("WORKING")) {
+      working.push({ name: api.name, url: api.url });
+      console.log(`  ↳ ${result.response}`);
+    } else if (result.error) {
+      console.log(`  ↳ ${result.error}`);
+    } else if (result.raw) {
+      console.log(`  ↳ ${result.raw}`);
+    }
   }
 
-  console.log("=== Done ===");
+  console.log("\n=== Summary ===");
+  console.log(`Working APIs: ${working.length}/${APIs.length}`);
+  if (working.length > 0) {
+    console.log("\nRecommended APIs to use:");
+    working.forEach((api, i) => console.log(`  ${i + 1}. ${api.name}`));
+  } else {
+    console.log(
+      "\n⚠️ All APIs are currently down or blocked from your server.",
+    );
+  }
 }
 
 main();
