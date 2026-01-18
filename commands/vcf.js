@@ -1,13 +1,11 @@
 /**
- * VCF Export Command - Export group contacts as VCF
+ * VCF Export Command - Export group contacts as VCF file
  */
 
 const fs = require("fs");
 const path = require("path");
-const { loadPrefix } = require("../lib/prefix");
 
 async function vcfCommand(sock, chatId, message) {
-  const p = loadPrefix() === "off" ? "" : loadPrefix();
   const isGroup = chatId.endsWith("@g.us");
 
   if (!isGroup) {
@@ -36,30 +34,54 @@ async function vcfCommand(sock, chatId, message) {
       );
     }
 
-    // Build VCF content
+    // Build VCF content with proper formatting
     let vcfContent = "";
-    for (const p of participants) {
-      const number = p.id.split("@")[0];
-      vcfContent += `BEGIN:VCARD\nVERSION:3.0\nFN:${number}\nTEL:+${number}\nEND:VCARD\n`;
+    let count = 0;
+
+    for (const participant of participants) {
+      const number = participant.id.split("@")[0];
+      const name = participant.notify || number;
+
+      vcfContent += "BEGIN:VCARD\r\n";
+      vcfContent += "VERSION:3.0\r\n";
+      vcfContent += `FN:${name}\r\n`;
+      vcfContent += `TEL;TYPE=CELL:+${number}\r\n`;
+      vcfContent += "END:VCARD\r\n";
+      count++;
     }
 
-    const tempPath = path.join(__dirname, "../temp", `group_${Date.now()}.vcf`);
+    // Ensure temp directory exists
+    const tempDir = path.join(__dirname, "../temp");
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const groupName = (groupMeta.subject || "group").replace(
+      /[^a-zA-Z0-9]/g,
+      "_",
+    );
+    const tempPath = path.join(tempDir, `${groupName}_${Date.now()}.vcf`);
     fs.writeFileSync(tempPath, vcfContent);
 
     await sock.sendMessage(
       chatId,
       {
         document: fs.readFileSync(tempPath),
-        fileName: `${groupMeta.subject || "group"}_contacts.vcf`,
+        fileName: `${groupName}_contacts.vcf`,
         mimetype: "text/vcard",
+        caption: `📇 Exported ${count} contacts from ${groupMeta.subject}`,
       },
       { quoted: message },
     );
 
-    fs.unlinkSync(tempPath);
+    // Cleanup
+    try {
+      fs.unlinkSync(tempPath);
+    } catch (e) {}
+
     await sock.sendMessage(chatId, { react: { text: "✅", key: message.key } });
   } catch (error) {
-    console.log(`[VCF] Error: ${error.message}`);
+    await sock.sendMessage(chatId, { react: { text: "❌", key: message.key } });
     await sock.sendMessage(
       chatId,
       {

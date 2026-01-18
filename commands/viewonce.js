@@ -99,8 +99,16 @@ async function viewOnceCommand(sock, chatId, message, isDm = false) {
 
     const caption = mediaMessage.caption || "";
     const cleanCaption = caption ? `*Caption:* ${caption}` : "";
-    const mediaTypeCaption = isViewOnceImage ? "Image 📸" : "Video 📹";
+    const mediaTypeCaption = isViewOnceImage
+      ? "Image 📸"
+      : isViewOnceVideo
+        ? "Video 📹"
+        : "Audio 🎵";
     const finalCaption = cleanCaption;
+
+    // Get audio mimetype from the original message
+    const audioMimetype = mediaMessage.mimetype || "audio/ogg";
+    const isPtt = mediaMessage.ptt || false;
 
     // Process Image
     if (isViewOnceImage) {
