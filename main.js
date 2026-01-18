@@ -93,7 +93,7 @@ const aliveCommand = require("./commands/alive");
 const blurCommand = require("./commands/img-blur");
 const welcomeCommand = require("./commands/welcome");
 const goodbyeCommand = require("./commands/goodbye");
-const githubCommand = require("./commands/github");
+
 const {
   handleAntiBadwordCommand,
   handleBadwordDetection,
@@ -147,12 +147,7 @@ const redditCommand = require("./commands/reddit");
 const threadsCommand = require("./commands/threads");
 const soundcloudCommand = require("./commands/soundcloud");
 const capcutCommand = require("./commands/capcut");
-const {
-  createGc,
-  setGroupName,
-  setGroupDesc,
-  setGroupPP,
-} = require("./commands/groupmanage");
+const { groupCommand } = require("./commands/groupmanage");
 
 const playstoreCommand = require("./commands/playstore");
 
@@ -1134,17 +1129,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
         await playstoreCommand(sock, chatId, message, args);
         break;
 
-      case cmd === "creategc":
-        await createGc(sock, chatId, message, args, senderId);
-        break;
-      case cmd === "setgname" || cmd === "setname":
-        await setGroupName(sock, chatId, message, args, senderId);
-        break;
-      case cmd === "setgdesc" || cmd === "setdesc":
-        await setGroupDesc(sock, chatId, message, args, senderId);
-        break;
-      case cmd === "setgpp" || cmd === "seticon":
-        await setGroupPP(sock, chatId, message, args, senderId);
+      case cmd === "gc" ||
+        cmd === "group" ||
+        cmd === "groupchat" ||
+        cmd === "groupmanage":
+        await groupCommand(sock, chatId, message, args, senderId);
         break;
 
       case command.startsWith("pdf"): {
@@ -1336,13 +1325,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
           });
         }
         break;
-      case cmd === "git":
-      case cmd === "github":
-      case cmd === "sc":
-      case cmd === "script":
-      case cmd === "repo":
-        await githubCommand(sock, chatId);
-        break;
+
       case command.startsWith("antibadword"):
         if (!isGroup) {
           await sock.sendMessage(chatId, {
@@ -1630,21 +1613,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
       case cmd === "remini":
         await reminiCommand(sock, chatId, message, args);
         break;
-      case cmd === "setgdesc":
-        await setGroupDescription(
-          sock,
-          chatId,
-          senderId,
-          args.join(" "),
-          message,
-        );
-        break;
-      case cmd === "setgname":
-        await setGroupName(sock, chatId, senderId, args.join(" "), message);
-        break;
-      case cmd === "setgpp":
-        await setGroupPhoto(sock, chatId, senderId, message);
-        break;
+
       case cmd === "removebg" || cmd === "rmbg" || cmd === "nobg":
         await removebg.exec(sock, message, args);
         break;

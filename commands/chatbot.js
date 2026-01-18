@@ -138,14 +138,15 @@ async function handleChatbotCommand(sock, chatId, message, match) {
 
 async function getAIResponse(userMessage, userContext) {
   if (!SYSTEM_INSTRUCTION) {
-    console.error("❌ CRTICAL: AI System Instruction not loaded!");
-    return null;
+    console.warn("⚠️ AI System Instruction not loaded, using default.");
   }
+  const instruction =
+    SYSTEM_INSTRUCTION || "You are SAMKIEL BOT, a helpful AI assistant.";
 
   const contextText = userContext.messages.slice(-5).join("\n");
   const userData = JSON.stringify(userContext.userInfo, null, 2);
 
-  const finalPrompt = `${SYSTEM_INSTRUCTION}
+  const finalPrompt = `${instruction}
 
 [ CONTEXT ]
 ${contextText}
@@ -158,39 +159,57 @@ User: ${userMessage}
 
 Respond naturally.`;
 
-  // Fallback APIs
+  // Prioritized API List
   const CHATBOT_APIS = [
     {
-      name: "Siputzx Llama",
-      url: `https://api.siputzx.my.id/api/ai/llama33?prompt=${encodeURIComponent(SYSTEM_INSTRUCTION)}&text=${encodeURIComponent(userMessage)}`,
-      extract: (d) => d?.data || d?.result,
+      name: "Vreden AI",
+      url: "https://api.vreden.my.id/ai/chat",
+      method: "GET",
+      // Vreden usually takes a 'q' or 'prompt' param but let's assume a standard structure or we use the 'ai' command logic
+      // Actually vreden has /api/ai/deepseek which I used in ai.js. Let's use that structure.
+      constructUrl: (text) =>
+        `https://api.vreden.my.id/ai/deepseek?prompt=${encodeURIComponent(instruction)}&text=${encodeURIComponent(text)}`,
+      extract: (d) => d?.data?.result || d?.data,
     },
     {
-      name: "Dreaded",
-      url: `https://api.dreaded.site/api/chatgpt?text=${encodeURIComponent(finalPrompt)}`,
-      extract: (d) => d?.result?.prompt || d?.result,
+      name: "Siputzx",
+      url: "dummy",
+      method: "GET",
+      constructUrl: (text) =>
+        `https://api.siputzx.my.id/api/ai/llama33?prompt=${encodeURIComponent(instruction)}&text=${encodeURIComponent(text)}`,
+      extract: (d) => d?.data,
     },
     {
-      name: "Gifted Chatbot",
-      url: `https://api.giftedtech.my.id/api/ai/gpt?apikey=gifted&q=${encodeURIComponent(finalPrompt)}`,
-      extract: (d) => d?.result,
-    },
-    {
-      name: "RyzenDesu",
-      url: `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(finalPrompt)}`,
+      name: "Ryzendesu",
+      url: "dummy",
+      method: "GET",
+      constructUrl: (text) =>
+        `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(finalPrompt)}`,
       extract: (d) => d?.result || d?.answer,
+    },
+    {
+      name: "Darkness",
+      url: "dummy",
+      method: "GET",
+      constructUrl: (text) =>
+        `https://api.darkness.my.id/api/chatgpt?text=${encodeURIComponent(finalPrompt)}`,
+      extract: (d) => d?.result,
     },
   ];
 
   for (const api of CHATBOT_APIS) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
 
-      const response = await fetch(api.url, { signal: controller.signal });
+      const url = api.constructUrl(userMessage);
+      const response = await fetch(url, { signal: controller.signal });
       clearTimeout(timeoutId);
 
-      if (!response.ok) continue;
+      if (!response.ok) {
+        // console.log(`API ${api.name} failed with status: ${response.status}`);
+        continue;
+      }
 
       const data = await response.json();
       const answer = api.extract(data);
@@ -199,7 +218,8 @@ Respond naturally.`;
         return answer.trim();
       }
     } catch (e) {
-      // Fail silent
+      // console.log(`API ${api.name} error: ${e.message}`);
+      continue;
     }
   }
   return null;
