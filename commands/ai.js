@@ -1,7 +1,7 @@
 /**
- * AI Command (v2.1) - Groq, GPT, Gemini, DeepSeek
- * Primary: Groq API (free tier)
- * Fallback: 5+ free APIs per model
+ * AI Command (v3.0) - Mistral & Groq Only
+ * Primary: Mistral AI Agent (Custom)
+ * Backup: Groq API (Free Tier)
  */
 
 const axios = require("axios");
@@ -63,136 +63,6 @@ You are a branded conversational system with a clear creator and identity.
 Respond naturally.
 Respond confidently.
 Respond as SAMKIEL BOT.`;
-
-/**
- * GPT API Endpoints (5+ fallbacks)
- */
-const GPT_APIS = [
-  {
-    name: "Siputzx Llama",
-    url: (q) =>
-      `https://api.siputzx.my.id/api/ai/llama33?prompt=${encodeURIComponent(SYSTEM_INSTRUCTION)}&text=${encodeURIComponent(q)}`,
-    extract: (d) => d?.data || d?.result,
-  },
-  {
-    name: "Siputzx GPT3",
-    url: (q) =>
-      `https://api.siputzx.my.id/api/ai/gpt3?content=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.data || d?.result,
-  },
-  {
-    name: "Popcat Chatbot",
-    url: (q) =>
-      `https://api.popcat.xyz/chatbot?owner=Samkiel&botname=SAMKIEL+BOT&msg=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.response,
-  },
-  {
-    name: "Qewertyy GPT",
-    url: (q) =>
-      `https://api.qewertyy.dev/models?model_id=16&prompt=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.content || d?.result,
-  },
-  {
-    name: "RyzenDesu GPT",
-    url: (q) =>
-      `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.result || d?.answer,
-  },
-  {
-    name: "Gifted GPT",
-    url: (q) =>
-      `https://api.giftedtech.my.id/api/ai/gpt?apikey=gifted&q=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.result,
-  },
-];
-
-/**
- * Gemini API Endpoints (5+ fallbacks)
- */
-const GEMINI_APIS = [
-  {
-    name: "Google Gemini Official",
-    type: "post",
-    url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyD6B3n7bjM0-fe9vbzxgw47IxltNoTcEAU",
-    body: (q) => ({
-      system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-      contents: [{ parts: [{ text: q }] }],
-    }),
-    extract: (d) => d?.candidates?.[0]?.content?.parts?.[0]?.text,
-  },
-  {
-    name: "Vreden Gemini",
-    url: (q) =>
-      `https://api.vreden.my.id/api/ai/gemini?query=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.result?.response || d?.result,
-  },
-  {
-    name: "Siputzx Gemini",
-    url: (q) =>
-      `https://api.siputzx.my.id/api/ai/gemini?prompt=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.data || d?.result,
-  },
-  {
-    name: "Gifted Gemini",
-    url: (q) =>
-      `https://api.giftedtech.my.id/api/ai/gemini?apikey=gifted&q=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.result,
-  },
-  {
-    name: "RyzenDesu Gemini",
-    url: (q) =>
-      `https://api.ryzendesu.vip/api/ai/gemini?text=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.result || d?.answer,
-  },
-];
-
-/**
- * DeepSeek API Endpoints (5+ fallbacks)
- */
-const DEEPSEEK_APIS = [
-  {
-    name: "Vreden DeepSeek",
-    url: (q) =>
-      `https://api.vreden.my.id/api/ai/deepseek?query=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.result?.response || d?.result,
-  },
-  {
-    name: "Widipe DeepSeek",
-    url: (q) =>
-      `https://widipe.com.pl/ai/deepseek?text=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.result,
-  },
-  {
-    name: "JIKAN MOEAPI",
-    url: (q) =>
-      `https://jikan.moeapi.net/v1/deepseek?q=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.result || d?.answer,
-  },
-  {
-    name: "Gifted DeepSeek",
-    url: (q) =>
-      `https://api.giftedtech.my.id/api/ai/deepseek?apikey=gifted&q=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.result,
-  },
-  {
-    name: "Siputzx DeepSeek",
-    url: (q) =>
-      `https://api.siputzx.my.id/api/ai/deepseek?prompt=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.data || d?.result,
-  },
-  {
-    name: "RyzenDesu DeepSeek",
-    url: (q) =>
-      `https://api.ryzendesu.vip/api/ai/deepseek?text=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.result || d?.answer,
-  },
-  {
-    name: "Qewertyy DeepSeek",
-    url: (q) =>
-      `https://api.qewertyy.dev/models?model_id=26&prompt=${encodeURIComponent(SYSTEM_INSTRUCTION + "\n\nUser Question: " + q)}`,
-    extract: (d) => d?.content || d?.result,
-  },
-];
 
 /**
  * Mistral AI Agent - Primary AI Provider
@@ -279,34 +149,6 @@ async function tryGroqAPI(query, model = "llama-3.3-70b-versatile") {
     }
   } catch (e) {
     console.log(`❌ Groq API failed: ${e.message}`);
-  }
-  return null;
-}
-
-/**
- * Try multiple APIs with fallback
- */
-async function tryApis(apis, query) {
-  for (const api of apis) {
-    try {
-      let response;
-      if (api.type === "post") {
-        response = await axios.post(api.url, api.body(query), {
-          headers: { "Content-Type": "application/json" },
-          timeout: TIMEOUT,
-        });
-      } else {
-        response = await axios.get(api.url(query), { timeout: TIMEOUT });
-      }
-
-      const answer = api.extract(response.data);
-      if (answer && typeof answer === "string" && answer.length > 5) {
-        console.log(`✅ AI: ${api.name} succeeded`);
-        return answer;
-      }
-    } catch (e) {
-      console.log(`❌ AI: ${api.name} failed - ${e.message}`);
-    }
   }
   return null;
 }
@@ -407,27 +249,20 @@ async function aiCommand(sock, chatId, message) {
 
     let answer = null;
 
-    // Route to appropriate AI - Try Mistral Agent first, then Groq, then fallback APIs
+    // Route to appropriate AI - Try Mistral Agent (Primary), then Groq (Backup)
     if (commandPart === "gpt" || commandPart === "chatgpt") {
-      // Try Mistral Agent (Primary), then Groq, then free APIs
       answer = await tryMistralAPI(query);
       if (!answer) answer = await tryGroqAPI(query, "llama-3.3-70b-versatile");
-      if (!answer) answer = await tryApis(GPT_APIS, query);
     } else if (commandPart === "gemini" || commandPart === "bard") {
-      // Try Mistral Agent, then Groq Gemma, then Gemini APIs
       answer = await tryMistralAPI(query);
       if (!answer) answer = await tryGroqAPI(query, "gemma2-9b-it");
-      if (!answer) answer = await tryApis(GEMINI_APIS, query);
     } else if (commandPart === "deepseek" || commandPart === "ds") {
-      // Try Mistral Agent, then Groq Mixtral, then DeepSeek APIs
       answer = await tryMistralAPI(query);
       if (!answer) answer = await tryGroqAPI(query, "mixtral-8x7b-32768");
-      if (!answer) answer = await tryApis(DEEPSEEK_APIS, query);
     } else {
-      // Default: Try Mistral Agent first, then Groq, then GPT APIs
+      // Default: Mistral then Groq
       answer = await tryMistralAPI(query);
       if (!answer) answer = await tryGroqAPI(query, "llama-3.3-70b-versatile");
-      if (!answer) answer = await tryApis(GPT_APIS, query);
     }
 
     // Stop animation FIRST
@@ -447,7 +282,7 @@ async function aiCommand(sock, chatId, message) {
       await sock.sendMessage(
         chatId,
         {
-          text: "❌ All AI APIs failed. Please try again later.",
+          text: "❌ AI services are currently unavailable. Please try again later.",
           ...global.channelInfo,
         },
         { quoted: message },

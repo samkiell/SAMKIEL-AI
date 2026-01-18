@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const fetch = require("node-fetch");
+const axios = require("axios");
 const { loadPrefix } = require("../lib/prefix");
 // Import SYSTEM_INSTRUCTION from ai.js
 const { SYSTEM_INSTRUCTION } = require("./ai");
@@ -143,65 +143,10 @@ async function getAIResponse(userMessage, userContext) {
   const instruction =
     SYSTEM_INSTRUCTION || "You are SAMKIEL BOT, a helpful AI assistant.";
 
-  const contextText = userContext.messages.slice(-5).join("\n");
-  const userData = JSON.stringify(userContext.userInfo, null, 2);
-
-  const finalPrompt = `${instruction}
-
-[ CONTEXT ]
-${contextText}
-
-[ USER DATA ]
-${userData}
-
-[ CURRENT MSG ]
-User: ${userMessage}
-
-Respond naturally.`;
-
-  // Prioritized API List
-  const CHATBOT_APIS = [
-    {
-      name: "Vreden AI",
-      url: "https://api.vreden.my.id/ai/chat",
-      method: "GET",
-      // Vreden usually takes a 'q' or 'prompt' param but let's assume a standard structure or we use the 'ai' command logic
-      // Actually vreden has /api/ai/deepseek which I used in ai.js. Let's use that structure.
-      constructUrl: (text) =>
-        `https://api.vreden.my.id/ai/deepseek?prompt=${encodeURIComponent(instruction)}&text=${encodeURIComponent(text)}`,
-      extract: (d) => d?.data?.result || d?.data,
-    },
-    {
-      name: "Siputzx",
-      url: "dummy",
-      method: "GET",
-      constructUrl: (text) =>
-        `https://api.siputzx.my.id/api/ai/llama33?prompt=${encodeURIComponent(instruction)}&text=${encodeURIComponent(text)}`,
-      extract: (d) => d?.data,
-    },
-    {
-      name: "Ryzendesu",
-      url: "dummy",
-      method: "GET",
-      constructUrl: (text) =>
-        `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(finalPrompt)}`,
-      extract: (d) => d?.result || d?.answer,
-    },
-    {
-      name: "Darkness",
-      url: "dummy",
-      method: "GET",
-      constructUrl: (text) =>
-        `https://api.darkness.my.id/api/chatgpt?text=${encodeURIComponent(finalPrompt)}`,
-      extract: (d) => d?.result,
-    },
-  ];
-
   // Try Mistral AI Agent first (Primary)
   const settings = require("../settings");
   if (settings.mistralApiKey && settings.mistralAgentId) {
     try {
-      const axios = require("axios");
       const response = await axios.post(
         "https://api.mistral.ai/v1/conversations",
         {
@@ -236,7 +181,6 @@ Respond naturally.`;
   // Try Groq API as backup
   if (settings.groqApiKey) {
     try {
-      const axios = require("axios");
       const response = await axios.post(
         "https://api.groq.com/openai/v1/chat/completions",
         {
@@ -267,32 +211,6 @@ Respond naturally.`;
     }
   }
 
-  // Fallback to free APIs
-  for (const api of CHATBOT_APIS) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
-
-      const url = api.constructUrl(userMessage);
-      const response = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        // console.log(`API ${api.name} failed with status: ${response.status}`);
-        continue;
-      }
-
-      const data = await response.json();
-      const answer = api.extract(data);
-
-      if (answer && typeof answer === "string" && answer.length > 2) {
-        return answer.trim();
-      }
-    } catch (e) {
-      // console.log(`API ${api.name} error: ${e.message}`);
-      continue;
-    }
-  }
   return null;
 }
 
