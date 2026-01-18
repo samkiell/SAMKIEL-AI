@@ -228,7 +228,7 @@ async function aiCommand(sock, chatId, message) {
     // Function to stop animation
     const stopAnimation = async (success = true) => {
       loading = false;
-      await new Promise((r) => setTimeout(r, 100)); // Let loop exit
+      await animationPromise; // Wait for loop to exit
       try {
         await sock.sendMessage(chatId, {
           text: success ? "✅ Response ready!" : "❌ Failed",
