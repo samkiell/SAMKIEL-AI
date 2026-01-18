@@ -225,7 +225,7 @@ async function playCommand(sock, chatId, message) {
       try {
         console.log("Trying David Cyril API...");
         const res = await axios.get(
-          `https://api.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(urlYt)}`,
+          `https://apis.davidcyril.name.ng/download/ytmp3?url=${encodeURIComponent(urlYt)}`,
         );
         if (res.data?.success && res.data?.result?.download_url) {
           audioData = {

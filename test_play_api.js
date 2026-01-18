@@ -53,6 +53,31 @@ async function testPlayApis() {
   } catch (e) {
     console.log(`❌ Cobalt Error: ${e.message}`);
   }
+  console.log("-".repeat(30));
+
+  // 3. David Cyril API
+  try {
+    console.log("Testing David Cyril API...");
+    const start = Date.now();
+    const res = await axios.get(
+      `https://apis.davidcyril.name.ng/download/ytmp3?url=${encodeURIComponent(
+        testUrl,
+      )}`,
+    );
+    const duration = Date.now() - start;
+
+    if (res.data?.success && res.data?.result?.download_url) {
+      console.log(`✅ David Cyril Success (${duration}ms)`);
+      console.log(`   Title: ${res.data.result.title}`);
+      console.log(
+        `   DL Link: ${res.data.result.download_url.substring(0, 50)}...`,
+      );
+    } else {
+      console.log(`❌ David Cyril Failed: Invalid response`, res.data);
+    }
+  } catch (e) {
+    console.log(`❌ David Cyril Error: ${e.message}`);
+  }
 
   console.log("\n🏁 Test Complete");
 }
