@@ -31,6 +31,7 @@ async function imagineCommand(sock, chatId, message) {
     }
 
     // Send processing message with animation
+    await sock.sendMessage(chatId, { react: { text: "🎨", key: message.key } });
     const initialMsg = await sock.sendMessage(
       chatId,
       {

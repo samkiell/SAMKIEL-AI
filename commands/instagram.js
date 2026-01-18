@@ -40,7 +40,7 @@ async function instagramCommand(sock, chatId, message) {
       });
     }
 
-    await sock.sendMessage(chatId, { react: { text: "🔄", key: message.key } });
+    await sock.sendMessage(chatId, { react: { text: "⏳", key: message.key } });
 
     let mediaData = [];
     let success = false;

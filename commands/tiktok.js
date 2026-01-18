@@ -16,9 +16,12 @@ async function tiktokCommand(sock, chatId, message) {
     processedMessages.add(message.key.id);
 
     // Clean up old message IDs after 5 minutes
-    setTimeout(() => {
-      processedMessages.delete(message.key.id);
-    }, 5 * 60 * 1000);
+    setTimeout(
+      () => {
+        processedMessages.delete(message.key.id);
+      },
+      5 * 60 * 1000,
+    );
 
     const text =
       message.message?.conversation ||
@@ -64,23 +67,23 @@ async function tiktokCommand(sock, chatId, message) {
     }
 
     await sock.sendMessage(chatId, {
-      react: { text: "🔄", key: message.key },
+      react: { text: "⏳", key: message.key },
     });
 
     try {
       // Try multiple APIs in sequence
       const apis = [
         `https://api.princetechn.com/api/download/tiktok?apikey=prince&url=${encodeURIComponent(
-          url
+          url,
         )}`,
         `https://api.princetechn.com/api/download/tiktokdlv2?apikey=prince_tech_api_azfsbshfb&url=${encodeURIComponent(
-          url
+          url,
         )}`,
         `https://api.princetechn.com/api/download/tiktokdlv3?apikey=prince_tech_api_azfsbshfb&url=${encodeURIComponent(
-          url
+          url,
         )}`,
         `https://api.princetechn.com/api/download/tiktokdlv4?apikey=prince_tech_api_azfsbshfb&url=${encodeURIComponent(
-          url
+          url,
         )}`,
         `https://api.dreaded.site/api/tiktok?url=${encodeURIComponent(url)}`,
       ];
@@ -141,7 +144,7 @@ async function tiktokCommand(sock, chatId, message) {
                   caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
                   ...global.channelInfo,
                 },
-                { quoted: message }
+                { quoted: message },
               );
             } else {
               await sock.sendMessage(
@@ -151,7 +154,7 @@ async function tiktokCommand(sock, chatId, message) {
                   caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
                   ...global.channelInfo,
                 },
-                { quoted: message }
+                { quoted: message },
               );
             }
           }
@@ -186,7 +189,7 @@ async function tiktokCommand(sock, chatId, message) {
               caption: caption,
               ...global.channelInfo,
             },
-            { quoted: message }
+            { quoted: message },
           );
 
           // If we have audio URL, download and send it as well
@@ -211,7 +214,7 @@ async function tiktokCommand(sock, chatId, message) {
                   caption: "🎵 Audio from TikTok",
                   ...global.channelInfo,
                 },
-                { quoted: message }
+                { quoted: message },
               );
             } catch (audioError) {
               console.error(`Failed to download audio: ${audioError.message}`);
@@ -234,7 +237,7 @@ async function tiktokCommand(sock, chatId, message) {
                 caption: caption,
                 ...global.channelInfo,
               },
-              { quoted: message }
+              { quoted: message },
             );
             return;
           } catch (urlError) {

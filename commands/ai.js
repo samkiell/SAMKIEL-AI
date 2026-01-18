@@ -245,7 +245,9 @@ async function aiCommand(sock, chatId, message) {
       );
     }
 
-    // Show loading message
+    // React
+    await sock.sendMessage(chatId, { react: { text: "⏳", key: message.key } });
+
     const initialMsg = await sock.sendMessage(
       chatId,
       {
