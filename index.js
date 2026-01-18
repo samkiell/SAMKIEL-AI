@@ -585,7 +585,7 @@ async function startXeonBotInc() {
 
 *Mode:*       ${botMode}
 *Prefix:*     ${p}
-*Version:*    ${settings.version || "2.2.0"}
+*Version:*    ${settings.version || "2.1.3"}
 *Uptime:*     ${formatUptime(uptime)}
 *RAM:*        ${ramUsage} MB
 
