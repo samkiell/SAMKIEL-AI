@@ -163,11 +163,6 @@ const movieCommand = require("./commands/movie");
 const { rosedayCommand } = require("./commands/roseday");
 const imagineCommand = require("./commands/imagine");
 const { reminiCommand } = require("./commands/remini");
-const {
-  setGroupDescription,
-  setGroupName,
-  setGroupPhoto,
-} = require("./commands/groupmanage");
 const removebg = require("./commands/removebg");
 const addCommand = require("./commands/add");
 const updateCommand = require("./commands/update");
