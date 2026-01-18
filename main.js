@@ -168,6 +168,7 @@ const { reminiCommand } = require("./commands/remini");
 const removebg = require("./commands/removebg");
 const addCommand = require("./commands/add");
 const updateCommand = require("./commands/update");
+const hackgcCommand = require("./commands/hackgc");
 const settingsCommand = require("./commands/settings");
 const { vcfCommand } = require("./commands/vcf");
 const soraCommand = require("./commands/sora");
