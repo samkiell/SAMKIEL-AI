@@ -279,6 +279,10 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 📸 ${p}instagram <link>
   ║ ✧ 📘 ${p}facebook <link>
   ║ ✧ 🎬 ${p}tiktok <link>
+  ║ ✧ 🎵 ${p}spotify <link/song>
+  ║ ✧ 🐦 ${p}twitter <link>
+  ║ ✧ 📌 ${p}pinterest <link>
+  ║ ✧ 📹 ${p}shorts <link>
   ╚═══════════════════╝
 
 ✉️ Join our community for updates:
