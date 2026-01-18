@@ -169,37 +169,55 @@ async function playCommand(sock, chatId, message) {
     let audioData;
     let success = false;
 
-    // 1) Primary: Asitha API
+    // Try providers with fallback
+    let audioData;
+    let success = false;
+
+    // 1) Primary: Widipe API (New Reliable Source)
     try {
-      console.log("Trying Asitha API...");
-      audioData = await getAsithaAudio(urlYt);
-      success = true;
-    } catch (e) {
-      console.log("Asitha API failed:", e.message);
-      // 2) Secondary: Izumi by URL
-      try {
-        console.log("Trying Izumi (URL)...");
-        audioData = await getIzumiDownloadByUrl(urlYt);
+      console.log("Trying Widipe API...");
+      const apiUrl = `https://widipe.com.pl/api/m/dl?url=${encodeURIComponent(urlYt)}`;
+      const res = await axios.get(apiUrl, AXIOS_DEFAULTS);
+
+      // Response format: { status: true, result: { title, thumbnail, timestamp, views, dl, quality } }
+      if (res.data?.status && res.data?.result?.dl) {
+        audioData = {
+          url: res.data.result.dl,
+          title: res.data.result.title,
+        };
         success = true;
-      } catch (e) {
-        console.log("Izumi (URL) failed:", e.message);
-        // 3) Tertiary: Izumi by Query
-        try {
-          console.log("Trying Izumi (Query)...");
-          const query = video.title || searchQuery;
-          audioData = await getIzumiDownloadByQuery(query);
+      } else {
+        throw new Error("Widipe returned invalid data");
+      }
+    } catch (e) {
+      console.log("Widipe API failed:", e.message);
+
+      // 2) Secondary: Cobalt API (Backup)
+      try {
+        console.log("Trying Cobalt API...");
+        const cobaltUrl = "https://api.cobalt.tools/api/json";
+        const res = await axios.post(
+          cobaltUrl,
+          {
+            url: urlYt,
+            isAudioOnly: true,
+          },
+          {
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        if (res.data?.url) {
+          audioData = { url: res.data.url, title: video.title };
           success = true;
-        } catch (e) {
-          console.log("Izumi (Query) failed:", e.message);
-          // 4) Fallback: Okatsu
-          try {
-            console.log("Trying Okatsu...");
-            audioData = await getOkatsuDownloadByUrl(urlYt);
-            success = true;
-          } catch (e) {
-            console.log("Okatsu failed:", e.message);
-          }
+        } else {
+          throw new Error("Cobalt returned no URL");
         }
+      } catch (err) {
+        console.log("Cobalt API failed:", err.message);
       }
     }
 

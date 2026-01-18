@@ -170,6 +170,7 @@ const {
   recordUserActivity,
 } = require("./commands/listonline");
 const pinCommand = require("./commands/pin");
+const livescoreCommand = require("./commands/livescore");
 const pmCommand = require("./commands/pm");
 const { sendText, shouldHaveBranding } = require("./lib/sendResponse");
 
@@ -1437,6 +1438,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
       case cmd === "pm":
         await pmCommand(sock, chatId, senderId, message, args);
+        break;
+
+      case cmd === "score" || cmd === "livescore" || cmd === "football":
+        await livescoreCommand(sock, chatId, args);
         break;
 
       case cmd === "prefix":
