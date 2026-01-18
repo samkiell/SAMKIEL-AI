@@ -1,98 +1,119 @@
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const { jidNormalizedUser } = require("@whiskeysockets/baileys");
 
-async function vcfCommand(sock, chatId) {
+/**
+ * VCF Utility for Group Contacts
+ */
+async function vcfCommand(sock, chatId, message) {
   try {
-    // Send waiting message
-    await sock.sendMessage(chatId, {
-      text: "⏳ Generating group VCF, please wait...",
-    });
+    if (!chatId.endsWith("@g.us")) {
+      return sock.sendMessage(
+        chatId,
+        { text: "❌ This command is for groups only." },
+        { quoted: message },
+      );
+    }
 
-    // Fetch group metadata
+    await sock.sendMessage(
+      chatId,
+      { text: "⏳ Generating Group VCF..." },
+      { quoted: message },
+    );
+
+    // Fetch Metadata
     const groupMetadata = await sock.groupMetadata(chatId);
     const participants = groupMetadata.participants;
 
-    console.log(
-      `Total participants fetched: ${participants ? participants.length : 0}`
-    );
-
     if (!participants || participants.length === 0) {
-      await sock.sendMessage(chatId, {
-        text: "❌ Failed to create VCF file.",
-      });
-      return;
+      return sock.sendMessage(
+        chatId,
+        { text: "❌ No participants found." },
+        { quoted: message },
+      );
     }
 
-    // Generate VCF content
     let vcfContent = "";
-    let count = 1;
+    let count = 0;
     const uniqueNumbers = new Set();
+    const store = sock.store || {}; // Handle if store is undefined
+
+    const groupName = groupMetadata.subject || "Group";
+    const safeGroupName =
+      groupName.replace(/[^a-zA-Z0-9 ]/g, "").trim() || "Contacts";
 
     for (const member of participants) {
-      let jid = member.id;
-      console.log("Processing JID:", jid);
+      let jid = jidNormalizedUser(member.id);
 
-      // Normalize @lid → @s.whatsapp.net
-      jid = jidNormalizedUser(jid);
-
-      if (!jid.endsWith("@s.whatsapp.net")) {
-        console.log("Skipping non-user JID:", jid);
-        continue;
-      }
+      // Safety check
+      if (!jid.endsWith("@s.whatsapp.net")) continue;
 
       const number = jid.split("@")[0];
-      if (!/^\d{10,15}$/.test(number)) {
-        console.log("Skipping invalid number:", number);
-        continue;
-      }
 
+      // Deduplicate
       if (uniqueNumbers.has(number)) continue;
       uniqueNumbers.add(number);
 
-      let name;
-      if (number === "2348087357158") {
-        name = "ѕαмкιєℓ.∂єν";
-      } else {
-        const contact = sock.store?.contacts?.[jid] || {};
-        name = contact.name || contact.notify || `samkielvcf_${count}`;
+      // Determine Name
+      let name = `Member_${count + 1}`;
+
+      // 1. Check Contact Store
+      if (store.contacts && store.contacts[jid]) {
+        const contact = store.contacts[jid];
+        name = contact.name || contact.notify || contact.verifiedName || name;
       }
 
-      vcfContent += `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE:CELL:+${number}\nEND:VCARD\n`;
+      // 2. Special override for Developer (example)
+      if (number === "2348087357158") name = "SAMKIEL DEV";
+
+      // VCard Format
+      vcfContent +=
+        `BEGIN:VCARD\n` +
+        `VERSION:3.0\n` +
+        `FN:${name}\n` +
+        `TEL;type=CELL;type=VOICE;waid=${number}:+${number}\n` +
+        `END:VCARD\n`;
+
       count++;
     }
 
-    console.log(`Valid contacts found: ${count - 1}`);
-
-    if (vcfContent.length === 0) {
-      await sock.sendMessage(chatId, {
-        text: "❌ Failed to create VCF file.",
-      });
-      return;
+    if (count === 0) {
+      return sock.sendMessage(
+        chatId,
+        { text: "❌ Failed to generate contacts." },
+        { quoted: message },
+      );
     }
 
-    // Save file in /temp folder as group_contacts.vcf
-    const filePath = path.join(__dirname, "../temp", "group_contacts.vcf");
+    // Save to temp
+    const fileName = `${safeGroupName}_${Date.now()}.vcf`;
+    const filePath = path.join(os.tmpdir(), fileName);
     fs.writeFileSync(filePath, vcfContent);
 
-    // Send the file
-    await sock.sendMessage(chatId, {
-      document: { url: filePath },
-      mimetype: "text/vcard",
-      fileName: "group_contacts.vcf",
-      caption: `📇 Group contacts exported successfully! ✅\nTotal: ${
-        count - 1
-      } contacts`,
-    });
+    // Send
+    await sock.sendMessage(
+      chatId,
+      {
+        document: { url: filePath },
+        mimetype: "text/vcard",
+        fileName: fileName,
+        caption: `📇 *Group Contacts Export*\n\n✅ *${count}* contacts saved.\n📁 *Group:* ${groupName}`,
+      },
+      { quoted: message },
+    );
 
-    // Delete the file
-    fs.unlinkSync(filePath);
-
-    // Console log total contacts
-    console.log(`Total contacts exported: ${count - 1}`);
+    // Cleanup
+    try {
+      fs.unlinkSync(filePath);
+    } catch {}
   } catch (err) {
-    console.error("Error generating VCF:", err);
-    await sock.sendMessage(chatId, { text: "❌ Failed to create VCF file." });
+    console.error("VCF Error:", err);
+    await sock.sendMessage(
+      chatId,
+      { text: "❌ Error generating VCF file." },
+      { quoted: message },
+    );
   }
 }
 

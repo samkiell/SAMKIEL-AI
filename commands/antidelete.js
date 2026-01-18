@@ -6,12 +6,11 @@ const {
   generateWAMessageFromContent,
   getContentType,
 } = require("@whiskeysockets/baileys");
-const { writeFile } = require("fs/promises");
 const settings = require("../settings");
 const { loadPrefix } = require("../lib/prefix");
 const { isOwner } = require("../lib/isOwner");
 
-// In-memory message store for caching
+// Cache mechanism
 const messageStore = new Map();
 const MAX_CACHE_SIZE = 5000;
 const configPath = path.join(__dirname, "../data/antiDelete.json");
@@ -23,7 +22,6 @@ if (!fs.existsSync(configPath)) {
     JSON.stringify(
       {
         enabled: settings.featureToggles.ANTI_DELETE ?? false,
-        mode: settings.featureToggles.ANTI_DELETE_TYPE || "group",
         allowedGroups: [],
       },
       null,
@@ -32,16 +30,14 @@ if (!fs.existsSync(configPath)) {
   );
 }
 
-/**
- * Periodically clean up old cache entries
- */
+// Cleanup Cache every 5 mins
 setInterval(() => {
   if (messageStore.size > MAX_CACHE_SIZE) {
     const keys = Array.from(messageStore.keys());
     const toRemove = keys.slice(0, messageStore.size - MAX_CACHE_SIZE);
     toRemove.forEach((key) => messageStore.delete(key));
   }
-}, 300000); // Every 5 minutes
+}, 300000);
 
 /**
  * Helper to copy and forward a message
@@ -56,11 +52,11 @@ async function copyNForward(
   try {
     const content = await generateForwardMessageContent(message, forceForward);
     const contentType = getContentType(content);
-
     let context = {};
     const originalMType = getContentType(message.message);
-    if (originalMType !== "conversation") {
-      context = message.message[originalMType]?.contextInfo || {};
+
+    if (originalMType !== "conversation" && message.message[originalMType]) {
+      context = message.message[originalMType].contextInfo || {};
     }
 
     content[contentType].contextInfo = {
@@ -80,44 +76,34 @@ async function copyNForward(
     return waMessage;
   } catch (e) {
     console.error("Error in copyNForward:", e);
-    // Fallback: just send text if possible
+    // Fallback text
     const text =
       message.message?.conversation ||
       message.message?.extendedTextMessage?.text;
-    if (text) {
-      await sock.sendMessage(jid, { text: `[Fallback] ${text}` });
-    }
+    if (text)
+      await sock.sendMessage(jid, { text: `[Fallback Content] ${text}` });
   }
 }
 
 /**
- * Stores incoming messages for later recovery
+ * Store incoming message
  */
 async function storeMessage(message) {
   try {
-    // Check local config first
-    let config = { enabled: settings.featureToggles.ANTI_DELETE ?? false };
-    try {
-      if (fs.existsSync(configPath)) {
-        config = JSON.parse(fs.readFileSync(configPath));
-      }
-    } catch (e) {}
-
-    // Only store if anti-delete is enabled globally
-    if (!config.enabled) return;
-
     if (!message?.key?.id || !message?.message) return;
 
-    const messageId = message.key.id;
-    const remoteJid = message.key.remoteJid;
+    // Check global toggle
+    let config = { enabled: false };
+    try {
+      if (fs.existsSync(configPath))
+        config = JSON.parse(fs.readFileSync(configPath));
+    } catch {}
+    if (!config.enabled) return;
 
-    // Don't store status messages
+    const remoteJid = message.key.remoteJid;
     if (remoteJid === "status@broadcast") return;
 
-    // Detect message type
     const mtype = getContentType(message.message);
-
-    // Skip protocol/control messages
     if (
       [
         "protocolMessage",
@@ -127,9 +113,7 @@ async function storeMessage(message) {
     )
       return;
 
-    // Cache the message
-    // We deep copy to avoid issues if the original object is modified
-    messageStore.set(messageId, {
+    messageStore.set(message.key.id, {
       message: JSON.parse(JSON.stringify(message.message)),
       key: message.key,
       remoteJid: remoteJid,
@@ -137,74 +121,56 @@ async function storeMessage(message) {
       timestamp: Date.now(),
     });
   } catch (err) {
-    console.error("Error in storeMessage:", err);
+    console.error("Antidelete Store Error:", err);
   }
 }
 
 /**
- * Handles message deletion events
+ * Handle Revoke Event
  */
 async function handleMessageRevocation(sock, revocationMessage) {
   try {
-    // 1. Load config
-    let config = { enabled: false, mode: "group", allowedGroups: [] };
-    if (fs.existsSync(configPath)) {
-      config = JSON.parse(fs.readFileSync(configPath));
-    }
-
-    // Global toggle check
-    if (!config.enabled) return;
-
     const protocolMsg = revocationMessage.message?.protocolMessage;
-    if (protocolMsg?.type !== 0) return; // 0 is REVOKE
+    if (protocolMsg?.type !== 0) return; // Only REVOKE
 
     const targetId = protocolMsg.key.id;
     const original = messageStore.get(targetId);
-
     if (!original) return;
 
-    // 2. Sender check (Never forward bot's own messages)
+    // Ignore bot's own deleted messages
     if (original.key.fromMe) return;
+
+    // Load Config
+    let config = { enabled: false };
+    try {
+      if (fs.existsSync(configPath))
+        config = JSON.parse(fs.readFileSync(configPath));
+    } catch {}
+    if (!config.enabled) return;
 
     const remoteJid = original.remoteJid;
     const isGroup = remoteJid.endsWith("@g.us");
-
-    // 3. Group Eligibility Check
-    if (isGroup) {
-      // If allowedGroups has entries, we restrict to those.
-      // If it's empty, we allow ALL groups as long as global toggle is ON.
-      if (config.allowedGroups && config.allowedGroups.length > 0) {
-        if (!config.allowedGroups.includes(remoteJid)) {
-          return;
-        }
-      }
-    }
-
     const deleter =
       revocationMessage.key.participant || revocationMessage.key.remoteJid;
     const sender = original.participant;
+
+    // Routing: STRICTLY DM (Owner + Bot)
     const botNumberJid = sock.user.id.split(":")[0] + "@s.whatsapp.net";
     const ownerNumberJid = settings.ownerNumber + "@s.whatsapp.net";
 
     let destinations = [];
-    const contextHeader = isGroup ? "Group Chat" : "Private Chat";
-
-    // 4. Mode-Based Routing Logic (FORCED TO DM FOR PRIVACY)
-    // Send to Owner DM
     if (ownerNumberJid) destinations.push(ownerNumberJid);
-    // Send to Bot (Self)
-    if (ownerNumberJid !== botNumberJid) destinations.push(botNumberJid);
+    if (botNumberJid !== ownerNumberJid) destinations.push(botNumberJid);
 
-    // Deduplicate destinations
     destinations = [...new Set(destinations)];
-
     if (destinations.length === 0) return;
 
+    // Log
     console.log(
-      `♻️ Anti-delete triggered for ${targetId}. Forwarding to ${destinations.length} DMs.`,
+      `♻️ Antidelete triggered. Forwarding to ${destinations.length} DM(s).`,
     );
 
-    // 5. Construct Report Header
+    // Get Group Name
     let groupName = "Private Chat";
     if (isGroup) {
       try {
@@ -216,149 +182,60 @@ async function handleMessageRevocation(sock, revocationMessage) {
     }
 
     const header =
-      `*🔰 ANTI-DELETE SYSTEM 🔰*\n\n` +
+      `*🔰 ANTI-DELETE DETECTED 🔰*\n\n` +
       `*👤 Deleted by:* @${deleter.split("@")[0]}\n` +
       `*👤 Sent by:* @${sender.split("@")[0]}\n` +
-      `*🕒 Context:* ${contextHeader}\n` +
-      (isGroup ? `*📍 Group:* ${groupName}\n` : "") +
+      `*📍 Context:* ${isGroup ? `Group (${groupName})` : "Private Chat"}\n` +
       `━━━━━━━━━━━━━━━━━━━`;
 
-    // 6. Send to all destinations
+    // Send
     for (const dest of destinations) {
       await sock.sendMessage(dest, {
         text: header,
         mentions: [deleter, sender],
       });
-
       await copyNForward(sock, dest, original, true);
     }
 
-    // 7. Cleanup
     messageStore.delete(targetId);
   } catch (err) {
-    console.error("Error in handleMessageRevocation:", err);
+    console.error("Antidelete Handle Error:", err);
   }
 }
 
 /**
- * Command to toggle state
+ * Command Handler
  */
 async function handleAntideleteCommand(sock, chatId, message, args) {
   const senderId = message.key.participant || message.key.remoteJid;
+  if (!(await isOwner(senderId)))
+    return sock.sendMessage(chatId, { text: "❌ Owner only command." });
 
-  if (!(await isOwner(senderId))) {
-    return sock.sendMessage(chatId, {
-      text: "❌ Owner only command.",
-      ...global.channelInfo,
-    });
-  }
-
-  // Load config
-  let config = { enabled: false, mode: "group", allowedGroups: [] };
+  let config = { enabled: false };
   if (fs.existsSync(configPath)) {
-    config = JSON.parse(fs.readFileSync(configPath));
+    try {
+      config = JSON.parse(fs.readFileSync(configPath));
+    } catch {}
   }
 
-  // Parse args
-  let subCmd = "";
-  let param = "";
-
-  if (typeof args === "string") {
-    const parts = args.trim().split(/\s+/);
-    subCmd = parts[0] ? parts[0].toLowerCase() : "";
-    param = parts[1] ? parts[1].toLowerCase() : "";
-  } else if (Array.isArray(args)) {
-    subCmd = args[0] ? args[0].toLowerCase() : "";
-    param = args[1] ? args[1].toLowerCase() : "";
-  }
+  const subCmd = (
+    Array.isArray(args) ? args[0] : args.toString().split(" ")[0]
+  )?.toLowerCase();
 
   if (subCmd === "on") {
     config.enabled = true;
-    fs.writeFileSync(configPath, JSON.stringify(config));
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
     await sock.sendMessage(chatId, {
-      text: "✅ Anti-delete system enabled globally.",
-      ...global.channelInfo,
+      text: "✅ Anti-delete ENABLED.\nDeleted messages will be sent to Owner/Bot DMs.",
     });
   } else if (subCmd === "off") {
     config.enabled = false;
-    fs.writeFileSync(configPath, JSON.stringify(config));
-    await sock.sendMessage(chatId, {
-      text: "❌ Anti-delete system disabled globally.",
-      ...global.channelInfo,
-    });
-  } else if (subCmd === "type") {
-    if (param === "group") {
-      config.mode = "group";
-      fs.writeFileSync(configPath, JSON.stringify(config));
-      await sock.sendMessage(chatId, {
-        text: "✅ Mode set to GROUP: Deleted messages will be sent to the group chat.",
-        ...global.channelInfo,
-      });
-    } else if (param === "dm") {
-      config.mode = "dm";
-      fs.writeFileSync(configPath, JSON.stringify(config));
-      await sock.sendMessage(chatId, {
-        text: "✅ Mode set to DM: Deleted messages will be forwarded to your DM.",
-        ...global.channelInfo,
-      });
-    } else {
-      await sock.sendMessage(chatId, {
-        text: "❌ Invalid type! Use 'group' or 'dm'.",
-        ...global.channelInfo,
-      });
-    }
-  } else if (subCmd === "gc") {
-    if (!message.key.remoteJid.endsWith("@g.us")) {
-      await sock.sendMessage(chatId, {
-        text: "❌ This command is for groups only.",
-        ...global.channelInfo,
-      });
-      return;
-    }
-
-    if (param === "on") {
-      if (!config.allowedGroups.includes(chatId)) {
-        config.allowedGroups.push(chatId);
-        fs.writeFileSync(configPath, JSON.stringify(config));
-      }
-      await sock.sendMessage(chatId, {
-        text: "✅ Anti-delete active for this group.",
-        ...global.channelInfo,
-      });
-    } else if (param === "off") {
-      config.allowedGroups = config.allowedGroups.filter((id) => id !== chatId);
-      fs.writeFileSync(configPath, JSON.stringify(config));
-      await sock.sendMessage(chatId, {
-        text: "❌ Anti-delete disabled for this group.",
-        ...global.channelInfo,
-      });
-    } else {
-      await sock.sendMessage(chatId, {
-        text: "❌ Use 'gc on' or 'gc off'.",
-        ...global.channelInfo,
-      });
-    }
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    await sock.sendMessage(chatId, { text: "❌ Anti-delete DISABLED." });
   } else {
-    // Status Display
-    const status = config.enabled ? "ON" : "OFF";
-    const mode = config.mode.toUpperCase();
-    const isAllowed = config.allowedGroups.includes(chatId) ? "YES" : "NO";
-    const currentPrefix = loadPrefix();
-    const p = currentPrefix === "off" ? "" : currentPrefix;
-
+    const status = config.enabled ? "✅ ON" : "❌ OFF";
     await sock.sendMessage(chatId, {
-      text: `🔰 *Antidelete Configuration*
-      
-📊 *Global Status:* ${status}
-🔄 *Mode:* ${mode}
-🏘️ *Active in this Group:* ${isAllowed}
-
-*Commands:*
-${p}antidelete on/off (Global Switch)
-${p}antidelete type group (Send to Group)
-${p}antidelete type dm (Send to Owner DM)
-${p}antidelete gc on/off (Enable/Disable for current group)`,
-      ...global.channelInfo,
+      text: `🔰 *Antidelete Status*\n\nStatus: ${status}\n\n*Usage:*\n.antidelete on\n.antidelete off\n\n_Note: Privacy mode enforced. Messages go to DMs only._`,
     });
   }
 }
