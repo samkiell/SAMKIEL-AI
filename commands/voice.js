@@ -294,16 +294,16 @@ async function processVoiceWithMistral(audioPath, imagePath = null) {
 }
 
 /**
- * Convert text to speech using free TTS API
+ * Convert text to speech using free TTS APIs with Nigerian accent focus
  */
 async function textToSpeech(text) {
-  // Try multiple TTS APIs
+  // Try multiple TTS APIs, prioritizing Nigerian voices
   const ttsApis = [
     {
-      name: "Voicerss",
+      name: "StreamElements (Ezinne - Nigerian Female)",
       fn: async (t) => {
         const response = await axios.get(
-          `https://api.voicerss.org/?key=2c97a8c6b1fc4c38b0aa2f5f9d7f3d7d&hl=en-us&src=${encodeURIComponent(t)}&c=MP3`,
+          `https://api.streamelements.com/kappa/v2/speech?voice=Ezinne&text=${encodeURIComponent(t.substring(0, 500))}`,
           { responseType: "arraybuffer", timeout: 30000 },
         );
         if (response.data && response.data.byteLength > 1000) {
@@ -313,7 +313,33 @@ async function textToSpeech(text) {
       },
     },
     {
-      name: "StreamElements TTS",
+      name: "StreamElements (Abeo - Nigerian Male)",
+      fn: async (t) => {
+        const response = await axios.get(
+          `https://api.streamelements.com/kappa/v2/speech?voice=Abeo&text=${encodeURIComponent(t.substring(0, 500))}`,
+          { responseType: "arraybuffer", timeout: 30000 },
+        );
+        if (response.data && response.data.byteLength > 1000) {
+          return Buffer.from(response.data);
+        }
+        return null;
+      },
+    },
+    {
+      name: "Voicerss (Nigerian English)",
+      fn: async (t) => {
+        const response = await axios.get(
+          `https://api.voicerss.org/?key=2c97a8c6b1fc4c38b0aa2f5f9d7f3d7d&hl=en-ng&src=${encodeURIComponent(t)}&c=MP3`,
+          { responseType: "arraybuffer", timeout: 30000 },
+        );
+        if (response.data && response.data.byteLength > 1000) {
+          return Buffer.from(response.data);
+        }
+        return null;
+      },
+    },
+    {
+      name: "StreamElements (Brian - Backup)",
       fn: async (t) => {
         const response = await axios.get(
           `https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=${encodeURIComponent(t.substring(0, 500))}`,
@@ -326,10 +352,10 @@ async function textToSpeech(text) {
       },
     },
     {
-      name: "TTS API",
+      name: "TTS API (Google Backup)",
       fn: async (t) => {
         const response = await axios.get(
-          `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t.substring(0, 200))}&tl=en&client=tw-ob`,
+          `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t.substring(0, 200))}&tl=en-gb&client=tw-ob`,
           {
             responseType: "arraybuffer",
             timeout: 30000,
