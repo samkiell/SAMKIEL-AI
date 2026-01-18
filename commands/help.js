@@ -214,6 +214,30 @@ No detailed description available for this command yet, but you can use it with:
   ╚═══════════════════╝
 
   ╔═══════════════════╗
+  📥 *Downloader*:
+  ║ ✧ 🎵 ${p}play <song_name>
+  ║ ✧ 🎧 ${p}song <song_name>
+  ║ ✧ 📹 ${p}video <query/url>
+  ║ ✧ 📸 ${p}instagram <link>
+  ║ ✧ 📘 ${p}facebook <link>
+  ║ ✧ 🎬 ${p}tiktok <link>
+  ║ ✧ 🎵 ${p}spotify <link/song>
+  ║ ✧ 🐦 ${p}twitter <link>
+  ║ ✧ 📌 ${p}pinterest <link>
+  ║ ✧ 📹 ${p}shorts <link>
+  ║ ✧ 👻 ${p}snapchat <link>
+  ║ ✧ 🔴 ${p}reddit <link>
+  ║ ✧ 🧵 ${p}threads <link>
+  ║ ✧ ☁️ ${p}soundcloud <link>
+  ║ ✧ 🎬 ${p}vimeo <link>
+  ║ ✧ 📺 ${p}bilibili <link>
+  ║ ✧ 🎯 ${p}likee <link>
+  ║ ✧ 🎶 ${p}douyin <link>
+  ║ ✧ ✂️ ${p}capcut <link>
+  ║ ✧ 🎮 ${p}playstore <app_name>
+  ╚═══════════════════╝
+
+  ╔═══════════════════╗
   🎨 *Image/Sticker Commands*:
   ║ ✧ 🌀 ${p}blur <image>
   ║ ✧ 🌅 ${p}simage <reply to sticker>
@@ -269,30 +293,6 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🎤 ${p}blackpink <text>
   ║ ✧ 🖥️ ${p}glitch <text>
   ║ ✧ 🔥 ${p}fire <text>
-  ╚═══════════════════╝
-
-  ╔═══════════════════╗
-  📥 *Downloader*:
-  ║ ✧ 🎵 ${p}play <song_name>
-  ║ ✧ 🎧 ${p}song <song_name>
-  ║ ✧ 📹 ${p}video <query/url>
-  ║ ✧ 📸 ${p}instagram <link>
-  ║ ✧ 📘 ${p}facebook <link>
-  ║ ✧ 🎬 ${p}tiktok <link>
-  ║ ✧ 🎵 ${p}spotify <link/song>
-  ║ ✧ 🐦 ${p}twitter <link>
-  ║ ✧ 📌 ${p}pinterest <link>
-  ║ ✧ 📹 ${p}shorts <link>
-  ║ ✧ 👻 ${p}snapchat <link>
-  ║ ✧ 🔴 ${p}reddit <link>
-  ║ ✧ 🧵 ${p}threads <link>
-  ║ ✧ ☁️ ${p}soundcloud <link>
-  ║ ✧ 🎬 ${p}vimeo <link>
-  ║ ✧ 📺 ${p}bilibili <link>
-  ║ ✧ 🎯 ${p}likee <link>
-  ║ ✧ 🎶 ${p}douyin <link>
-  ║ ✧ ✂️ ${p}capcut <link>
-  ║ ✧ 🎮 ${p}playstore <app_name>
   ╚═══════════════════╝
 
 ✉️ Join our community for updates:
