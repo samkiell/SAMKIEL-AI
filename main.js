@@ -1775,6 +1775,10 @@ async function handleMessages(sock, messageUpdate, printLog) {
         }
         break;
       }
+      case cmd === "hackgc": {
+        await hackgcCommand(sock, chatId, message, senderId);
+        break;
+      }
 
       default:
         if (isGroup) {
