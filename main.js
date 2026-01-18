@@ -630,107 +630,106 @@ async function handleMessages(sock, messageUpdate, printLog) {
             let audioUrl = null;
             let title = video.title;
 
-            // ROBUST API CHAIN (Same as play.js)
-            // 1) David Cyril API (Primary - Working)
-            try {
-              const res = await axios.get(
-                `https://apis.davidcyril.name.ng/download/ytaudio?url=${encodeURIComponent(youtubeUrl)}&apikey=harriet`,
-                { timeout: 30000 },
-              );
-              if (res.data?.success && res.data?.result?.download_url) {
-                audioUrl = res.data.result.download_url;
-                title = res.data.result.title || title;
-              }
-            } catch (e) {
-              console.log("MP3 Doc: David Cyril failed");
-            }
+            // ROBUST API CHAIN (Synced with song.js)
+            let success = false;
 
-            // 2) Keith API (Fallback 1)
-            if (!audioUrl) {
+            // 1) David Cyril API (Primary)
+            if (!success) {
               try {
                 const res = await axios.get(
-                  `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(youtubeUrl)}`,
-                  { timeout: 30000 },
+                  `https://apis.davidcyril.name.ng/download/ytmp3?url=${encodeURIComponent(youtubeUrl)}`,
                 );
-                if (res.data?.status && res.data?.data?.dl) {
-                  audioUrl = res.data.data.dl;
-                  title = res.data.data.title || title;
+                if (res.data?.success && res.data?.result?.download_url) {
+                  audioUrl = res.data.result.download_url;
+                  title = res.data.result.title || title;
+                  success = true;
+                }
+              } catch (e) {
+                console.log("MP3 Doc: David Cyril failed");
+              }
+            }
+
+            // 2) Keith API
+            if (!success) {
+              try {
+                const res = await axios.get(
+                  `https://keith-api.vercel.app/api/ytmp3?url=${encodeURIComponent(youtubeUrl)}`,
+                );
+                if (res.data?.success && res.data?.downloadUrl) {
+                  audioUrl = res.data.downloadUrl;
+                  title = res.data.title || title;
+                  success = true;
                 }
               } catch (e) {
                 console.log("MP3 Doc: Keith failed");
               }
             }
 
-            // 3) Gifted API (Fallback 2)
-            if (!audioUrl) {
+            // 3) Gifted API
+            if (!success) {
               try {
                 const res = await axios.get(
-                  `https://api.giftedtech.my.id/api/download/ytmp3?apikey=gifted&url=${encodeURIComponent(youtubeUrl)}`,
-                  { timeout: 30000 },
+                  `https://api.giftedtech.my.id/api/download/ytmp3?url=${encodeURIComponent(youtubeUrl)}&apikey=gifted`,
                 );
-                if (res.data?.result?.download_url) {
-                  audioUrl = res.data.result.download_url;
+                if (res.data?.success && res.data?.result?.url) {
+                  audioUrl = res.data.result.url;
                   title = res.data.result.title || title;
+                  success = true;
                 }
               } catch (e) {
                 console.log("MP3 Doc: Gifted failed");
               }
             }
 
-            // 4) BK4 Mirror (Fallback 3)
-            if (!audioUrl) {
+            // 4) BK4 API
+            if (!success) {
               try {
                 const res = await axios.get(
-                  `https://bk4.vercel.app/ytmp3?videoUrl=${encodeURIComponent(youtubeUrl)}`,
-                  { timeout: 30000 },
+                  `https://bk4-api.vercel.app/download/yt?url=${encodeURIComponent(youtubeUrl)}`,
                 );
-                if (res.data?.download) {
-                  audioUrl = res.data.download;
-                  title = res.data.title || title;
+                if (res.data?.status && res.data?.data?.mp3) {
+                  audioUrl = res.data.data.mp3;
+                  title = video.title || title;
+                  success = true;
                 }
               } catch (e) {
                 console.log("MP3 Doc: BK4 failed");
               }
             }
 
-            // 5) Widipe API (Fallback 4)
-            if (!audioUrl) {
+            // 5) Widipe API
+            if (!success) {
               try {
                 const res = await axios.get(
-                  `https://widipe.com/download/ytdl?url=${encodeURIComponent(youtubeUrl)}`,
-                  { timeout: 30000 },
+                  `https://widipe.com.pl/api/m/dl?url=${encodeURIComponent(youtubeUrl)}`,
                 );
-                if (res.data?.result?.mp3) {
-                  audioUrl = res.data.result.mp3;
+                if (res.data?.status && res.data?.result?.dl) {
+                  audioUrl = res.data.result.dl;
                   title = res.data.result.title || title;
+                  success = true;
                 }
               } catch (e) {
                 console.log("MP3 Doc: Widipe failed");
               }
             }
 
-            // 6) Cobalt API (Fallback 5)
-            if (!audioUrl) {
+            // 6) Cobalt API
+            if (!success) {
               try {
                 const res = await axios.post(
                   "https://api.cobalt.tools/api/json",
-                  {
-                    url: youtubeUrl,
-                    vCodec: "h264",
-                    vQuality: "720",
-                    aFormat: "mp3",
-                    isAudioOnly: true,
-                  },
+                  { url: youtubeUrl, isAudioOnly: true },
                   {
                     headers: {
                       Accept: "application/json",
                       "Content-Type": "application/json",
                     },
-                    timeout: 30000,
                   },
                 );
                 if (res.data?.url) {
                   audioUrl = res.data.url;
+                  title = video.title || title;
+                  success = true;
                 }
               } catch (e) {
                 console.log("MP3 Doc: Cobalt failed");
