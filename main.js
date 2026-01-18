@@ -193,11 +193,6 @@ const pinCommand = require("./commands/pin");
 const livescoreCommand = require("./commands/livescore");
 const pmCommand = require("./commands/pm");
 const cryptoCommand = require("./commands/crypto");
-const {
-  tempmailCommand,
-  checkmailCommand,
-  readmailCommand,
-} = require("./commands/tempmail");
 const { sendText, shouldHaveBranding } = require("./lib/sendResponse");
 
 // New Architecture Commands
