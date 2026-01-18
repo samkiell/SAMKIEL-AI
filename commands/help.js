@@ -308,9 +308,10 @@ No detailed description available for this command yet, but you can use it with:
   ║ ✧ 🔥 ${p}fire <text>
   ╚═══════════════════╝
 
-  ✉️ Join our community for updates:
-  https://chat.whatsapp.com/GwVMsm7rRRE7cEIIsvojdd
-  _Tip: Use ${p}help <command-name> for details (e.g., ${p}help play)_`;
+📢 *Join our community:*
+https://chat.whatsapp.com/GwVMsm7rRRE7cEIIsvojdd
+
+_Tip: Use ${p}help <command-name> for details_`;
 
   try {
     const imagePath = path.join(__dirname, "../assets/bot_image.jpg");
