@@ -2,24 +2,46 @@ const axios = require("axios");
 const { sendText } = require("../lib/sendResponse");
 
 async function tempmailCommand(sock, chatId) {
-  try {
-    const { data } = await axios.get(
-      "https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1",
-    );
-    if (data && data.length > 0) {
-      const email = data[0];
-      await sendText(
-        sock,
-        chatId,
-        `📧 *Temporary Email Generated*\n\n📩 *Email:* ${email}\n\nUse \`.checkmail ${email}\` to read inbox.\n\n*Powered by SAMKIEL BOT*`,
-      );
-    } else {
-      await sendText(sock, chatId, "❌ Failed to generate email.");
+  const providers = [
+    {
+      name: "1secmail",
+      url: "https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1",
+      extract: (d) => d?.[0],
+    },
+    {
+      name: "Siputzx",
+      url: "https://api.siputzx.my.id/api/tools/tempmail/gen",
+      extract: (d) => d?.data?.email || d?.email,
+    },
+    {
+      name: "Vreden",
+      url: "https://api.vreden.my.id/api/tools/tempmail/gen",
+      extract: (d) => d?.data?.email || d?.email,
+    },
+  ];
+
+  for (const provider of providers) {
+    try {
+      const { data } = await axios.get(provider.url, { timeout: 10000 });
+      const email = provider.extract(data);
+
+      if (email) {
+        return await sendText(
+          sock,
+          chatId,
+          `📧 *Temporary Email Generated*\n\n📩 *Email:* ${email}\n\nUse \`.checkmail ${email}\` to check inbox.\n\n*Powered by SAMKIEL BOT*`,
+        );
+      }
+    } catch (error) {
+      console.error(`Tempmail (${provider.name}) Error:`, error.message);
     }
-  } catch (error) {
-    console.error("Tempmail Error:", error);
-    await sendText(sock, chatId, "❌ Service unavailable.");
   }
+
+  await sendText(
+    sock,
+    chatId,
+    "❌ All tempmail services are currently unavailable. Please try again later.\n\n*Powered by SAMKIEL BOT*",
+  );
 }
 
 async function checkmailCommand(sock, chatId, message, args) {
@@ -28,7 +50,7 @@ async function checkmailCommand(sock, chatId, message, args) {
     return await sendText(
       sock,
       chatId,
-      "Usage: .checkmail <email_address>\nExample: .checkmail demo@1secmail.com",
+      "Usage: .checkmail <email_address>\nExample: .checkmail demo@1secmail.com\n\n*Powered by SAMKIEL BOT*",
     );
   }
 
@@ -36,14 +58,17 @@ async function checkmailCommand(sock, chatId, message, args) {
 
   try {
     const url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${login}&domain=${domain}`;
-    const { data } = await axios.get(url);
+    const { data } = await axios.get(url, { timeout: 10000 });
 
     if (!data || data.length === 0) {
-      return await sendText(sock, chatId, `📭 Inbox empty for ${email}`);
+      return await sendText(
+        sock,
+        chatId,
+        `📭 Inbox empty for ${email}\n\n*Powered by SAMKIEL BOT*`,
+      );
     }
 
     let response = `📧 *Inbox for ${email}*\n\n`;
-    // Show last 5 messages
     for (const msg of data.slice(0, 5)) {
       response += `🔹 *From:* ${msg.from}\n*Subject:* ${msg.subject}\n*ID:* ${msg.id}\n(Use .readmail ${email} ${msg.id} to read)\n---\n`;
     }
@@ -51,7 +76,11 @@ async function checkmailCommand(sock, chatId, message, args) {
     await sendText(sock, chatId, response);
   } catch (error) {
     console.error("Checkmail Error:", error);
-    await sendText(sock, chatId, "❌ Error checking mail.");
+    await sendText(
+      sock,
+      chatId,
+      "❌ Error checking mail. Service might be down.\n\n*Powered by SAMKIEL BOT*",
+    );
   }
 }
 
@@ -59,7 +88,11 @@ async function readmailCommand(sock, chatId, message, args) {
   const email = args[0];
   const id = args[1];
   if (!email || !id)
-    return await sendText(sock, chatId, "Usage: .readmail <email> <id>");
+    return await sendText(
+      sock,
+      chatId,
+      "Usage: .readmail <email> <id>\n\n*Powered by SAMKIEL BOT*",
+    );
 
   const [login, domain] = email.split("@");
   try {
@@ -74,7 +107,11 @@ async function readmailCommand(sock, chatId, message, args) {
       );
     }
   } catch (e) {
-    await sendText(sock, chatId, "❌ Error reading mail.");
+    await sendText(
+      sock,
+      chatId,
+      "❌ Error reading mail.\n\n*Powered by SAMKIEL BOT*",
+    );
   }
 }
 

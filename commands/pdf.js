@@ -227,7 +227,7 @@ async function pdfCommand(sock, chatId, text, message) {
     await sock.sendMessage(
       chatId,
       {
-        text: `❌ *PDF Error*\n\nAn error occurred while generating your PDF. Please try again later.\n\n*Error:* ${error.message}`,
+        text: `❌ *PDF Error*\n\nAn error occurred while generating your PDF. Please try again later.\n\n*Error:* ${error.message}\n\n*Powered by SAMKIEL BOT*`,
       },
       { quoted: message },
     );
