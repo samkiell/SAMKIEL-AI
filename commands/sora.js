@@ -1,7 +1,12 @@
 const axios = require("axios");
 
+const { loadPrefix } = require("../lib/prefix");
+
 async function soraCommand(sock, chatId, message) {
   try {
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
+
     const rawText =
       message.message?.conversation?.trim() ||
       message.message?.extendedTextMessage?.text?.trim() ||
@@ -10,7 +15,7 @@ async function soraCommand(sock, chatId, message) {
       "";
 
     // Extract prompt after command keyword or use quoted text
-    const used = (rawText || "").split(/\s+/)[0] || ".sora";
+    const used = (rawText || "").split(/\s+/)[0] || `${p}sora`;
     const args = rawText.slice(used.length).trim();
     const quoted =
       message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
@@ -22,7 +27,7 @@ async function soraCommand(sock, chatId, message) {
       await sock.sendMessage(
         chatId,
         {
-          text: "Provide a prompt. Example: .sora anime girl with short blue hair\n\n*Powered by SAMKIEL BOT*",
+          text: `Provide a prompt. Example: ${p}sora anime girl with short blue hair\n\n*Powered by SAMKIEL BOT*`,
         },
         { quoted: message },
       );

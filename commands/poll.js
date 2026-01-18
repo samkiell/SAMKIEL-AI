@@ -1,13 +1,17 @@
 const { sendText } = require("../lib/sendResponse");
 
+const { loadPrefix } = require("../lib/prefix");
+
 async function pollCommand(sock, chatId, message, args) {
+  const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
   const rawText = args.join(" ");
 
   if (!rawText.includes("|")) {
     return await sendText(
       sock,
       chatId,
-      "📊 *Create Poll*\n\nUsage: .poll Question | Option1 | Option2 | ...\nExample: .poll Favorite Color? | Red | Blue | Green\n\n*Powered by SAMKIEL BOT*",
+      `📊 *Create Poll*\n\nUsage: ${p}poll Question | Option1 | Option2 | ...\nExample: ${p}poll Favorite Color? | Red | Blue | Green\n\n*Powered by SAMKIEL BOT*`,
     );
   }
 

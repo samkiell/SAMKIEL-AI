@@ -130,11 +130,15 @@ async function listOnlineCommand(sock, chatId, senderId, message, args = []) {
     const timeArg = args[0];
     const timeMs = parseTimeArg(timeArg);
 
+    const { loadPrefix } = require("../lib/prefix");
+    const currentPrefix = loadPrefix();
+    const p = currentPrefix === "off" ? "" : currentPrefix;
+
     if (timeArg && !timeMs) {
       await sendText(
         sock,
         chatId,
-        "❌ Invalid time format. Use formats like: 5m, 10m, 20m, 1h\n\nExample: .listonline 20m",
+        `❌ Invalid time format. Use formats like: 5m, 10m, 20m, 1h\n\nExample: ${p}listonline 20m`,
         { withBranding: false, quoted: message },
       );
       return;

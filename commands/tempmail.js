@@ -1,7 +1,12 @@
 const axios = require("axios");
 const { sendText } = require("../lib/sendResponse");
 
+const { loadPrefix } = require("../lib/prefix");
+
 async function tempmailCommand(sock, chatId) {
+  const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
+
   const providers = [
     {
       name: "1secmail",
@@ -29,7 +34,7 @@ async function tempmailCommand(sock, chatId) {
         return await sendText(
           sock,
           chatId,
-          `📧 *Temporary Email Generated*\n\n📩 *Email:* ${email}\n\nUse \`.checkmail ${email}\` to check inbox.\n\n*Powered by SAMKIEL BOT*`,
+          `📧 *Temporary Email Generated*\n\n📩 *Email:* ${email}\n\nUse \`${p}checkmail ${email}\` to check inbox.\n\n*Powered by SAMKIEL BOT*`,
         );
       }
     } catch (error) {
@@ -45,12 +50,14 @@ async function tempmailCommand(sock, chatId) {
 }
 
 async function checkmailCommand(sock, chatId, message, args) {
+  const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
   const email = args[0];
   if (!email || !email.includes("@")) {
     return await sendText(
       sock,
       chatId,
-      "Usage: .checkmail <email_address>\nExample: .checkmail demo@1secmail.com\n\n*Powered by SAMKIEL BOT*",
+      `Usage: ${p}checkmail <email_address>\nExample: ${p}checkmail demo@1secmail.com\n\n*Powered by SAMKIEL BOT*`,
     );
   }
 
@@ -70,7 +77,7 @@ async function checkmailCommand(sock, chatId, message, args) {
 
     let response = `📧 *Inbox for ${email}*\n\n`;
     for (const msg of data.slice(0, 5)) {
-      response += `🔹 *From:* ${msg.from}\n*Subject:* ${msg.subject}\n*ID:* ${msg.id}\n(Use .readmail ${email} ${msg.id} to read)\n---\n`;
+      response += `🔹 *From:* ${msg.from}\n*Subject:* ${msg.subject}\n*ID:* ${msg.id}\n(Use ${p}readmail ${email} ${msg.id} to read)\n---\n`;
     }
     response += `\n*Powered by SAMKIEL BOT*`;
     await sendText(sock, chatId, response);
@@ -85,13 +92,15 @@ async function checkmailCommand(sock, chatId, message, args) {
 }
 
 async function readmailCommand(sock, chatId, message, args) {
+  const currentPrefix = loadPrefix();
+  const p = currentPrefix === "off" ? "" : currentPrefix;
   const email = args[0];
   const id = args[1];
   if (!email || !id)
     return await sendText(
       sock,
       chatId,
-      "Usage: .readmail <email> <id>\n\n*Powered by SAMKIEL BOT*",
+      `Usage: ${p}readmail <email> <id>\n\n*Powered by SAMKIEL BOT*`,
     );
 
   const [login, domain] = email.split("@");
