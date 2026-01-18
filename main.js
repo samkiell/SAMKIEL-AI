@@ -1132,7 +1132,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
       case cmd === "setgpp" || cmd === "seticon":
         await setGroupPP(sock, chatId, message, args, senderId);
         break;
-        break;
 
       case command.startsWith("pdf"): {
         let text = userMessage
