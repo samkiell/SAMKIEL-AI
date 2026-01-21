@@ -654,7 +654,7 @@ ${"SAMKIEL"} (${settings.portfolio || "https://samkiel.dev"})
       );
       console.log(
         chalk.magenta(
-          `${global.themeemoji || "•"} GITHUB: github.com/samkiel488`,
+          `${global.themeemoji || "•"} GITHUB: github.com/samkiell`,
         ),
       );
       console.log(
