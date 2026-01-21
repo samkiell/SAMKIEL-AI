@@ -1,183 +1,167 @@
 /**
- * Voice Chat Toggle Command
- * Allows owners to enable/disable automatic voice note processing
- * Also allows changing the bot's voice
+ * Voice Chat Toggle & Configuration Command
+ * Handles persistent voice parameters: status, voice, speed, lang
  */
 
 const fs = require("fs");
 const path = require("path");
-const { isOwner, isSuperOwner } = require("../lib/isOwner");
+const { isOwner } = require("../lib/isOwner");
 const {
   getBotVoiceInfo,
   getAvailableVoices,
-  reassignVoice,
   saveVoiceConfig,
   loadVoiceConfig,
   AVAILABLE_VOICES,
 } = require("../lib/voiceConfig");
 
-const CONFIG_PATH = path.join(__dirname, "../data/voiceChat.json");
+const STATUS_PATH = path.join(__dirname, "../data/voiceChat.json");
 
 /**
- * Load voice chat config
+ * Load voice chat enable/disable status
  */
-function loadVoiceChatConfig() {
+function loadStatus() {
   try {
-    if (fs.existsSync(CONFIG_PATH)) {
-      return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
+    if (fs.existsSync(STATUS_PATH)) {
+      return JSON.parse(fs.readFileSync(STATUS_PATH, "utf8"));
     }
-  } catch (e) {
-    console.error("Error loading voiceChat.json:", e);
-  }
-  // Default: voice chat OFF
+  } catch (e) {}
   return { enabled: false };
 }
 
 /**
- * Save voice chat config
+ * Save voice chat enable/disable status
  */
-function saveVoiceChatConfig(config) {
+function saveStatus(status) {
   try {
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+    fs.writeFileSync(STATUS_PATH, JSON.stringify(status, null, 2));
     return true;
   } catch (e) {
-    console.error("Error saving voiceChat.json:", e);
     return false;
   }
 }
 
 /**
- * Check if voice chat is enabled
- */
-function isVoiceChatEnabled() {
-  const config = loadVoiceChatConfig();
-  return config.enabled === true;
-}
-
-/**
- * Set a specific voice for the bot
- */
-function setSpecificVoice(voiceName) {
-  const voice = AVAILABLE_VOICES.find(
-    (v) => v.id.toLowerCase() === voiceName.toLowerCase(),
-  );
-  if (!voice) return null;
-
-  const config = {
-    voice: voice.id,
-    gender: voice.gender,
-    description: voice.description,
-    assignedAt: new Date().toISOString(),
-    note: "This voice is permanently assigned to this bot deployment.",
-  };
-
-  const voiceConfigPath = path.join(__dirname, "../data/botVoice.json");
-  try {
-    fs.writeFileSync(voiceConfigPath, JSON.stringify(config, null, 2));
-    console.log(`[VoiceConfig] Set voice to: ${voice.id}`);
-    return voice;
-  } catch (e) {
-    console.error("Error saving voice config:", e);
-    return null;
-  }
-}
-
-/**
- * Voice Chat Toggle Command Handler
+ * Voice Chat Command Handler
  */
 async function voiceChatCommand(sock, chatId, message, args) {
-  // Note: Owner check is already done in main.js via ownerOnlyCommands array
-  // No need to duplicate the check here
+  // Centralized check: only owner
+  // Handled in main.js but added safety here
+  const senderId = message.key.participant || message.key.remoteJid;
+  if (!(await isOwner(senderId, sock, message.key))) {
+    return; // Silently ignore or send error if not owner
+  }
 
   const subCmd = args[0]?.toLowerCase();
-  const config = loadVoiceChatConfig();
+  const status = loadStatus();
+  const config = loadVoiceConfig() || {};
 
-  // Get the bot's persistent voice info
-  const voiceInfo = getBotVoiceInfo();
+  if (!subCmd || subCmd === "status") {
+    const isEnabled = status.enabled ? "✅ ON" : "❌ OFF";
+    const voice = config.voice || "Default";
+    const speed = config.speed || 1.0;
+    const lang = config.lang || "en-ng";
 
-  if (subCmd === "on") {
-    config.enabled = true;
-    if (saveVoiceChatConfig(config)) {
-      await sock.sendMessage(chatId, {
-        text: `🎤 *Voice Chat Mode ENABLED*\n\n*Assigned Voice:* ${voiceInfo.id} (${voiceInfo.description})\n\nThe bot will now:\n• Process incoming voice notes\n• Transcribe audio\n• Generate AI responses\n• Reply with voice + text`,
-      });
-    } else {
-      await sock.sendMessage(chatId, {
-        text: "❌ Failed to enable voice chat mode.",
-      });
-    }
-  } else if (subCmd === "off") {
-    config.enabled = false;
-    if (saveVoiceChatConfig(config)) {
-      await sock.sendMessage(chatId, {
-        text: "🔇 *Voice Chat Mode DISABLED*\n\nThe bot will now ignore incoming voice notes.",
-      });
-    } else {
-      await sock.sendMessage(chatId, {
-        text: "❌ Failed to disable voice chat mode.",
-      });
-    }
-  } else if (subCmd === "setvoice" || subCmd === "set") {
-    // Change the bot's voice
-    const voiceName = args[1];
-
-    if (!voiceName) {
-      // List available voices
-      const voices = getAvailableVoices();
-      const voiceList = voices
-        .map((v) => `• *${v.id}* - ${v.description}`)
-        .join("\n");
-
-      await sock.sendMessage(chatId, {
-        text: `🎤 *Available Voices*\n\nCurrent: *${voiceInfo.id}* (${voiceInfo.description})\n\n${voiceList}\n\n*Usage:*\n.voicechat setvoice <name>\n.voicechat setvoice random\n\n_Example: .voicechat setvoice Idera_`,
-      });
-      return;
-    }
-
-    if (voiceName.toLowerCase() === "random") {
-      // Assign random voice
-      const newVoice = reassignVoice();
-      const newInfo = AVAILABLE_VOICES.find((v) => v.id === newVoice);
-      await sock.sendMessage(chatId, {
-        text: `🎲 *Voice Changed (Random)*\n\nNew Voice: *${newVoice}* (${newInfo?.description || "AI Voice"})\n\n_This voice will persist across restarts._`,
-      });
-    } else {
-      // Set specific voice
-      const result = setSpecificVoice(voiceName);
-      if (result) {
-        await sock.sendMessage(chatId, {
-          text: `✅ *Voice Changed*\n\nNew Voice: *${result.id}* (${result.description})\n\n_This voice will persist across restarts._`,
-        });
-      } else {
-        const voices = getAvailableVoices();
-        const voiceNames = voices.map((v) => v.id).join(", ");
-        await sock.sendMessage(chatId, {
-          text: `❌ Voice "${voiceName}" not found.\n\n*Available voices:*\n${voiceNames}`,
-        });
-      }
-    }
-  } else if (subCmd === "voices" || subCmd === "list") {
-    // List available voices
-    const voices = getAvailableVoices();
-    const voiceList = voices
-      .map((v) => `• *${v.id}* - ${v.description}`)
-      .join("\n");
-
-    await sock.sendMessage(chatId, {
-      text: `🎤 *Available Voices*\n\nCurrent: *${voiceInfo.id}* (${voiceInfo.description})\n\n${voiceList}\n\n*To change:*\n.voicechat setvoice <name>`,
-    });
-  } else {
-    // Show status including voice info
-    const status = config.enabled ? "✅ ON" : "❌ OFF";
-    await sock.sendMessage(chatId, {
-      text: `🎤 *Voice Chat Status*\n\nStatus: ${status}\nVoice: *${voiceInfo.id}* (${voiceInfo.description})\n\n*Commands:*\n.voicechat on - Enable voice responses\n.voicechat off - Disable voice responses\n.voicechat setvoice <name> - Change voice\n.voicechat voices - List available voices`,
+    return await sock.sendMessage(chatId, {
+      text:
+        `🎤 *VOICE CHAT SETTINGS*\n\n` +
+        `• Status: ${isEnabled}\n` +
+        `• Active Voice: ${voice}\n` +
+        `• Speech Speed: ${speed}x\n` +
+        `• Language: ${lang}\n\n` +
+        `*Commands:*\n` +
+        `.voicechat on / off\n` +
+        `.voicechat voice <name>\n` +
+        `.voicechat speed <0.5 to 2.0>\n` +
+        `.voicechat lang <code>\n` +
+        `.voicechat voices (list choices)`,
     });
   }
+
+  if (subCmd === "on") {
+    status.enabled = true;
+    saveStatus(status);
+    return await sock.sendMessage(chatId, {
+      text: "✅ Voice Chat enabled. I will now respond with audio.",
+    });
+  }
+
+  if (subCmd === "off") {
+    status.enabled = false;
+    saveStatus(status);
+    return await sock.sendMessage(chatId, {
+      text: "❌ Voice Chat disabled. Back to text-only mode.",
+    });
+  }
+
+  if (subCmd === "voice" || subCmd === "setvoice") {
+    const name = args[1];
+    if (!name)
+      return await sock.sendMessage(chatId, {
+        text: "❌ Please provide a voice name. Use `.voicechat voices` to see the list.",
+      });
+
+    const voice = AVAILABLE_VOICES.find(
+      (v) => v.id.toLowerCase() === name.toLowerCase(),
+    );
+    if (!voice)
+      return await sock.sendMessage(chatId, {
+        text: `❌ Voice "${name}" not found.`,
+      });
+
+    config.voice = voice.id;
+    config.gender = voice.gender;
+    config.description = voice.description;
+    saveVoiceConfig(config);
+    return await sock.sendMessage(chatId, {
+      text: `✅ Voice changed to: *${voice.id}* (${voice.description})`,
+    });
+  }
+
+  if (subCmd === "voices" || subCmd === "list") {
+    const list = AVAILABLE_VOICES.map(
+      (v) => `• *${v.id}* (${v.description})`,
+    ).join("\n");
+    return await sock.sendMessage(chatId, {
+      text: `🎤 *AVAILABLE VOICES*\n\n${list}`,
+    });
+  }
+
+  if (subCmd === "speed") {
+    const val = parseFloat(args[1]);
+    if (isNaN(val) || val < 0.5 || val > 2.0) {
+      return await sock.sendMessage(chatId, {
+        text: "❌ Provide speed between 0.5 and 2.0 (e.g., .voicechat speed 1.2)",
+      });
+    }
+    config.speed = val;
+    saveVoiceConfig(config);
+    return await sock.sendMessage(chatId, {
+      text: `✅ Speech speed set to: *${val}x*`,
+    });
+  }
+
+  if (subCmd === "lang") {
+    const code = args[1]?.toLowerCase();
+    if (!code)
+      return await sock.sendMessage(chatId, {
+        text: "❌ Please provide a language code (e.g., en-ng, en-us, fr-fr).",
+      });
+
+    config.lang = code;
+    saveVoiceConfig(config);
+    return await sock.sendMessage(chatId, {
+      text: `✅ Voice language set to: *${code}*`,
+    });
+  }
+
+  await sock.sendMessage(chatId, {
+    text: "❌ Unknown command. Use `.voicechat status` to see available options.",
+  });
 }
 
 module.exports = {
   voiceChatCommand,
-  isVoiceChatEnabled,
-  loadVoiceChatConfig,
-  saveVoiceChatConfig,
+  isVoiceChatEnabled: () => loadStatus().enabled,
+  loadVoiceChatConfig: loadStatus,
+  saveVoiceChatConfig: saveStatus,
 };
