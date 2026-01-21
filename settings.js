@@ -39,6 +39,7 @@ const defaults = {
     STATUS_VIEW_EMOJI: "💚",
     ANTI_DELETE_TYPE: "group",
     COMMAND_MODE: "private",
+    VOICE_CHAT: false,
     PACKNAME: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
   },
 

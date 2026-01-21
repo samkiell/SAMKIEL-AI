@@ -10,18 +10,32 @@ const { sendReaction } = require("../lib/reactions");
 
 const TIMEOUT = 30000;
 
-async function tryMistralAPI(query) {
+const { downloadMediaMessage } = require("@whiskeysockets/baileys");
+const fs = require("fs");
+const path = require("path");
+
+async function tryMistralAPI(query, imageBuffer = null) {
   const apiKey = settings.mistralApiKey;
   const agentId = settings.mistralAgentId;
 
   if (!apiKey || !agentId) return null;
 
   try {
+    const content = [{ type: "text", text: query }];
+    if (imageBuffer) {
+      content.push({
+        type: "image_url",
+        image_url: {
+          url: `data:image/jpeg;base64,${imageBuffer.toString("base64")}`,
+        },
+      });
+    }
+
     const response = await axios.post(
-      "https://api.mistral.ai/v1/conversations",
+      "https://api.mistral.ai/v1/agents/completions",
       {
         agent_id: agentId,
-        inputs: [{ role: "user", content: query }],
+        messages: [{ role: "user", content: content }],
       },
       {
         headers: {
@@ -32,14 +46,11 @@ async function tryMistralAPI(query) {
       },
     );
 
-    const answer =
-      response.data?.outputs?.[0]?.content ||
-      response.data?.message?.content ||
-      response.data?.choices?.[0]?.message?.content ||
-      response.data?.content;
-
-    if (answer && answer.length > 5) return answer;
-  } catch (e) {}
+    const answer = response.data?.choices?.[0]?.message?.content;
+    if (answer && answer.length > 2) return answer;
+  } catch (e) {
+    console.error("Mistral AI Error:", e.response?.data || e.message);
+  }
   return null;
 }
 
@@ -78,36 +89,65 @@ function cleanFormatting(text) {
     .trim();
 }
 
-async function aiCommand(sock, chatId, message, directQuery = null) {
+async function aiCommand(
+  sock,
+  chatId,
+  message,
+  directQuery = null,
+  imageMsg = null,
+) {
   try {
     let query = directQuery;
+    let imageBuffer = null;
 
     if (!query) {
       const text =
         message.message?.conversation ||
         message.message?.extendedTextMessage?.text ||
         "";
-
       const parts = text.split(/\s+/);
       query = parts.slice(1).join(" ").trim();
     }
 
-    if (!query) {
+    // Handle image if provided or if message itself is an image
+    const targetMsg = imageMsg || message;
+    const isImage = !!(
+      targetMsg.message?.imageMessage ||
+      targetMsg.message?.viewOnceMessageV2?.message?.imageMessage ||
+      targetMsg.message?.viewOnceMessage?.message?.imageMessage
+    );
+
+    if (isImage) {
+      try {
+        imageBuffer = await downloadMediaMessage(
+          targetMsg,
+          "buffer",
+          {},
+          { logger: console },
+        );
+      } catch (e) {
+        console.error("Image download error:", e);
+      }
+    }
+
+    if (!query && !isImage) {
       return await sock.sendMessage(
         chatId,
-        {
-          text: `Please provide a question.\n\nUsage: ${p}gpt <question>`,
-        },
+        { text: `Please provide a question or an image to solve.` },
         { quoted: message },
       );
     }
+
+    // Default query if only image is provided
+    if (!query && isImage)
+      query = "Solve this or explain what is in this image.";
 
     try {
       await sendReaction(sock, message, "💭");
     } catch (e) {}
 
-    let answer = await tryMistralAPI(query);
-    if (!answer) {
+    let answer = await tryMistralAPI(query, imageBuffer);
+    if (!answer && !imageBuffer) {
       answer = await tryGroqAPI(query);
     }
 
@@ -123,22 +163,14 @@ async function aiCommand(sock, chatId, message, directQuery = null) {
       await sendReaction(sock, message, "❌");
       await sock.sendMessage(
         chatId,
-        {
-          text: "Sorry, AI is currently unavailable. Try again later.",
-        },
+        { text: "Sorry, I couldn't process this request. AI may be busy." },
         { quoted: message },
       );
     }
   } catch (error) {
+    console.error("AI Command Error:", error);
     try {
       await sendReaction(sock, message, "❌");
-      await sock.sendMessage(
-        chatId,
-        {
-          text: `Error: ${error.message}`,
-        },
-        { quoted: message },
-      );
     } catch (e) {}
   }
 }
