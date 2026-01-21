@@ -320,12 +320,9 @@ async function textToSpeech(text) {
   const vSettings = getVoiceSettings();
   const botVoice = vSettings.voice;
   const speed = vSettings.speed || 1.0;
-  const lang = vSettings.lang || "en-ng";
   const fallbackVoices = getFallbackVoice();
 
-  console.log(
-    `[TTS] Using settings: ${botVoice}, Speed: ${speed}, Lang: ${lang}`,
-  );
+  console.log(`[TTS] Using settings: ${botVoice}, Speed: ${speed}`);
 
   // Try multiple TTS APIs, using the bot's assigned voice
   const ttsApis = [
