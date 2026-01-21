@@ -1,6 +1,6 @@
 /**
  * Voice Chat Toggle & Configuration Command
- * Handles persistent voice parameters: status, voice, speed, lang
+ * Handles persistent voice parameters: status, voice, speed
  */
 
 const fs = require("fs");
@@ -59,20 +59,17 @@ async function voiceChatCommand(sock, chatId, message, args) {
     const isEnabled = status.enabled ? "✅ ON" : "❌ OFF";
     const voice = config.voice || "Default";
     const speed = config.speed || 1.0;
-    const lang = config.lang || "en-ng";
 
     return await sock.sendMessage(chatId, {
       text:
         `🎤 *VOICE CHAT SETTINGS*\n\n` +
         `• Status: ${isEnabled}\n` +
         `• Active Voice: ${voice}\n` +
-        `• Speech Speed: ${speed}x\n` +
-        `• Language: ${lang}\n\n` +
+        `• Speech Speed: ${speed}x\n\n` +
         `*Commands:*\n` +
         `.voicechat on / off\n` +
         `.voicechat voice <name>\n` +
         `.voicechat speed <0.5 to 2.0>\n` +
-        `.voicechat lang <code>\n` +
         `.voicechat voices (list choices)`,
     });
   }
@@ -137,20 +134,6 @@ async function voiceChatCommand(sock, chatId, message, args) {
     saveVoiceConfig(config);
     return await sock.sendMessage(chatId, {
       text: `✅ Speech speed set to: *${val}x*`,
-    });
-  }
-
-  if (subCmd === "lang") {
-    const code = args[1]?.toLowerCase();
-    if (!code)
-      return await sock.sendMessage(chatId, {
-        text: "❌ Please provide a language code (e.g., en-ng, en-us, fr-fr).",
-      });
-
-    config.lang = code;
-    saveVoiceConfig(config);
-    return await sock.sendMessage(chatId, {
-      text: `✅ Voice language set to: *${code}*`,
     });
   }
 
