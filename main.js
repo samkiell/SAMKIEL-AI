@@ -490,6 +490,40 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
     // Then check for command prefix
     if (!isCommand(userMessage)) {
+      // AI/Chatbot reply trigger via mentions and replies
+      const quotedMessage =
+        message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+      if (quotedMessage) {
+        const triggers = ["samkiel", "samkiel bot", "samkielai", "gpt"];
+        if (triggers.some((t) => userMessage.toLowerCase().includes(t))) {
+          let promptSnippet = "";
+          // Resolve actual message inside various wrappers
+          const qMsg =
+            quotedMessage.viewOnceMessageV2?.message?.imageMessage ||
+            quotedMessage.viewOnceMessage?.message?.imageMessage ||
+            quotedMessage.imageMessage ||
+            quotedMessage;
+
+          if (qMsg.conversation) promptSnippet = qMsg.conversation;
+          else if (qMsg.extendedTextMessage?.text)
+            promptSnippet = qMsg.extendedTextMessage.text;
+          else if (qMsg.caption) promptSnippet = qMsg.caption;
+
+          if (promptSnippet) {
+            return await aiCommand(sock, chatId, message, promptSnippet);
+          } else if (qMsg.imageMessage || qMsg.type === "imageMessage") {
+            // Graceful response for image without text
+            return await sock.sendMessage(
+              chatId,
+              {
+                text: "I see an image there, but I need some text or a caption to understand what you're asking about. Could you clarify?",
+              },
+              { quoted: message },
+            );
+          }
+        }
+      }
+
       if (isGroup) {
         // Process non-command messages first
         await handleChatbotResponse(

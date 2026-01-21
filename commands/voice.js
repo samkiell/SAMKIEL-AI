@@ -307,12 +307,23 @@ let yarnKeyIndex = 0;
  * Convert text to speech using free TTS APIs with Nigerian accent focus
  * Uses persistent voice selection - same voice for all responses
  */
+const { getVoiceSettings, getFallbackVoice } = require("../lib/voiceConfig");
+// ... rest of imports
+
+/**
+ * Convert text to speech using free TTS APIs
+ */
 async function textToSpeech(text) {
-  // Get the bot's persistent voice (assigned once, never changes)
-  const botVoice = getBotVoice();
+  // Get the bot's persistent settings (assigned once, persistent)
+  const vSettings = getVoiceSettings();
+  const botVoice = vSettings.voice;
+  const speed = vSettings.speed || 1.0;
+  const lang = vSettings.lang || "en-ng";
   const fallbackVoices = getFallbackVoice();
 
-  console.log(`[TTS] Using persistent voice: ${botVoice}`);
+  console.log(
+    `[TTS] Using settings: ${botVoice}, Speed: ${speed}, Lang: ${lang}`,
+  );
 
   // Try multiple TTS APIs, using the bot's assigned voice
   const ttsApis = [
@@ -322,7 +333,6 @@ async function textToSpeech(text) {
         const keys = settings.yarnApiKeys || [];
         if (keys.length === 0) return null;
 
-        // Rotate API keys for load balancing (but NOT voice)
         const currentKey = keys[yarnKeyIndex % keys.length];
         yarnKeyIndex++;
 
@@ -331,8 +341,9 @@ async function textToSpeech(text) {
             "https://yarngpt.ai/api/v1/tts",
             {
               text: t,
-              voice: botVoice, // Use persistent voice
+              voice: botVoice,
               audio_format: "mp3",
+              speed: speed, // Apply persistent speed
             },
             {
               headers: {

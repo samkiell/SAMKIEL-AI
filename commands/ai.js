@@ -78,18 +78,19 @@ function cleanFormatting(text) {
     .trim();
 }
 
-async function aiCommand(sock, chatId, message) {
+async function aiCommand(sock, chatId, message, directQuery = null) {
   try {
-    const text =
-      message.message?.conversation ||
-      message.message?.extendedTextMessage?.text ||
-      "";
+    let query = directQuery;
 
-    const currentPrefix = loadPrefix();
-    const p = currentPrefix === "off" ? "" : currentPrefix;
+    if (!query) {
+      const text =
+        message.message?.conversation ||
+        message.message?.extendedTextMessage?.text ||
+        "";
 
-    const parts = text.split(/\s+/);
-    const query = parts.slice(1).join(" ").trim();
+      const parts = text.split(/\s+/);
+      query = parts.slice(1).join(" ").trim();
+    }
 
     if (!query) {
       return await sock.sendMessage(
