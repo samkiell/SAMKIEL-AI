@@ -478,7 +478,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
     }
 
     // Check for bad words FIRST, before ANY other processing
-    if (isGroup && userMessage) {
+    if (isGroup && userMessage && settings.featureToggles.ANTI_BADWORD) {
       await handleBadwordDetection(
         sock,
         chatId,
@@ -494,31 +494,50 @@ async function handleMessages(sock, messageUpdate, printLog) {
       const quotedMessage =
         message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
       if (quotedMessage) {
-        const triggers = ["samkiel", "samkiel bot", "samkielai", "gpt"];
+        const triggers = [
+          "samkiel",
+          "samkiel bot",
+          "samkielai",
+          "gpt",
+          "math",
+          "maths",
+          "cal",
+          "solve",
+          "answer",
+          "solution",
+        ];
         if (triggers.some((t) => userMessage.toLowerCase().includes(t))) {
           let promptSnippet = "";
           // Resolve actual message inside various wrappers
-          const qMsg =
-            quotedMessage.viewOnceMessageV2?.message?.imageMessage ||
-            quotedMessage.viewOnceMessage?.message?.imageMessage ||
-            quotedMessage.imageMessage ||
+          const qMsgWrapper =
+            quotedMessage.viewOnceMessageV2?.message ||
+            quotedMessage.viewOnceMessage?.message ||
             quotedMessage;
 
-          if (qMsg.conversation) promptSnippet = qMsg.conversation;
-          else if (qMsg.extendedTextMessage?.text)
-            promptSnippet = qMsg.extendedTextMessage.text;
-          else if (qMsg.caption) promptSnippet = qMsg.caption;
+          const qMsg =
+            qMsgWrapper.imageMessage ||
+            qMsgWrapper.videoMessage ||
+            qMsgWrapper.audioMessage ||
+            quotedMessage; // Fallback if no specific type found
 
-          if (promptSnippet) {
-            return await aiCommand(sock, chatId, message, promptSnippet);
-          } else if (qMsg.imageMessage || qMsg.type === "imageMessage") {
-            // Graceful response for image without text
-            return await sock.sendMessage(
+          if (quotedMessage.conversation)
+            promptSnippet = quotedMessage.conversation;
+          else if (quotedMessage.extendedTextMessage?.text)
+            promptSnippet = quotedMessage.extendedTextMessage.text;
+          else if (qMsgWrapper.imageMessage?.caption)
+            promptSnippet = qMsgWrapper.imageMessage.caption;
+
+          // If it's an image, we pass the image message directly to aiCommand
+          const isQuotedImage = !!qMsgWrapper.imageMessage;
+
+          if (promptSnippet || isQuotedImage) {
+            // Include the quoted message as the image source if it is an image
+            return await aiCommand(
+              sock,
               chatId,
-              {
-                text: "I see an image there, but I need some text or a caption to understand what you're asking about. Could you clarify?",
-              },
-              { quoted: message },
+              message,
+              userMessage, // Use the user's reply as the query
+              isQuotedImage ? { message: qMsgWrapper } : null,
             );
           }
         }
@@ -526,14 +545,18 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
       if (isGroup) {
         // Process non-command messages first
-        await handleChatbotResponse(
-          sock,
-          chatId,
-          message,
-          userMessage,
-          senderId,
-        );
-        await Antilink(message, sock);
+        if (settings.featureToggles.CHATBOT) {
+          await handleChatbotResponse(
+            sock,
+            chatId,
+            message,
+            userMessage,
+            senderId,
+          );
+        }
+        if (settings.featureToggles.ANTI_LINK) {
+          await Antilink(message, sock);
+        }
       }
     }
 

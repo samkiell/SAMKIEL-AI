@@ -36,7 +36,7 @@ const defaults = {
     PERSONAL_MESSAGE: false,
     DISABLE_START_MESSAGE: false,
     AUTO_REACTION: false,
-    STATUS_VIEW_EMOJI: "💚",
+    STATUS_VIEW_EMOJI: "👀",
     ANTI_DELETE_TYPE: "group",
     COMMAND_MODE: "private",
     VOICE_CHAT: false,
