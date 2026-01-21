@@ -11,7 +11,11 @@ const { downloadMediaMessage } = require("@whiskeysockets/baileys");
 const settings = require("../settings");
 const { toPTT } = require("../lib/converter");
 const { isVoiceChatEnabled } = require("./voicechat");
-const { getBotVoice, getFallbackVoice } = require("../lib/voiceConfig");
+const {
+  getBotVoice,
+  getFallbackVoice,
+  getVoiceSettings,
+} = require("../lib/voiceConfig");
 const { sendReaction } = require("../lib/reactions");
 
 const TEMP_DIR = path.join(__dirname, "../temp");
@@ -307,8 +311,6 @@ let yarnKeyIndex = 0;
  * Convert text to speech using free TTS APIs with Nigerian accent focus
  * Uses persistent voice selection - same voice for all responses
  */
-const { getVoiceSettings, getFallbackVoice } = require("../lib/voiceConfig");
-// ... rest of imports
 
 /**
  * Convert text to speech using free TTS APIs
