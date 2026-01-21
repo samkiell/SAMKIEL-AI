@@ -66,7 +66,7 @@ async function insultCommand(sock, chatId, message) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     await sock.sendMessage(chatId, {
-      text: `Hey @${userToInsult.split("@")[0]}, ${insult}\n\n*Powered by SAMKIEL BOT*`,
+      text: `Hey @${userToInsult.split("@")[0]}, ${insult}\n\n> *Powered by SAMKIEL BOT*`,
       mentions: [userToInsult],
     });
   } catch (error) {

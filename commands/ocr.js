@@ -103,7 +103,7 @@ async function ocrCommand(sock, chatId, message) {
       await sendText(
         sock,
         chatId,
-        `📝 *Detected Text:*\n\n${text}\n\n*Powered by SAMKIEL BOT*`,
+        `📝 *Detected Text:*\n\n${text}\n\n> *Powered by SAMKIEL BOT*`,
       );
 
       // Check if the extracted text contains a math problem

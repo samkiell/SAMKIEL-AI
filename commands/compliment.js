@@ -69,7 +69,7 @@ async function complimentCommand(sock, chatId, message) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     await sock.sendMessage(chatId, {
-      text: `Hey @${userToCompliment.split("@")[0]}, ${compliment}\n\n*Powered by SAMKIEL BOT*`,
+      text: `Hey @${userToCompliment.split("@")[0]}, ${compliment}\n\n> *Powered by SAMKIEL BOT*`,
       mentions: [userToCompliment],
       ...global.channelInfo,
     });

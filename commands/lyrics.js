@@ -83,7 +83,7 @@ async function lyricsCommand(sock, chatId, songTitle, message) {
     await sock.sendMessage(
       chatId,
       {
-        text: `🎤 *Lyrics for ${songTitle}*\n\n${output}\n\n*Powered by SAMKIEL BOT*`,
+        text: `🎤 *Lyrics for ${songTitle}*\n\n${output}\n\n> *Powered by SAMKIEL BOT*`,
         ...global.channelInfo,
       },
       { quoted: message },

@@ -12,7 +12,7 @@ async function pollCommand(sock, chatId, message, args) {
     return await sendText(
       sock,
       chatId,
-      `📊 *Create Poll*\n\nUsage: ${p}poll Question | Option1 | Option2 | ...\nExample: ${p}poll Favorite Color? | Red | Blue | Green\n\n*Powered by SAMKIEL BOT*`,
+      `📊 *Create Poll*\n\nUsage: ${p}poll Question | Option1 | Option2 | ...\nExample: ${p}poll Favorite Color? | Red | Blue | Green\n\n> *Powered by SAMKIEL BOT*`,
     );
   }
 
@@ -25,7 +25,7 @@ async function pollCommand(sock, chatId, message, args) {
     return await sendText(
       sock,
       chatId,
-      "❌ You must provide a question and at least 2 options.\n\n*Powered by SAMKIEL BOT*",
+      "❌ You must provide a question and at least 2 options.\n\n> *Powered by SAMKIEL BOT*",
     );
   }
 
@@ -40,7 +40,7 @@ async function pollCommand(sock, chatId, message, args) {
     return await sendText(
       sock,
       chatId,
-      "❌ You must provide at least 2 UNIQUE options.\n\n*Powered by SAMKIEL BOT*",
+      "❌ You must provide at least 2 UNIQUE options.\n\n> *Powered by SAMKIEL BOT*",
     );
   }
 
@@ -48,7 +48,7 @@ async function pollCommand(sock, chatId, message, args) {
     return await sendText(
       sock,
       chatId,
-      "❌ A poll cannot have more than 12 options.\n\n*Powered by SAMKIEL BOT*",
+      "❌ A poll cannot have more than 12 options.\n\n> *Powered by SAMKIEL BOT*",
     );
   }
 
@@ -70,7 +70,7 @@ async function pollCommand(sock, chatId, message, args) {
       chatId,
       "❌ Failed to create poll. Error: " +
         (error.message || "Unknown error") +
-        "\n\n*Powered by SAMKIEL BOT*",
+        "\n\n> *Powered by SAMKIEL BOT*",
     );
   }
 }

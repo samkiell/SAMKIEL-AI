@@ -25,7 +25,7 @@ async function songCommand(sock, chatId, message) {
       await sock.sendMessage(
         chatId,
         {
-          text: `Usage: ${p}song <song name or YouTube link>\n\n*Powered by SAMKIEL BOT*`,
+          text: `Usage: ${p}song <song name or YouTube link>\n\n> *Powered by SAMKIEL BOT*`,
         },
         { quoted: message },
       );
@@ -40,7 +40,7 @@ async function songCommand(sock, chatId, message) {
       if (!search || !search.videos.length) {
         await sock.sendMessage(
           chatId,
-          { text: "The song no exist\n\n*Powered by SAMKIEL BOT*" },
+          { text: "The song no exist\n\n> *Powered by SAMKIEL BOT*" },
           { quoted: message },
         );
         return;
@@ -53,7 +53,7 @@ async function songCommand(sock, chatId, message) {
       chatId,
       {
         image: { url: video.thumbnail },
-        caption: `🎵 Downloading: *${video.title}*\n⏱ Duration: ${video.timestamp}\n\n*Powered by SAMKIEL BOT*`,
+        caption: `🎵 Downloading: *${video.title}*\n⏱ Duration: ${video.timestamp}\n\n> *Powered by SAMKIEL BOT*`,
       },
       { quoted: message },
     );
@@ -230,7 +230,7 @@ async function songCommand(sock, chatId, message) {
     await sock.sendMessage(
       chatId,
       {
-        text: "❌ Failed to download song.\n\n*Powered by SAMKIEL BOT*",
+        text: "❌ Failed to download song.\n\n> *Powered by SAMKIEL BOT*",
       },
       { quoted: message },
     );

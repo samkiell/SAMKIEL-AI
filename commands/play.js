@@ -37,7 +37,7 @@ async function playCommand(sock, chatId, message) {
     if (!searchQuery) {
       console.log("No search query provided");
       return await sock.sendMessage(chatId, {
-        text: "What song do you want to download?\n\n*Powered by SAMKIEL BOT*",
+        text: "What song do you want to download?\n\n> *Powered by SAMKIEL BOT*",
       });
     }
 
@@ -50,7 +50,7 @@ async function playCommand(sock, chatId, message) {
     if (!videos || videos.length === 0) {
       console.log("No songs found!");
       return await sock.sendMessage(chatId, {
-        text: "No songs found!\n\n*Powered by SAMKIEL BOT*",
+        text: "No songs found!\n\n> *Powered by SAMKIEL BOT*",
       });
     }
 
@@ -69,7 +69,7 @@ async function playCommand(sock, chatId, message) {
           image: { url: video.thumbnail },
           caption: `*${video.title}*\n\n*Duration:* ${
             video.timestamp
-          }\n*Views:* ${video.views.toLocaleString()}\n\n⏳ *Downloading Audio...*\n\n*Powered by SAMKIEL BOT*`,
+          }\n*Views:* ${video.views.toLocaleString()}\n\n⏳ *Downloading Audio...*\n\n> *Powered by SAMKIEL BOT*`,
           contextInfo: channelInfo.contextInfo,
         },
         { quoted: message },
@@ -271,7 +271,7 @@ async function playCommand(sock, chatId, message) {
     if (!success || !audioData) {
       console.log("All APIs failed");
       return await sock.sendMessage(chatId, {
-        text: "Failed to fetch audio from all sources. Please try again later.\n\n*Powered by SAMKIEL BOT*",
+        text: "Failed to fetch audio from all sources. Please try again later.\n\n> *Powered by SAMKIEL BOT*",
       });
     }
 
@@ -295,14 +295,14 @@ async function playCommand(sock, chatId, message) {
     await sock.sendMessage(
       chatId,
       {
-        text: "Reply to this audio with *'mp3'* to download it in document format.\n\n*Powered by SAMKIEL BOT*",
+        text: "Reply to this audio with *'mp3'* to download it in document format.\n\n> *Powered by SAMKIEL BOT*",
       },
       { quoted: sentAudio },
     );
   } catch (error) {
     console.error("Error in play command:", error);
     await sock.sendMessage(chatId, {
-      text: "Download failed. Please try again later.\n\n*Powered by SAMKIEL BOT*",
+      text: "Download failed. Please try again later.\n\n> *Powered by SAMKIEL BOT*",
     });
   }
 }

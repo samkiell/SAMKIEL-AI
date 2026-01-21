@@ -13,7 +13,7 @@ Please use our support page to file a report:
 • *Issue Description:* (What happened?)
 • *Error Message:* (If any)
 
-Thank you for helping us improve! 🚀\n\n*Powered by SAMKIEL BOT*`;
+Thank you for helping us improve! 🚀\n\n> *Powered by SAMKIEL BOT*`;
 
   // Send the message with a link preview if possible (default text usually handles links)
   await sendText(sock, chatId, reportMessage, { quoted: message });

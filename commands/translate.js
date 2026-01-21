@@ -87,7 +87,7 @@ async function handleTranslateCommand(sock, chatId, message, match) {
           return await sendText(
             sock,
             chatId,
-            `${translated}\n\n*Powered by SAMKIEL BOT*`,
+            `${translated}\n\n> *Powered by SAMKIEL BOT*`,
             { quoted: message },
           );
         }
@@ -104,7 +104,7 @@ async function handleTranslateCommand(sock, chatId, message, match) {
         return await sendText(
           sock,
           chatId,
-          `${res.data.responseData.translatedText}\n\n*Powered by SAMKIEL BOT*`,
+          `${res.data.responseData.translatedText}\n\n> *Powered by SAMKIEL BOT*`,
           { quoted: message },
         );
       }

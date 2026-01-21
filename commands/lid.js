@@ -39,7 +39,7 @@ module.exports = async function lidCommand(sock, chatId, senderId, message) {
       await sock.sendMessage(
         chatId,
         {
-          text: "❌ Could not determine target user.\n\n*Powered by SAMKIEL BOT*",
+          text: "❌ Could not determine target user.\n\n> *Powered by SAMKIEL BOT*",
         },
         { quoted: message },
       );
@@ -56,7 +56,7 @@ module.exports = async function lidCommand(sock, chatId, senderId, message) {
         {
           text: `❌ usage: .lid 2348087357158 \n\nThe number @${
             targetJid.split("@")[0]
-          } is not registered on WhatsApp.\n\n*Powered by SAMKIEL BOT*`,
+          } is not registered on WhatsApp.\n\n> *Powered by SAMKIEL BOT*`,
           mentions: [targetJid],
         },
         { quoted: message },
@@ -70,7 +70,7 @@ module.exports = async function lidCommand(sock, chatId, senderId, message) {
       await sock.sendMessage(
         chatId,
         {
-          text: `❌ Could not fetch LID for @${targetJid.split("@")[0]}.\n\n*Powered by SAMKIEL BOT*`,
+          text: `❌ Could not fetch LID for @${targetJid.split("@")[0]}.\n\n> *Powered by SAMKIEL BOT*`,
           mentions: [targetJid],
         },
         { quoted: message },
@@ -84,7 +84,7 @@ module.exports = async function lidCommand(sock, chatId, senderId, message) {
       {
         text: `🔍 *LID Lookup*\n\n👤 *User:* @${
           targetJid.split("@")[0]
-        }\n🆔 *LID:* \`${userData.lid}\`\n\n*Powered by SAMKIEL BOT*`,
+        }\n🆔 *LID:* \`${userData.lid}\`\n\n> *Powered by SAMKIEL BOT*`,
         mentions: [targetJid],
       },
       { quoted: message },
@@ -94,7 +94,7 @@ module.exports = async function lidCommand(sock, chatId, senderId, message) {
     await sock.sendMessage(
       chatId,
       {
-        text: "❌ An error occurred while fetching the LID.\n\n*Powered by SAMKIEL BOT*",
+        text: "❌ An error occurred while fetching the LID.\n\n> *Powered by SAMKIEL BOT*",
       },
       { quoted: message },
     );

@@ -96,7 +96,7 @@ async function playstoreCommand(sock, chatId, message, args) {
         document: { url: apk.url },
         mimetype: "application/vnd.android.package-archive",
         fileName: `${apk.name.replace(/\s/g, "_")}.apk`,
-        caption: `🎮 *${apk.name}*\n📦 *Size:* ${apk.size || "Unknown"}\n\n*Powered by SAMKIEL BOT*`,
+        caption: `🎮 *${apk.name}*\n📦 *Size:* ${apk.size || "Unknown"}\n\n> *Powered by SAMKIEL BOT*`,
       },
       { quoted: message },
     );

@@ -213,7 +213,7 @@ async function pdfCommand(sock, chatId, text, message) {
         document: { url: pdfPath },
         fileName: `samkielbot-pdf_${message.pushName || "User"}.pdf`,
         mimetype: "application/pdf",
-        caption: "✅ PDF Generated Successfully\n\n*Powered by SAMKIEL BOT*",
+        caption: "✅ PDF Generated Successfully\n\n> *Powered by SAMKIEL BOT*",
         contextInfo: global.channelInfo?.contextInfo || {},
       },
       { quoted: message },
@@ -227,7 +227,7 @@ async function pdfCommand(sock, chatId, text, message) {
     await sock.sendMessage(
       chatId,
       {
-        text: `❌ *PDF Error*\n\nAn error occurred while generating your PDF. Please try again later.\n\n*Error:* ${error.message}\n\n*Powered by SAMKIEL BOT*`,
+        text: `❌ *PDF Error*\n\nAn error occurred while generating your PDF. Please try again later.\n\n*Error:* ${error.message}\n\n> *Powered by SAMKIEL BOT*`,
       },
       { quoted: message },
     );

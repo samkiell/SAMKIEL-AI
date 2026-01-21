@@ -88,7 +88,7 @@ async function characterCommand(sock, chatId, message) {
       `✨ *Key Traits:*\n${traitPercentages.join("\n")}\n\n` +
       `🎯 *Overall Rating:* ${Math.floor(Math.random() * 21) + 80}%\n\n` +
       `Note: This is a fun analysis and should not be taken seriously!\n\n` +
-      `*Powered by SAMKIEL BOT*`;
+      `> *Powered by SAMKIEL BOT*`;
 
     // Send the analysis with the user's profile picture
     await sock.sendMessage(chatId, {

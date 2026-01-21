@@ -161,7 +161,7 @@ async function movieCommand(sock, chatId, message, args) {
       }...\n` +
       `${downloadLinks}\n\n` +
       `💡 *Tip:* To download directly to WhatsApp, use:\n*${p}movie dl ${movie.title}*\n\n` +
-      `*Powered by SAMKIEL BOT*`;
+      `> *Powered by SAMKIEL BOT*`;
 
     // 6. Send message
     await sock.sendMessage(

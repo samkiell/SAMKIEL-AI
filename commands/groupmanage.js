@@ -25,7 +25,7 @@ async function groupCommand(sock, chatId, message, args, senderId) {
         `*${p}gc revoke* - Reset invite link\n` +
         `*${p}gc open* - Open group (all can send)\n` +
         `*${p}gc close* - Close group (admins only)\n\n` +
-        `*Powered by SAMKIEL BOT*`,
+        `> *Powered by SAMKIEL BOT*`,
       quoted: message,
     });
   }
@@ -42,7 +42,7 @@ async function groupCommand(sock, chatId, message, args, senderId) {
   // Group-only check for other commands
   if (!chatId.endsWith("@g.us")) {
     return sock.sendMessage(chatId, {
-      text: "❌ This command is for groups only.\n\n*Powered by SAMKIEL BOT*",
+      text: "❌ This command is for groups only.\n\n> *Powered by SAMKIEL BOT*",
       quoted: message,
     });
   }
@@ -56,14 +56,14 @@ async function groupCommand(sock, chatId, message, args, senderId) {
       !(await isOwner(senderId))
     ) {
       await sock.sendMessage(chatId, {
-        text: "❌ Admins only!\n\n*Powered by SAMKIEL BOT*",
+        text: "❌ Admins only!\n\n> *Powered by SAMKIEL BOT*",
         quoted: message,
       });
       return false;
     }
     if (!checks.isBotAdmin) {
       await sock.sendMessage(chatId, {
-        text: "❌ I need to be Admin first.\n\n*Powered by SAMKIEL BOT*",
+        text: "❌ I need to be Admin first.\n\n> *Powered by SAMKIEL BOT*",
         quoted: message,
       });
       return false;
@@ -91,12 +91,12 @@ async function groupCommand(sock, chatId, message, args, senderId) {
     try {
       await sock.groupRevokeInvite(chatId);
       return sock.sendMessage(chatId, {
-        text: "✅ Invite link reset successfully.\n\n*Powered by SAMKIEL BOT*",
+        text: "✅ Invite link reset successfully.\n\n> *Powered by SAMKIEL BOT*",
         quoted: message,
       });
     } catch (e) {
       return sock.sendMessage(chatId, {
-        text: "❌ Failed to reset link.\n\n*Powered by SAMKIEL BOT*",
+        text: "❌ Failed to reset link.\n\n> *Powered by SAMKIEL BOT*",
         quoted: message,
       });
     }
@@ -148,7 +148,7 @@ async function groupCommand(sock, chatId, message, args, senderId) {
     txt += `*Admins:* ${admins.length}\n`;
     txt += `*Owner:* @${owner.split("@")[0]}\n`;
     txt += `*Desc:* ${metadata.desc?.toString() || "None"}\n\n`;
-    txt += `*Powered by SAMKIEL BOT*`;
+    txt += `> *Powered by SAMKIEL BOT*`;
 
     return sock.sendMessage(
       chatId,
@@ -158,7 +158,7 @@ async function groupCommand(sock, chatId, message, args, senderId) {
   }
 
   return sock.sendMessage(chatId, {
-    text: `❌ Unknown subcommand '${subCmd}'. Use *${p}gc* for help.\n\n*Powered by SAMKIEL BOT*`,
+    text: `❌ Unknown subcommand '${subCmd}'. Use *${p}gc* for help.\n\n> *Powered by SAMKIEL BOT*`,
     quoted: message,
   });
 }
@@ -168,7 +168,7 @@ async function groupCommand(sock, chatId, message, args, senderId) {
 async function createGc(sock, chatId, message, args, senderId) {
   if (!(await isOwner(senderId))) {
     return sock.sendMessage(chatId, {
-      text: "❌ Owner command only.\n\n*Powered by SAMKIEL BOT*",
+      text: "❌ Owner command only.\n\n> *Powered by SAMKIEL BOT*",
       quoted: message,
     });
   }
@@ -183,7 +183,7 @@ async function createGc(sock, chatId, message, args, senderId) {
     const p = currentPrefix === "off" ? "" : currentPrefix;
 
     return sock.sendMessage(chatId, {
-      text: `⚠️ Provide a group name.\nExample: ${p}gc create My Group\n\n*Powered by SAMKIEL BOT*`,
+      text: `⚠️ Provide a group name.\nExample: ${p}gc create My Group\n\n> *Powered by SAMKIEL BOT*`,
       quoted: message,
     });
   }
@@ -199,14 +199,14 @@ async function createGc(sock, chatId, message, args, senderId) {
     await sock.sendMessage(
       chatId,
       {
-        text: `✅ *Group Created!*\n\n🏷️ *Name:* ${groupName}\n🔗 *Link:* ${link}\n\n*Powered by SAMKIEL BOT*`,
+        text: `✅ *Group Created!*\n\n🏷️ *Name:* ${groupName}\n🔗 *Link:* ${link}\n\n> *Powered by SAMKIEL BOT*`,
       },
       { quoted: message },
     );
   } catch (err) {
     console.error(err);
     await sock.sendMessage(chatId, {
-      text: "❌ Failed to create group.\n\n*Powered by SAMKIEL BOT*",
+      text: "❌ Failed to create group.\n\n> *Powered by SAMKIEL BOT*",
       quoted: message,
     });
   }
@@ -216,18 +216,18 @@ async function setGroupName(sock, chatId, message, args) {
   const newName = args.join(" ");
   if (!newName)
     return sock.sendMessage(chatId, {
-      text: "⚠️ Provide a name.\n\n*Powered by SAMKIEL BOT*",
+      text: "⚠️ Provide a name.\n\n> *Powered by SAMKIEL BOT*",
       quoted: message,
     });
   try {
     await sock.groupUpdateSubject(chatId, newName);
     await sock.sendMessage(chatId, {
-      text: `✅ Name changed to: *${newName}*\n\n*Powered by SAMKIEL BOT*`,
+      text: `✅ Name changed to: *${newName}*\n\n> *Powered by SAMKIEL BOT*`,
       quoted: message,
     });
   } catch (e) {
     await sock.sendMessage(chatId, {
-      text: "❌ Failed to update name.\n\n*Powered by SAMKIEL BOT*",
+      text: "❌ Failed to update name.\n\n> *Powered by SAMKIEL BOT*",
       quoted: message,
     });
   }
@@ -237,18 +237,18 @@ async function setGroupDesc(sock, chatId, message, args) {
   const newDesc = args.join(" ");
   if (!newDesc)
     return sock.sendMessage(chatId, {
-      text: "⚠️ Provide a description.\n\n*Powered by SAMKIEL BOT*",
+      text: "⚠️ Provide a description.\n\n> *Powered by SAMKIEL BOT*",
       quoted: message,
     });
   try {
     await sock.groupUpdateDescription(chatId, newDesc);
     await sock.sendMessage(chatId, {
-      text: "✅ Description updated.\n\n*Powered by SAMKIEL BOT*",
+      text: "✅ Description updated.\n\n> *Powered by SAMKIEL BOT*",
       quoted: message,
     });
   } catch (e) {
     await sock.sendMessage(chatId, {
-      text: "❌ Failed to update description.\n\n*Powered by SAMKIEL BOT*",
+      text: "❌ Failed to update description.\n\n> *Powered by SAMKIEL BOT*",
       quoted: message,
     });
   }

@@ -28,7 +28,7 @@ async function soraCommand(sock, chatId, message) {
       await sock.sendMessage(
         chatId,
         {
-          text: `Provide a prompt. Example: ${p}sora anime girl with short blue hair\n\n*Powered by SAMKIEL BOT*`,
+          text: `Provide a prompt. Example: ${p}sora anime girl with short blue hair\n\n> *Powered by SAMKIEL BOT*`,
         },
         { quoted: message },
       );
@@ -54,7 +54,7 @@ async function soraCommand(sock, chatId, message) {
       {
         video: { url: videoUrl },
         mimetype: "video/mp4",
-        caption: `Prompt: ${input}\n\n*Powered by SAMKIEL BOT*`,
+        caption: `Prompt: ${input}\n\n> *Powered by SAMKIEL BOT*`,
       },
       { quoted: message },
     );
@@ -63,7 +63,7 @@ async function soraCommand(sock, chatId, message) {
     await sock.sendMessage(
       chatId,
       {
-        text: "❌ Failed to generate video. Try a different prompt later.\n\n*Powered by SAMKIEL BOT*",
+        text: "❌ Failed to generate video. Try a different prompt later.\n\n> *Powered by SAMKIEL BOT*",
       },
       { quoted: message },
     );
