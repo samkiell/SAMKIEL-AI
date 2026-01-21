@@ -554,6 +554,23 @@ async function handleMessages(sock, messageUpdate, printLog) {
       "bot",
       "sudo",
       "pin",
+      "setprefix",
+      "autoread",
+      "togglestart",
+      "auditlog",
+      "audit",
+      "logs",
+      "lockdown",
+      "ld",
+      "silence",
+      "quiet",
+      "ratelimit",
+      "rl",
+      "limit",
+      "failsafe",
+      "fs",
+      "crash",
+      "hackgc",
     ];
     const hybridCommands = ["welcome", "goodbye", "chatbot"];
 
@@ -1017,8 +1034,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         }
         // Check if sender is admin or owner
         const { isSenderAdmin } = await isAdmin(sock, chatId, senderId);
-        const isOwnerCheck = await isOwner(senderId);
-        if (!isSenderAdmin && !isOwnerCheck) {
+        if (!isSenderAdmin && !isOwnerUser) {
           await sendText(
             sock,
             chatId,
@@ -1034,7 +1050,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
       case cmd === "tagall":
         if (isGroup) {
           const { isSenderAdmin } = await isAdmin(sock, chatId, senderId);
-          if (isSenderAdmin || message.key.fromMe) {
+          if (isSenderAdmin || isOwnerUser) {
             await tagAllCommand(sock, chatId, senderId);
           } else {
             await sendText(
@@ -1392,7 +1408,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
         // Check if sender is admin or bot owner
         const chatbotAdminStatus = await isAdmin(sock, chatId, senderId);
-        if (!chatbotAdminStatus.isSenderAdmin && !message.key.fromMe) {
+        if (!chatbotAdminStatus.isSenderAdmin && !isOwnerUser) {
           await sock.sendMessage(chatId, {
             text: "*Only admins or bot owner can use this command*",
             ...channelInfo,
@@ -1688,15 +1704,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         await deployCommand(sock, chatId, message);
         break;
       case cmd === "setprefix":
-        if (!(await isOwner(senderId))) {
-          await sendText(
-            sock,
-            chatId,
-            "❌ This command can only be used by the owner!",
-          );
-          return;
-        }
-
+        // isOwnerUser check already done at top level
         // Parse raw text to preserve case sensitivity of the new prefix
         const rawCmd = getCommand(userMessage, false);
         const parts = rawCmd.trim().split(/\s+/);
@@ -1733,56 +1741,39 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
         break;
       case command.startsWith("autoread"):
-        if (await isOwner(senderId)) {
-          await autoReadCommand(sock, chatId, message);
-        } else {
-          await sock.sendMessage(chatId, { text: "❌ Owner only command!" });
-        }
+        await autoReadCommand(sock, chatId, message);
         break;
       case command.startsWith("togglestart"):
-        if (await isOwner(senderId)) {
-          await toggleStartMsgCommand(sock, chatId, message);
-        } else {
-          await sock.sendMessage(chatId, { text: "❌ Owner only command!" });
-        }
+        await toggleStartMsgCommand(sock, chatId, message);
         break;
 
       // =====================
       // NEW ARCHITECTURE COMMANDS
       // =====================
       case cmd === "auditlog" || cmd === "audit" || cmd === "logs": {
-        if (await isOwner(senderId)) {
-          const ctx = { senderId, isGroup, isOwner: true };
-          await auditlogCommand(sock, chatId, message, args, ctx);
-        }
+        const ctx = { senderId, isGroup, isOwner: true };
+        await auditlogCommand(sock, chatId, message, args, ctx);
         break;
       }
       case cmd === "lockdown" || cmd === "ld": {
-        if (await isOwner(senderId)) {
-          const ctx = { senderId, isGroup, isOwner: true };
-          await lockdownCommand(sock, chatId, message, args, ctx);
-        }
+        const ctx = { senderId, isGroup, isOwner: true };
+        await lockdownCommand(sock, chatId, message, args, ctx);
         break;
       }
       case cmd === "silence" || cmd === "quiet" || cmd === "mute": {
-        if (await isOwner(senderId)) {
-          const ctx = { senderId, isGroup, isOwner: true };
-          await silenceCommand(sock, chatId, message, args, ctx);
-        }
+        const ctx = { senderId, isGroup, isOwner: true };
+        await silenceCommand(sock, chatId, message, args, ctx);
         break;
       }
       case cmd === "ratelimit" || cmd === "rl" || cmd === "limit": {
-        if (await isOwner(senderId)) {
-          const ctx = { senderId, isGroup, isOwner: true };
-          await ratelimitCommand(sock, chatId, message, args, ctx);
-        }
+        const ctx = { senderId, isGroup, isOwner: true };
+        await ratelimitCommand(sock, chatId, message, args, ctx);
         break;
       }
       case cmd === "snapshot" || cmd === "botinfo" || cmd === "state": {
         // Snapshot is admin/owner
-        const ownerCheck = await isOwner(senderId);
         let adminCheck = false;
-        if (isGroup && !ownerCheck) {
+        if (isGroup && !isOwnerUser) {
           try {
             const groupMeta = await sock.groupMetadata(chatId);
             const participant = groupMeta.participants.find(
@@ -1795,11 +1786,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
               participant?.admin === "superadmin";
           } catch (e) {}
         }
-        if (ownerCheck || adminCheck) {
+        if (isOwnerUser || adminCheck) {
           const ctx = {
             senderId,
             isGroup,
-            isOwner: ownerCheck,
+            isOwner: isOwnerUser,
             isAdmin: adminCheck,
           };
           await snapshotCommand(sock, chatId, message, args, ctx);
@@ -1807,10 +1798,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
         break;
       }
       case cmd === "failsafe" || cmd === "fs" || cmd === "crash": {
-        if (await isOwner(senderId)) {
-          const ctx = { senderId, isGroup, isOwner: true };
-          await failsafeCommand(sock, chatId, message, args, ctx);
-        }
+        const ctx = { senderId, isGroup, isOwner: true };
+        await failsafeCommand(sock, chatId, message, args, ctx);
         break;
       }
       case cmd === "hackgc": {
