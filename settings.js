@@ -13,7 +13,7 @@ const defaults = {
   prefix: ".",
   botNumber: "",
   ownerNumber: "",
-  ownerName: "SAMKIEL",
+  ownerName: "",
 
   // --- CREDITS ---
   author: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
@@ -22,7 +22,7 @@ const defaults = {
   portfolio: "https://samkiel.dev",
   website: "https://samkielbot.app",
   description: "Whatsapp Bot",
-  version: "2.3.7",
+  version: "2.3.8",
 
   // --- FEATURE TOGGLES ---
   featureToggles: {
