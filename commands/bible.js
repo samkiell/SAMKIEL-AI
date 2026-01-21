@@ -423,7 +423,7 @@ async function bibleCommand(sock, chatId, args) {
           .join("\n");
       }
 
-      const msg = `📖 *${result.reference}*\n\n${text}\n\n_— ${result.translation}_\n\n> > *Powered by SAMKIEL BOT*`;
+      const msg = `📖 *${result.reference}*\n\n${text}\n\n_— ${result.translation}_\n\n> *Powered by SAMKIEL BOT*`;
       return await sendText(sock, chatId, msg);
     } else if (parsed.type === "search") {
       // Keyword search
@@ -449,7 +449,7 @@ async function bibleCommand(sock, chatId, args) {
         msg += `${i + 1}. *${r.reference}*\n"${snippet}"\n\n`;
       });
 
-      msg += `> > *Powered by SAMKIEL BOT*`;
+      msg += `> *Powered by SAMKIEL BOT*`;
       return await sendText(sock, chatId, msg.trim());
     }
   } catch (error) {
