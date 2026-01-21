@@ -23,13 +23,7 @@ function loadPMConfig() {
 }
 
 async function pmCommand(sock, chatId, senderId, message, args) {
-  const isOwnerUser = await isOwner(senderId, sock);
-  if (!isOwnerUser && !message.key.fromMe) {
-    return await sendText(sock, chatId, "❌ Owner only command!", {
-      quoted: message,
-    });
-  }
-
+  // Owner check is handled centrally in main.js
   const subcmd = args[0]?.toLowerCase();
   const config = loadPMConfig();
 

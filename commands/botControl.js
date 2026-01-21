@@ -7,21 +7,9 @@ async function handleBotControl(
   senderId,
   command,
   message,
-  channelInfo
+  channelInfo,
 ) {
-  const isOwnerCheck = await isOwner(senderId);
-
-  if (!isOwnerCheck) {
-    return await sock.sendMessage(
-      chatId,
-      {
-        text: "❌ Only the bot owner can use this command!",
-        ...global.channelInfo,
-      },
-      { quoted: message }
-    );
-  }
-
+  // Owner check is handled centrally in main.js
   if (command === "disablebot") {
     if (isBotDisabled(chatId)) {
       return await sock.sendMessage(
@@ -30,7 +18,7 @@ async function handleBotControl(
           text: "❕ Bot is already disabled in this chat.",
           ...global.channelInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
     }
 
@@ -41,7 +29,7 @@ async function handleBotControl(
         text: "🚫 *Bot Disabled*\nI will no longer respond to commands in this chat until re-enabled by the owner.",
         ...global.channelInfo,
       },
-      { quoted: message }
+      { quoted: message },
     );
   }
 
@@ -53,7 +41,7 @@ async function handleBotControl(
           text: "❕ Bot is already enabled in this chat.",
           ...global.channelInfo,
         },
-        { quoted: message }
+        { quoted: message },
       );
     }
 
@@ -64,7 +52,7 @@ async function handleBotControl(
         text: "✅ *Bot Enabled*\nI'm back! I will now respond to commands in this chat.",
         ...global.channelInfo,
       },
-      { quoted: message }
+      { quoted: message },
     );
   }
 }
