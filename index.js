@@ -619,7 +619,7 @@ ${Object.entries(pluginStatus)
   .map(([k, v]) => `${v === "ON" ? "●" : "○"} ${k}`)
   .join("\n")}
 
-━━━ *OWNER* ━━━
+━━━ *Developer* ━━━
 ${"SAMKIEL"} (${settings.portfolio || "https://samkiel.dev"})
 
 ━━━━━━━━━━━━━━━━━━━━━`.trim();
