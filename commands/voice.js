@@ -319,10 +319,9 @@ async function textToSpeech(text) {
   // Get the bot's persistent settings (assigned once, persistent)
   const vSettings = getVoiceSettings();
   const botVoice = vSettings.voice;
-  const speed = vSettings.speed || 1.0;
   const fallbackVoices = getFallbackVoice();
 
-  console.log(`[TTS] Using settings: ${botVoice}, Speed: ${speed}`);
+  console.log(`[TTS] Using settings: ${botVoice}`);
 
   // Try multiple TTS APIs, using the bot's assigned voice
   const ttsApis = [
@@ -342,7 +341,6 @@ async function textToSpeech(text) {
               text: t,
               voice: botVoice,
               audio_format: "mp3",
-              speed: speed, // Apply persistent speed
             },
             {
               headers: {

@@ -1,6 +1,6 @@
 /**
  * Voice Chat Toggle & Configuration Command
- * Handles persistent voice parameters: status, voice, speed
+ * Handles persistent voice parameters: status, voice
  */
 
 const fs = require("fs");
@@ -58,18 +58,15 @@ async function voiceChatCommand(sock, chatId, message, args) {
   if (!subCmd || subCmd === "status") {
     const isEnabled = status.enabled ? "✅ ON" : "❌ OFF";
     const voice = config.voice || "Default";
-    const speed = config.speed || 1.0;
 
     return await sock.sendMessage(chatId, {
       text:
         `🎤 *VOICE CHAT SETTINGS*\n\n` +
         `• Status: ${isEnabled}\n` +
-        `• Active Voice: ${voice}\n` +
-        `• Speech Speed: ${speed}x\n\n` +
+        `• Active Voice: ${voice}\n\n` +
         `*Commands:*\n` +
         `.voicechat on / off\n` +
         `.voicechat voice <name>\n` +
-        `.voicechat speed <0.5 to 2.0>\n` +
         `.voicechat voices (list choices)`,
     });
   }
@@ -120,20 +117,6 @@ async function voiceChatCommand(sock, chatId, message, args) {
     ).join("\n");
     return await sock.sendMessage(chatId, {
       text: `🎤 *AVAILABLE VOICES*\n\n${list}`,
-    });
-  }
-
-  if (subCmd === "speed") {
-    const val = parseFloat(args[1]);
-    if (isNaN(val) || val < 0.5 || val > 2.0) {
-      return await sock.sendMessage(chatId, {
-        text: "❌ Provide speed between 0.5 and 2.0 (e.g., .voicechat speed 1.2)",
-      });
-    }
-    config.speed = val;
-    saveVoiceConfig(config);
-    return await sock.sendMessage(chatId, {
-      text: `✅ Speech speed set to: *${val}x*`,
     });
   }
 
