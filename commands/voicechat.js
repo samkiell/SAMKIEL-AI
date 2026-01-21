@@ -86,18 +86,8 @@ function setSpecificVoice(voiceName) {
  * Voice Chat Toggle Command Handler
  */
 async function voiceChatCommand(sock, chatId, message, args) {
-  const senderId = message.key.participant || message.key.remoteJid;
-
-  // Only owners can toggle voice chat
-  const ownerCheck = await isOwner(senderId, sock);
-  const superCheck = isSuperOwner(senderId);
-
-  if (!ownerCheck && !superCheck) {
-    await sock.sendMessage(chatId, {
-      text: "❌ Only bot owners can manage voice chat.",
-    });
-    return;
-  }
+  // Note: Owner check is already done in main.js via ownerOnlyCommands array
+  // No need to duplicate the check here
 
   const subCmd = args[0]?.toLowerCase();
   const config = loadVoiceChatConfig();

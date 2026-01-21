@@ -73,19 +73,7 @@ function ownerExists(ownerData, number) {
  * Set Owner Command Handler
  */
 async function setOwnerCommand(sock, chatId, message, args) {
-  const senderId = message.key.participant || message.key.remoteJid;
-
-  // Only owners and super owners can add new owners
-  const isOwnerUser = await isOwner(senderId, sock);
-  const isSuperOwnerUser = isSuperOwner(senderId);
-
-  if (!isOwnerUser && !isSuperOwnerUser) {
-    await sock.sendMessage(chatId, {
-      text: "❌ Only owners can use this command.",
-    });
-    return;
-  }
-
+  // Owner check is handled centrally in main.js via ownerOnlyCommands
   let targetNumber = null;
   let targetLid = null;
   let targetUser = null;

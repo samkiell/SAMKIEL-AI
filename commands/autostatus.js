@@ -16,7 +16,7 @@ if (!fs.existsSync(configPath)) {
       emoji: "👀",
       msgEnabled: false,
       msgContent: "Viewed by 𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
-    })
+    }),
   );
 } else {
   // Ensure new fields exist in current config
@@ -41,16 +41,7 @@ if (!fs.existsSync(configPath)) {
 
 async function autoStatusCommand(sock, chatId, msg, args) {
   try {
-    // Check if sender is owner
-    const senderId = msg.key.participant || msg.key.remoteJid;
-    const isOwnerCheck = await isOwner(senderId);
-    if (!isOwnerCheck) {
-      await sock.sendMessage(chatId, {
-        text: "❌ This command can only be used by the owner!",
-        ...global.channelInfo,
-      });
-      return;
-    }
+    // Note: Owner check is performed in main.js via ownerOnlyCommands array
 
     // Read current config
     let config = JSON.parse(fs.readFileSync(configPath));
@@ -310,7 +301,7 @@ async function reactToStatus(sock, statusKey) {
           statusKey.remoteJid,
           statusKey.participant || statusKey.remoteJid,
         ],
-      }
+      },
     );
 
     // Removed success log - only keep errors

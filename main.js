@@ -386,7 +386,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
     // Enforce Private Mode
     // Section 2 & 6: Owner bypass and self-healing LID check
-    const isOwnerUser = (await isOwner(senderId, sock)) || message.key.fromMe;
+    const isOwnerUser = await isOwner(senderId, sock, message.key);
 
     // Private Mode: Restricts command usage to owners only in group chats.
     // DMs are always allowed to ensure accessibility.
@@ -545,6 +545,15 @@ async function handleMessages(sock, messageUpdate, printLog) {
       "anticall",
       "voicechat",
       "setowner",
+      "admin",
+      "panel",
+      "cms",
+      "setpp",
+      "update",
+      "pm",
+      "bot",
+      "sudo",
+      "pin",
     ];
     const hybridCommands = ["welcome", "goodbye", "chatbot"];
 
@@ -558,8 +567,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
       command.startsWith(cmd),
     );
 
-    const superOwnerCheck = isSuperOwner(senderId);
-    const ownerBypass = isOwnerUser || superOwnerCheck;
+    const ownerBypass = isOwnerUser; // isOwner already includes SuperOwner and bot's own JID check
 
     // Admin-only commands: Require admin status (bypass for Owner)
     if (isGroup && isAdminOnlyCommand && !ownerBypass) {
@@ -590,7 +598,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
     if (isOwnerOnlyCommand) {
       if (!isOwnerUser) {
         await sock.sendMessage(chatId, {
-          text: "❌ Sorry buddy this command can only be used by Ԇ・SAMKIEL.",
+          text: "❌ Sorry buddy, this command is restricted to the bot owner only.",
           ...channelInfo,
         });
         return;

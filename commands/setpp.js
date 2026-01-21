@@ -5,15 +5,7 @@ const { isOwner } = require("../lib/isOwner");
 
 async function setProfilePicture(sock, chatId, msg) {
   try {
-    // Check if user is owner
-    const senderId = msg.key.participant || msg.key.remoteJid;
-    const isOwnerCheck = await isOwner(senderId);
-    if (!isOwnerCheck) {
-      await sock.sendMessage(chatId, {
-        text: "❌ This command is only available for the owner!",
-      });
-      return;
-    }
+    // Note: Owner check is performed in main.js via ownerOnlyCommands array
 
     // Check if message is a reply
     const quotedMessage =

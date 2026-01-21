@@ -6,21 +6,7 @@ const settings = require("../settings");
 const { sendReaction } = require("../lib/reactions");
 
 async function panelCommand(sock, chatId, message) {
-  const senderJid = message.key.participant || message.key.remoteJid;
-
-  // Check if user is owner
-  if (!(await isOwner(senderJid)) && !message.key.fromMe) {
-    await sock.sendMessage(
-      chatId,
-      {
-        text: "❌ Access denied. This command is for the bot owner only.",
-        ...global.channelInfo,
-      },
-      { quoted: message },
-    );
-    return;
-  }
-
+  // Owner check is handled centrally in main.js via ownerOnlyCommands
   try {
     await sendReaction(sock, message, "📊");
 

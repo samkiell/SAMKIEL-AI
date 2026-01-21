@@ -5,16 +5,7 @@ const { isOwner } = require("../lib/isOwner");
 
 async function clearSessionCommand(sock, chatId, msg) {
   try {
-    // Check if sender is owner
-    const senderId = msg.key.participant || msg.key.remoteJid;
-    const isOwnerCheck = await isOwner(senderId);
-    if (!isOwnerCheck) {
-      await sock.sendMessage(chatId, {
-        text: "❌ This command can only be used by the owner!",
-        ...global.channelInfo,
-      });
-      return;
-    }
+    // Note: Owner check is performed in main.js via ownerOnlyCommands array
 
     // Define session directory
     const sessionDir = path.join(__dirname, "../session");

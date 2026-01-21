@@ -5,6 +5,12 @@ const https = require("https");
 const settings = require("../settings");
 const { isOwner: checkOwner } = require("../lib/isOwner");
 const { sendText } = require("../lib/sendResponse");
+const {
+  backupConfigs,
+  runMigration,
+  PROTECTED_DIRS,
+  PERSISTENT_CONFIGS,
+} = require("../lib/configMigration");
 
 function run(cmd) {
   return new Promise((resolve, reject) => {
@@ -61,6 +67,9 @@ async function updateViaGit() {
   );
 
   // 🛡️ Safe Update Strategy:
+  // 0. Backup configs before any update
+  backupConfigs();
+
   // 1. Stash any local modifications (including untracked files if any)
   await run("git stash -u").catch(() => {});
 
@@ -70,7 +79,7 @@ async function updateViaGit() {
   // 3. Clean untracked files but PROTECT config/data folders
   // -e excludes patterns from being deleted
   await run(
-    "git clean -fd -e data/ -e session/ -e settings.js -e .env -e owner.json",
+    "git clean -fd -e data/ -e session/ -e temp/ -e settings.js -e .env -e *.json",
   ).catch(() => {});
 
   // 4. Try to restore local configurations/data
@@ -81,6 +90,9 @@ async function updateViaGit() {
       "Update: Local changes had conflicts with the update and were kept in stash.",
     );
   });
+
+  // 5. Run config migration to ensure all configs exist with defaults
+  runMigration();
 
   return { oldRev, newRev, alreadyUpToDate: false, commits, files };
 }
@@ -235,6 +247,9 @@ async function updateViaZip(sock, chatId, message, zipOverride) {
   // Copy new files
   copyRecursive(srcRoot, process.cwd(), ignore, "", copied);
 
+  // Run config migration to ensure all configs exist with defaults
+  runMigration();
+
   // Cleanup extracted directory
   try {
     fs.rmSync(extractTo, { recursive: true, force: true });
@@ -266,17 +281,7 @@ async function restartProcess(sock, chatId, message) {
 }
 
 async function updateCommand(sock, chatId, message, zipOverride) {
-  const senderId = message.key.participant || message.key.remoteJid;
-  const isOwner = await checkOwner(senderId);
-
-  if (!message.key.fromMe && !isOwner) {
-    await sock.sendMessage(
-      chatId,
-      { text: "Only bot owner or sudo can use .update" },
-      { quoted: message },
-    );
-    return;
-  }
+  // Owner check is handled centrally in main.js via ownerOnlyCommands
 
   // Check for force flag
   const text =
