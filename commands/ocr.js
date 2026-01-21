@@ -6,6 +6,7 @@ const { TelegraPh, UploadFileUgu } = require("../lib/uploader");
 const { sendText } = require("../lib/sendResponse");
 const { isMathProblem } = require("../lib/mathSolver");
 const mathCommand = require("./math");
+const { sendReaction } = require("../lib/reactions");
 
 async function getMediaBufferAndExt(message) {
   const m = message.message || {};
@@ -38,7 +39,7 @@ async function ocrCommand(sock, chatId, message) {
       );
     }
 
-    await sock.sendMessage(chatId, { react: { text: "⏳", key: message.key } });
+    await sendReaction(sock, message, "⏳");
 
     const tempDir = path.join(__dirname, "../temp");
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });

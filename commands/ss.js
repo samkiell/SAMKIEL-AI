@@ -1,6 +1,7 @@
 const fetch = require("node-fetch");
 const axios = require("axios"); // Use axios for better error handling
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 async function handleSsCommand(sock, chatId, message, match) {
   const currentPrefix = loadPrefix();
@@ -20,7 +21,7 @@ async function handleSsCommand(sock, chatId, message, match) {
   let url = match.trim();
   if (!url.startsWith("http")) url = `https://${url}`;
 
-  await sock.sendMessage(chatId, { react: { text: "📸", key: message.key } });
+  await sendReaction(sock, message, "📸");
 
   try {
     // 1. Try Microlink (High Quality)

@@ -1,6 +1,7 @@
 const { sendText } = require("../lib/sendResponse");
 
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 async function pollCommand(sock, chatId, message, args) {
   const currentPrefix = loadPrefix();
@@ -29,7 +30,7 @@ async function pollCommand(sock, chatId, message, args) {
   }
 
   // Adding reaction for feedback
-  await sock.sendMessage(chatId, { react: { text: "⏳", key: message.key } });
+  await sendReaction(sock, message, "⏳");
 
   const name = parts[0];
   const rawValues = parts.slice(1);

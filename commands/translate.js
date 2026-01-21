@@ -1,6 +1,7 @@
 const axios = require("axios");
 const { sendText } = require("../lib/sendResponse");
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 async function handleTranslateCommand(sock, chatId, message, match) {
   const currentPrefix = loadPrefix();
@@ -10,9 +11,7 @@ async function handleTranslateCommand(sock, chatId, message, match) {
     // Show typing indicator
     try {
       await sock.sendPresenceUpdate("composing", chatId);
-      await sock.sendMessage(chatId, {
-        react: { text: "🌍", key: message.key },
-      });
+      await sendReaction(sock, message, "🌍");
     } catch (e) {}
 
     let textToTranslate = "";

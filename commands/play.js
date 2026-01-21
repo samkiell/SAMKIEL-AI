@@ -1,5 +1,6 @@
 const yts = require("yt-search");
 const axios = require("axios");
+const { sendReaction } = require("../lib/reactions");
 
 // Channel Info
 const channelInfo = {
@@ -59,7 +60,7 @@ async function playCommand(sock, chatId, message) {
     console.log("First video URL:", urlYt);
 
     // Send preview message with thumbnail and start animation
-    await sock.sendMessage(chatId, { react: { text: "⏳", key: message.key } });
+    await sendReaction(sock, message, "⏳");
     let key;
     try {
       const initialMsg = await sock.sendMessage(

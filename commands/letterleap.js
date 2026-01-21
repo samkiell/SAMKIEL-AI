@@ -1,5 +1,6 @@
 const LetterLeapGame = require("../lib/letterLeapGame");
 const { sendText } = require("../lib/sendResponse");
+const { sendReaction } = require("../lib/reactions");
 
 // Global Game Manager
 const games = new Map(); // chatId -> GameInstance
@@ -106,13 +107,9 @@ async function letterLeapCommand(sock, chatId, message, args, senderId) {
 
     const result = await game.playTurn(senderId, word);
     if (result === true) {
-      await sock.sendMessage(chatId, {
-        react: { text: "✅", key: message.key },
-      });
+      await sendReaction(sock, message, "✅");
     } else {
-      await sock.sendMessage(chatId, {
-        react: { text: "❌", key: message.key },
-      });
+      await sendReaction(sock, message, "❌");
       await sendText(sock, chatId, result, { quoted: message });
     }
 

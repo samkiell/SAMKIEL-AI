@@ -6,6 +6,7 @@
 const axios = require("axios");
 const settings = require("../settings");
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 const TIMEOUT = 30000;
 
@@ -53,9 +54,7 @@ async function mathCommand(sock, chatId, message) {
     }
 
     try {
-      await sock.sendMessage(chatId, {
-        react: { text: "🧮", key: message.key },
-      });
+      await sendReaction(sock, message, "🧮");
     } catch (e) {}
 
     const query = `Solve this math problem. Show steps clearly. Use simple formatting without markdown code blocks. Problem: ${problem}`;
@@ -122,9 +121,7 @@ async function mathCommand(sock, chatId, message) {
 
     if (answer) {
       const cleanAnswer = formatForWhatsApp(answer);
-      await sock.sendMessage(chatId, {
-        react: { text: "✅", key: message.key },
-      });
+      await sendReaction(sock, message, "✅");
       await sock.sendMessage(
         chatId,
         {
@@ -133,9 +130,7 @@ async function mathCommand(sock, chatId, message) {
         { quoted: message },
       );
     } else {
-      await sock.sendMessage(chatId, {
-        react: { text: "❌", key: message.key },
-      });
+      await sendReaction(sock, message, "❌");
       await sock.sendMessage(
         chatId,
         {

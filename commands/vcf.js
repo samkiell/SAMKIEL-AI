@@ -4,6 +4,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { sendReaction } = require("../lib/reactions");
 
 async function vcfCommand(sock, chatId, message) {
   const isGroup = chatId.endsWith("@g.us");
@@ -19,7 +20,7 @@ async function vcfCommand(sock, chatId, message) {
   }
 
   try {
-    await sock.sendMessage(chatId, { react: { text: "📇", key: message.key } });
+    await sendReaction(sock, message, "📇");
 
     const groupMeta = await sock.groupMetadata(chatId);
     const participants = groupMeta.participants || [];
@@ -79,9 +80,9 @@ async function vcfCommand(sock, chatId, message) {
       fs.unlinkSync(tempPath);
     } catch (e) {}
 
-    await sock.sendMessage(chatId, { react: { text: "✅", key: message.key } });
+    await sendReaction(sock, message, "✅");
   } catch (error) {
-    await sock.sendMessage(chatId, { react: { text: "❌", key: message.key } });
+    await sendReaction(sock, message, "❌");
     await sock.sendMessage(
       chatId,
       {

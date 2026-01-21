@@ -6,6 +6,7 @@
 const axios = require("axios");
 const settings = require("../settings");
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 const TIMEOUT = 30000;
 
@@ -101,9 +102,7 @@ async function aiCommand(sock, chatId, message) {
     }
 
     try {
-      await sock.sendMessage(chatId, {
-        react: { text: "💭", key: message.key },
-      });
+      await sendReaction(sock, message, "💭");
     } catch (e) {}
 
     let answer = await tryMistralAPI(query);
@@ -113,18 +112,14 @@ async function aiCommand(sock, chatId, message) {
 
     if (answer) {
       const cleanAnswer = cleanFormatting(answer);
-      await sock.sendMessage(chatId, {
-        react: { text: "✅", key: message.key },
-      });
+      await sendReaction(sock, message, "✅");
       await sock.sendMessage(
         chatId,
         { text: cleanAnswer },
         { quoted: message },
       );
     } else {
-      await sock.sendMessage(chatId, {
-        react: { text: "❌", key: message.key },
-      });
+      await sendReaction(sock, message, "❌");
       await sock.sendMessage(
         chatId,
         {
@@ -135,9 +130,7 @@ async function aiCommand(sock, chatId, message) {
     }
   } catch (error) {
     try {
-      await sock.sendMessage(chatId, {
-        react: { text: "❌", key: message.key },
-      });
+      await sendReaction(sock, message, "❌");
       await sock.sendMessage(
         chatId,
         {

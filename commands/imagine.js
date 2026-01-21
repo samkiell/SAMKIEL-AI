@@ -4,6 +4,7 @@
 
 const axios = require("axios");
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 async function imagineCommand(sock, chatId, message) {
   console.log(`[IMAGINE] Command triggered`);
@@ -28,7 +29,7 @@ async function imagineCommand(sock, chatId, message) {
   }
 
   try {
-    await sock.sendMessage(chatId, { react: { text: "🎨", key: message.key } });
+    await sendReaction(sock, message, "🎨");
 
     // Try Kord API
     const response = await axios.get(
@@ -37,9 +38,7 @@ async function imagineCommand(sock, chatId, message) {
     );
 
     if (response.data) {
-      await sock.sendMessage(chatId, {
-        react: { text: "✅", key: message.key },
-      });
+      await sendReaction(sock, message, "✅");
       await sock.sendMessage(
         chatId,
         {
@@ -53,7 +52,7 @@ async function imagineCommand(sock, chatId, message) {
     }
   } catch (error) {
     console.log(`[IMAGINE] Error: ${error.message}`);
-    await sock.sendMessage(chatId, { react: { text: "❌", key: message.key } });
+    await sendReaction(sock, message, "❌");
     await sock.sendMessage(
       chatId,
       {

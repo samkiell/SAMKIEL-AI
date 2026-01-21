@@ -1,5 +1,6 @@
 const axios = require("axios");
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 async function movieCommand(sock, chatId, message, args) {
   try {
@@ -21,9 +22,7 @@ async function movieCommand(sock, chatId, message, args) {
     // Handle Direct Download Sub-command (Search by Name and Download)
     if (args[0] === "dl" && args[1]) {
       const movieTitle = args.slice(1).join(" ");
-      await sock.sendMessage(chatId, {
-        react: { text: "⏳", key: message.key },
-      });
+      await sendReaction(sock, message, "⏳");
 
       // 1. Search for movie to get the ID
       const searchUrl = `https://movieapi.giftedtech.co.ke/api/search/${encodeURIComponent(
@@ -91,9 +90,7 @@ async function movieCommand(sock, chatId, message, args) {
           },
           { quoted: message },
         );
-        await sock.sendMessage(chatId, {
-          react: { text: "✅", key: message.key },
-        });
+        await sendReaction(sock, message, "✅");
       } catch (dlErr) {
         console.error("Movie download error:", dlErr);
         await sock.sendMessage(

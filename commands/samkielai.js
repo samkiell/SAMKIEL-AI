@@ -6,6 +6,7 @@
 const axios = require("axios");
 const settings = require("../settings");
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 const TIMEOUT = 30000;
 
@@ -44,9 +45,7 @@ async function samkielaiCommand(sock, chatId, message) {
     }
 
     try {
-      await sock.sendMessage(chatId, {
-        react: { text: "💭", key: message.key },
-      });
+      await sendReaction(sock, message, "💭");
     } catch (e) {}
 
     const apiKey = settings.mistralApiKey;
@@ -90,9 +89,7 @@ async function samkielaiCommand(sock, chatId, message) {
         .replace(/\*\*\*/g, "*")
         .trim();
 
-      await sock.sendMessage(chatId, {
-        react: { text: "✅", key: message.key },
-      });
+      await sendReaction(sock, message, "✅");
       await sock.sendMessage(
         chatId,
         { text: cleanAnswer },
@@ -109,9 +106,7 @@ async function samkielaiCommand(sock, chatId, message) {
     }
   } catch (error) {
     try {
-      await sock.sendMessage(chatId, {
-        react: { text: "❌", key: message.key },
-      });
+      await sendReaction(sock, message, "❌");
       await sock.sendMessage(
         chatId,
         {

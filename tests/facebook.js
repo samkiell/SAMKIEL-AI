@@ -1,5 +1,6 @@
 const axios = require("axios");
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 async function facebookCommand(sock, chatId, message) {
   try {
@@ -16,7 +17,7 @@ async function facebookCommand(sock, chatId, message) {
       });
     }
 
-    await sock.sendMessage(chatId, { react: { text: "🔄", key: message.key } });
+    await sendReaction(sock, message, "🔄");
 
     let videoUrl = null;
     let title = "Facebook Video";

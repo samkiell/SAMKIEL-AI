@@ -4,6 +4,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { sendReaction } = require("../lib/reactions");
 
 const DATA_FILE = path.join(__dirname, "../data/online_activity.json");
 
@@ -47,7 +48,7 @@ async function listOnlineCommand(sock, chatId, message) {
   }
 
   try {
-    await sock.sendMessage(chatId, { react: { text: "👥", key: message.key } });
+    await sendReaction(sock, message, "👥");
 
     const activity = userActivity[chatId] || {};
     const now = Date.now();
@@ -84,7 +85,7 @@ async function listOnlineCommand(sock, chatId, message) {
 
     text += `\n📊 Total: ${activeUsers.length} active user${activeUsers.length > 1 ? "s" : ""}`;
 
-    await sock.sendMessage(chatId, { react: { text: "✅", key: message.key } });
+    await sendReaction(sock, message, "✅");
     await sock.sendMessage(chatId, { text, mentions }, { quoted: message });
   } catch (error) {
     await sock.sendMessage(

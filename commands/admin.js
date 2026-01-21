@@ -3,6 +3,7 @@ const path = require("path");
 const os = require("os");
 const { isOwner } = require("../lib/isOwner");
 const settings = require("../settings");
+const { sendReaction } = require("../lib/reactions");
 
 async function panelCommand(sock, chatId, message) {
   const senderJid = message.key.participant || message.key.remoteJid;
@@ -15,13 +16,13 @@ async function panelCommand(sock, chatId, message) {
         text: "❌ Access denied. This command is for the bot owner only.",
         ...global.channelInfo,
       },
-      { quoted: message }
+      { quoted: message },
     );
     return;
   }
 
   try {
-    await sock.sendMessage(chatId, { react: { text: "📊", key: message.key } });
+    await sendReaction(sock, message, "📊");
 
     // Paths to data files
     const messageCountPath = path.join(__dirname, "../data/messageCount.json");
@@ -125,14 +126,14 @@ async function panelCommand(sock, chatId, message) {
           },
         },
       },
-      { quoted: message }
+      { quoted: message },
     );
   } catch (error) {
     console.error("Error in panel command:", error);
     await sock.sendMessage(
       chatId,
       { text: "❌ Failed to retrieve system stats.", ...global.channelInfo },
-      { quoted: message }
+      { quoted: message },
     );
   }
 }

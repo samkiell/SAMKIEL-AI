@@ -1,6 +1,7 @@
 const axios = require("axios");
 
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 async function soraCommand(sock, chatId, message) {
   try {
@@ -35,7 +36,7 @@ async function soraCommand(sock, chatId, message) {
     }
 
     // Thinking... reaction
-    await sock.sendMessage(chatId, { react: { text: "⏳", key: message.key } });
+    await sendReaction(sock, message, "⏳");
 
     const apiUrl = `https://okatsu-rolezapiiz.vercel.app/ai/txt2video?text=${encodeURIComponent(input)}`;
     const { data } = await axios.get(apiUrl, {

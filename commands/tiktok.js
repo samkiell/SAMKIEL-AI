@@ -1,6 +1,7 @@
 const { ttdl } = require("ruhend-scraper");
 const axios = require("axios");
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 // Store processed message IDs to prevent duplicates
 const processedMessages = new Set();
@@ -66,9 +67,7 @@ async function tiktokCommand(sock, chatId, message) {
       });
     }
 
-    await sock.sendMessage(chatId, {
-      react: { text: "⏳", key: message.key },
-    });
+    await sendReaction(sock, message, "⏳");
 
     try {
       // Try multiple APIs in sequence

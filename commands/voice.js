@@ -12,6 +12,7 @@ const settings = require("../settings");
 const { toPTT } = require("../lib/converter");
 const { isVoiceChatEnabled } = require("./voicechat");
 const { getBotVoice, getFallbackVoice } = require("../lib/voiceConfig");
+const { sendReaction } = require("../lib/reactions");
 
 const TEMP_DIR = path.join(__dirname, "../temp");
 
@@ -491,7 +492,7 @@ async function handleVoiceMessage(sock, chatId, message, senderId) {
 
   // React to show we're processing (Reactions aren't prohibited text messages)
   try {
-    await sock.sendMessage(chatId, { react: { text: "🎧", key: message.key } });
+    await sendReaction(sock, message, "🎧");
   } catch (e) {}
 
   let audioPath = null;
@@ -551,9 +552,7 @@ async function handleVoiceMessage(sock, chatId, message, senderId) {
       }
 
       // React success
-      await sock.sendMessage(chatId, {
-        react: { text: "✅", key: message.key },
-      });
+      await sendReaction(sock, message, "✅");
     }
   } catch (error) {
     console.error("Voice orchestration error:", error.message);

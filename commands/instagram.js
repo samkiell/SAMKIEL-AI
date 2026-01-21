@@ -1,6 +1,7 @@
 const { igdl } = require("ruhend-scraper");
 const axios = require("axios");
 const { loadPrefix } = require("../lib/prefix");
+const { sendReaction } = require("../lib/reactions");
 
 // Store processed message IDs to prevent duplicates
 const processedMessages = new Set();
@@ -40,7 +41,7 @@ async function instagramCommand(sock, chatId, message) {
       });
     }
 
-    await sock.sendMessage(chatId, { react: { text: "⏳", key: message.key } });
+    await sendReaction(sock, message, "⏳");
 
     let mediaData = [];
     let success = false;
