@@ -403,76 +403,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
       return;
     }
 
-    // Basic message response in private chat - Dynamically Configurable
-    if (!isGroup) {
-      const gKeywords = [
-        "hi",
-        "hello",
-        "ezekiel",
-        "bot",
-        "samkiel",
-        "hey",
-        "bro",
-        "alive",
-        "who are you",
-        "who are u",
-        "what can you do",
-        "yo",
-        "sup",
-        "what's up",
-        "morning",
-        "mornin",
-        "evening",
-        "afternoon",
-        "hie",
-        "hola",
-        "how far",
-        "hey bot",
-        "hello bot",
-        "buddy",
-        "guy",
-        "boss",
-        "admin",
-      ];
-      if (gKeywords.includes(userMessage.toLowerCase())) {
-        const PM_CONFIG_PATH = "./data/pmConfig.json";
-        let pmConfig = {
-          enabled: true,
-          message:
-            "I'm your AI assistant — ready to help you with commands, tools, and automation.",
-        };
-        try {
-          if (fs.existsSync(PM_CONFIG_PATH)) {
-            pmConfig = JSON.parse(fs.readFileSync(PM_CONFIG_PATH, "utf8"));
-          }
-        } catch (e) {}
-
-        if (pmConfig.enabled) {
-          const welcomeMsg = `
-╭━━━━━━━━━━━━━━━━━━━┈⊷
-┃ 👋 *Hello, ${pushName || "User"}!*
-┃ 🤖 *I am ${settings.botName || "SAMKIEL BOT"}*
-┃ 
-┃ ${pmConfig.message}
-╰━━━━━━━━━━━━━━━━━━━┈⊷`.trim();
-
-          await sock.sendMessage(chatId, {
-            text: welcomeMsg,
-            contextInfo: {
-              forwardingScore: 1,
-              isForwarded: true,
-              forwardedNewsletterMessageInfo: {
-                newsletterJid: "120363400862271383@newsletter",
-                newsletterName: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹❂𝕋",
-                serverMessageId: -1,
-              },
-            },
-          });
-          return;
-        }
-      }
-    }
-
     if (!message.key.fromMe) {
       incrementMessageCount(chatId, senderId);
     }
@@ -545,15 +475,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
       if (isGroup) {
         // Process non-command messages first
-        if (settings.featureToggles.CHATBOT) {
-          await handleChatbotResponse(
-            sock,
-            chatId,
-            message,
-            userMessage,
-            senderId,
-          );
-        }
+
         if (settings.featureToggles.ANTI_LINK) {
           await Antilink(message, sock);
         }
