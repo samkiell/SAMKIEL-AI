@@ -303,6 +303,10 @@ async function updateCommand(sock, chatId, message, zipOverride) {
       { quoted: message },
     );
 
+    // 🛡️ Pre-update: Persist current in-memory settings to JSON
+    const { persistSettings } = require("../lib/configMigration");
+    persistSettings(settings);
+
     if (await hasGitRepo()) {
       const { oldRev, newRev, alreadyUpToDate, commits, files } =
         await updateViaGit();
