@@ -6,7 +6,11 @@ require("./config.js");
 const { isBanned } = require("./lib/isBanned");
 const { isOwner, isSuperOwner } = require("./lib/isOwner");
 const { handleAutoStatus } = require("./lib/statusViewer");
-const { isBotDisabled } = require("./lib/botState");
+const {
+  isBotDisabled,
+  isGlobalEnabled,
+  setGlobalEnabled,
+} = require("./lib/botState");
 const {
   loadPrefix,
   savePrefix,
@@ -353,6 +357,33 @@ async function handleMessages(sock, messageUpdate, printLog) {
       // Log suppressed
     }
 
+    // Check Global Bot State
+    const isBotGloballyEnabled = isGlobalEnabled();
+    const isOwnerUser = await isOwner(senderId, sock, message.key);
+
+    // If bot is globally OFF, only allow OWNER to "turn on"
+    if (!isBotGloballyEnabled) {
+      if (isOwnerUser && cmd === "turnon") {
+        setGlobalEnabled(true, senderId);
+        return await sock.sendMessage(chatId, {
+          text: "✅ Bot has been re-enabled globally.",
+          ...channelInfo,
+        });
+      }
+      return; // Ignore everything else
+    }
+
+    // New Global Toggle Commands
+    if (isOwnerUser) {
+      if (cmd === "turnoff") {
+        setGlobalEnabled(false, senderId);
+        return await sock.sendMessage(chatId, {
+          text: "📴 Bot has been disabled globally. Only 'turn on' will work now.",
+          ...channelInfo,
+        });
+      }
+    }
+
     // Check if bot is disabled in this chat
     if (isBotDisabled(chatId) && cmd !== "enablebot") {
       return;
@@ -383,10 +414,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
     } catch {
       modeData = { isPublic: true };
     }
-
-    // Enforce Private Mode
-    // Section 2 & 6: Owner bypass and self-healing LID check
-    const isOwnerUser = await isOwner(senderId, sock, message.key);
 
     // Private Mode: Restricts command usage to owners only in group chats.
     // DMs are always allowed to ensure accessibility.
