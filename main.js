@@ -183,6 +183,7 @@ const lidCommand = require("./commands/lid");
 const handleBotControl = require("./commands/botControl");
 const prefixCommand = require("./commands/prefix");
 const deployCommand = require("./commands/deploy");
+const tutorialCommand = require("./commands/tutorial");
 const anticallCommand = require("./commands/anticall");
 const pluginCommand = require("./commands/plugin");
 const saveStatusCommand = require("./commands/savestatus");
@@ -646,6 +647,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
         break;
       case cmd === "alive":
         await aliveCommand(sock, chatId, message);
+        break;
+      case cmd === "tutorial":
+        await tutorialCommand(sock, chatId, message);
         break;
       case userMessage.toLowerCase() === "mp3": {
         const quotedMessage =

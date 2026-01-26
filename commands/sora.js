@@ -38,35 +38,63 @@ async function soraCommand(sock, chatId, message) {
     // Thinking... reaction
     await sendReaction(sock, message, "⏳");
 
+    console.log(`[SORA] Generating video for prompt: "${input}"`);
+
     const apiUrl = `https://okatsu-rolezapiiz.vercel.app/ai/txt2video?text=${encodeURIComponent(input)}`;
-    const { data } = await axios.get(apiUrl, {
-      timeout: 120000, // Increased timeout for video generation
-      headers: { "user-agent": "Mozilla/5.0" },
+
+    const response = await axios.get(apiUrl, {
+      timeout: 180000, // 3 minutes for video generation
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
     });
 
-    const videoUrl = data?.videoUrl || data?.result || data?.data?.videoUrl;
+    const data = response.data;
+    const videoUrl =
+      data?.videoUrl ||
+      data?.result ||
+      data?.data?.videoUrl ||
+      (typeof data === "string" && data.startsWith("http") ? data : null);
+
     if (!videoUrl) {
-      throw new Error("No videoUrl in API response");
+      console.error("[SORA] Invalid API Response:", data);
+      throw new Error(
+        "The AI service failed to return a video link. The prompt might be too complex or the service is overloaded.",
+      );
     }
+
+    console.log(`[SORA] Video generated successfully: ${videoUrl}`);
 
     await sock.sendMessage(
       chatId,
       {
         video: { url: videoUrl },
         mimetype: "video/mp4",
-        caption: `Prompt: ${input}\n\n> *Powered by SAMKIEL BOT*`,
+        caption: `🎬 *AI Video Generated*\n\n*Prompt:* ${input}\n\n> *Powered by SAMKIEL BOT*`,
       },
       { quoted: message },
     );
   } catch (error) {
-    console.error("[SORA] error:", error?.message || error);
-    await sock.sendMessage(
-      chatId,
-      {
-        text: "❌ Failed to generate video. Try a different prompt later.\n\n> *Powered by SAMKIEL BOT*",
-      },
-      { quoted: message },
-    );
+    let errorMessage = "❌ *Video Generation Failed*";
+
+    if (error.response) {
+      console.error(
+        `[SORA] API Error:`,
+        error.response.status,
+        error.response.data,
+      );
+      errorMessage += `\n\nThe server returned an error (${error.response.status}). It might be down.`;
+    } else if (error.code === "ECONNABORTED") {
+      console.error(`[SORA] Timeout Error: API took too long`);
+      errorMessage += `\n\nRequest timed out. Creating videos takes time, and the server is currently slow.`;
+    } else {
+      console.error(`[SORA] Error:`, error.message);
+      errorMessage += `\n\n${error.message}`;
+    }
+
+    await sendReaction(sock, message, "❌");
+    await sock.sendMessage(chatId, { text: errorMessage }, { quoted: message });
   }
 }
 
