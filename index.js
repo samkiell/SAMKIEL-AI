@@ -254,11 +254,25 @@ async function startXeonBotInc() {
 
   store.bind(XeonBotInc.ev);
 
+  // In-memory cache for message deduplication (TTL: 5 minutes)
+  const messageIdCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
+
   // Message handling
   XeonBotInc.ev.on("messages.upsert", async (chatUpdate) => {
     try {
-      const mek = chatUpdate.messages[0];
+      const messages = chatUpdate.messages;
+      if (!messages || messages.length === 0) return;
+
+      const mek = messages[0];
       if (!mek.message) return;
+
+      // Deduplication check
+      const messageId = mek.key.id;
+      if (messageIdCache.has(messageId)) {
+        return; // Ignore already processed message
+      }
+      messageIdCache.set(messageId, true);
+
       mek.message =
         Object.keys(mek.message)[0] === "ephemeralMessage"
           ? mek.message.ephemeralMessage.message
@@ -698,15 +712,6 @@ ${"SAMKIEL"} (${settings.portfolio || "https://samkiel.dev"})
 
   XeonBotInc.ev.on("group-participants.update", async (update) => {
     await handleGroupParticipantUpdate(XeonBotInc, update);
-  });
-
-  XeonBotInc.ev.on("messages.upsert", async (m) => {
-    if (
-      m.messages[0].key &&
-      m.messages[0].key.remoteJid === "status@broadcast"
-    ) {
-      await handleStatus(XeonBotInc, m);
-    }
   });
 
   XeonBotInc.ev.on("status.update", async (status) => {
