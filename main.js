@@ -584,15 +584,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
     ];
     const hybridCommands = ["welcome", "goodbye", "chatbot"];
 
-    const isAdminOnlyCommand = adminOnlyCommands.some((cmd) =>
-      command.startsWith(cmd),
-    );
-    const isOwnerOnlyCommand = ownerOnlyCommands.some((cmd) =>
-      command.startsWith(cmd),
-    );
-    const isHybridCommand = hybridCommands.some((cmd) =>
-      command.startsWith(cmd),
-    );
+    const isAdminOnlyCommand = adminOnlyCommands.includes(cmd);
+    const isOwnerOnlyCommand = ownerOnlyCommands.includes(cmd);
+    const isHybridCommand = hybridCommands.includes(cmd);
 
     const ownerBypass = isOwnerUser; // isOwner already includes SuperOwner and bot's own JID check
 
