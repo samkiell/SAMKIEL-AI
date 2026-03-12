@@ -1,0 +1,29 @@
+[
+  {
+    "timestamp": "2026-03-12T01:17:15.319Z",
+    "action": "BOT_RESTART",
+    "executor": "SYSTEM",
+    "context": "startup",
+    "details": {
+      "timestamp": "2026-03-12T01:17:15.318Z"
+    }
+  },
+  {
+    "timestamp": "2026-03-12T01:23:52.267Z",
+    "action": "BOT_RESTART",
+    "executor": "SYSTEM",
+    "context": "startup",
+    "details": {
+      "timestamp": "2026-03-12T01:23:52.267Z"
+    }
+  },
+  {
+    "timestamp": "2026-03-12T01:24:57.157Z",
+    "action": "BOT_RESTART",
+    "executor": "SYSTEM",
+    "context": "startup",
+    "details": {
+      "timestamp": "2026-03-12T01:24:57.157Z"
+    }
+  }
+]

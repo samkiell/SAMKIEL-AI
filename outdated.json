@@ -1,0 +1,177 @@
+{
+  "@types/node": {
+    "current": "18.19.130",
+    "wanted": "18.19.130",
+    "latest": "25.4.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\@types\\node"
+  },
+  "@whiskeysockets/baileys": {
+    "current": "6.7.21",
+    "wanted": "6.7.21",
+    "latest": "7.0.0-rc.9",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\@whiskeysockets\\baileys"
+  },
+  "awesome-phonenumber": {
+    "current": "5.11.0",
+    "wanted": "5.11.0",
+    "latest": "7.8.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\awesome-phonenumber"
+  },
+  "axios": {
+    "current": "1.12.2",
+    "wanted": "1.13.6",
+    "latest": "1.13.6",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\axios"
+  },
+  "chalk": {
+    "current": "4.1.2",
+    "wanted": "4.1.2",
+    "latest": "5.6.2",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\chalk"
+  },
+  "cheerio": {
+    "current": "1.1.2",
+    "wanted": "1.2.0",
+    "latest": "1.2.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\cheerio"
+  },
+  "cookie": {
+    "current": "0.5.0",
+    "wanted": "0.5.0",
+    "latest": "1.1.1",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\cookie"
+  },
+  "dotenv": {
+    "current": "16.6.1",
+    "wanted": "16.6.1",
+    "latest": "17.3.1",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\dotenv"
+  },
+  "file-type": {
+    "current": "16.5.4",
+    "wanted": "16.5.4",
+    "latest": "21.3.1",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\file-type"
+  },
+  "form-data": {
+    "current": "4.0.4",
+    "wanted": "4.0.5",
+    "latest": "4.0.5",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\form-data"
+  },
+  "fs-extra": {
+    "current": "11.3.2",
+    "wanted": "11.3.4",
+    "latest": "11.3.4",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\fs-extra"
+  },
+  "jsdom": {
+    "current": "22.1.0",
+    "wanted": "22.1.0",
+    "latest": "28.1.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\jsdom"
+  },
+  "libphonenumber-js": {
+    "current": "1.12.24",
+    "wanted": "1.12.39",
+    "latest": "1.12.39",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\libphonenumber-js"
+  },
+  "link-preview-js": {
+    "current": "3.1.0",
+    "wanted": "3.2.0",
+    "latest": "4.0.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\link-preview-js"
+  },
+  "moment-timezone": {
+    "current": "0.5.48",
+    "wanted": "0.5.48",
+    "latest": "0.6.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\moment-timezone"
+  },
+  "node-fetch": {
+    "current": "2.7.0",
+    "wanted": "2.7.0",
+    "latest": "3.3.2",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\node-fetch"
+  },
+  "node-youtube-music": {
+    "current": "0.8.3",
+    "wanted": "0.8.3",
+    "latest": "0.10.3",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\node-youtube-music"
+  },
+  "phin": {
+    "current": "3.7.1",
+    "wanted": "3.7.1",
+    "latest": "4.0.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\phin"
+  },
+  "pino": {
+    "current": "8.21.0",
+    "wanted": "8.21.0",
+    "latest": "10.3.1",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\pino"
+  },
+  "ruhend-scraper": {
+    "current": "8.3.0",
+    "wanted": "8.3.0",
+    "latest": "9.0.8",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\ruhend-scraper"
+  },
+  "sharp": {
+    "current": "0.34.4",
+    "wanted": "0.34.5",
+    "latest": "0.34.5",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\sharp"
+  },
+  "tough-cookie": {
+    "current": "5.1.2",
+    "wanted": "5.1.2",
+    "latest": "6.0.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\tough-cookie"
+  },
+  "ws": {
+    "current": "8.18.3",
+    "wanted": "8.19.0",
+    "latest": "8.19.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\ws"
+  },
+  "yargs": {
+    "current": "17.7.2",
+    "wanted": "17.7.2",
+    "latest": "18.0.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\yargs"
+  },
+  "yargs-parser": {
+    "current": "21.1.1",
+    "wanted": "21.1.1",
+    "latest": "22.0.0",
+    "dependent": "SAMKIELAI_V2.0",
+    "location": "C:\\Users\\SAMKIEL\\CODEX\\Whatsapp Bot\\SAMKIELAI_V2.0\\node_modules\\yargs-parser"
+  }
+}
