@@ -26,7 +26,7 @@
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@hapi/boom": "^10.0.1",
     "@types/node": "^18.0.6",
-    "@whiskeysockets/baileys": "^6.17.16",
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "awesome-phonenumber": "^5.11.0",
     "axios": "^1.13.6",
     "chalk": "^4.1.2",
@@ -72,7 +72,7 @@
     "youtube-yts": "^2.0.0",
     "youtubedl-core": "^4.11.7",
     "yt-search": "^2.12.1",
-    "ytdl-core": "^4.11.5"
+    "@distube/ytdl-core": "^4.16.5"
   },
   "overrides": {
     "jimp": "^1.6.0",
