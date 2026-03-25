@@ -90,9 +90,15 @@ async function pdfCommand(sock, chatId, text, message) {
 
     if (!fontLoaded) {
       console.warn(
-        "⚠️ [PDF COMMAND] No emoji font found, falling back to Helvetica",
+        "⚠️ [PDF COMMAND] No emoji font found, falling back to Helvetica (stripping emojis to prevent crash)",
       );
       doc.font("Helvetica");
+
+      // Strip emojis from text - Helvetica cannot handle them and will crash PDFKit
+      text = text.replace(
+        /([\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c[\udd8e-\udd9a]|\ud83c[\udfe0-\udff0]|\ud83c[\udf00-\udfff]|\ud83d[\udc00-\udfff]|\ud83e[\udd00-\udfff])/g,
+        "",
+      );
     }
 
     // Error handling for stream
@@ -116,6 +122,7 @@ async function pdfCommand(sock, chatId, text, message) {
       lineGap: 5,
       paragraphGap: 10,
     });
+
 
     function addFooter(doc) {
       const oldBottomMargin = doc.page.margins.bottom;
