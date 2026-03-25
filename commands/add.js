@@ -9,11 +9,15 @@ function formatJid(number) {
     : number + "@s.whatsapp.net";
 }
 
+const { isOwner } = require("../lib/isOwner");
+
 async function addCommand(sock, chatId, senderId, message, args) {
   const { isSenderAdmin, isBotAdmin } = await isAdmin(sock, chatId, senderId);
+  const isOwnerUser = await isOwner(senderId, sock, message.key);
 
-  // 1. Bot Admin Check
+  // 1. Bot Admin Check (Owners cannot bypass this, bot MUST be admin to add)
   if (!isBotAdmin) {
+
     await sock.sendMessage(
       chatId,
       { text: "❌ I need to be an Admin to add members!" },
@@ -23,7 +27,7 @@ async function addCommand(sock, chatId, senderId, message, args) {
   }
 
   // 2. Sender Admin Check
-  if (!isSenderAdmin) {
+  if (!isSenderAdmin && !isOwnerUser) {
     await sock.sendMessage(
       chatId,
       { text: "❌ Only admins can use this command!" },

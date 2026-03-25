@@ -1307,11 +1307,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
             isSenderAdmin = adminStatus.isSenderAdmin;
           }
 
-          if (isSenderAdmin || message.key.fromMe) {
+          if (isSenderAdmin || isOwnerUser || message.key.fromMe) {
             await welcomeCommand(sock, chatId, message);
           } else {
             await sock.sendMessage(chatId, {
-              text: "Sorry, only group admins can use this command.",
+              text: "Sorry, only group admins or bot owner can use this command.",
               ...channelInfo,
             });
           }
@@ -1330,11 +1330,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
             isSenderAdmin = adminStatus.isSenderAdmin;
           }
 
-          if (isSenderAdmin || message.key.fromMe) {
+          if (isSenderAdmin || isOwnerUser || message.key.fromMe) {
             await goodbyeCommand(sock, chatId, message);
           } else {
             await sock.sendMessage(chatId, {
-              text: "Sorry, only group admins can use this command.",
+              text: "Sorry, only group admins or bot owner can use this command.",
               ...channelInfo,
             });
           }
@@ -1372,7 +1372,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
           chatId,
           message,
           senderId,
-          isSenderAdmin,
+          isSenderAdmin || isOwnerUser,
         );
         break;
       case command.startsWith("chatbot"):
