@@ -687,21 +687,28 @@ ${"SAMKIEL"} (${settings.portfolio || "https://samkiel.dev"})
     }
     if (connection === "close") {
       global.isConnected = false;
+      // Clear Always Online interval on disconnect
+      if (global.onlineInterval) {
+        clearInterval(global.onlineInterval);
+        global.onlineInterval = null;
+      }
+
       const reason = lastDisconnect?.error?.message || "Unknown";
       console.log(chalk.red(`Connection closed. Reason: ${reason}`));
       const isConflict = reason.includes("conflict");
+
       if (
         lastDisconnect &&
         lastDisconnect.error &&
-        lastDisconnect.error.output.statusCode != 401 &&
+        lastDisconnect.error.output?.statusCode !== 401 &&
         !isConflict
       ) {
-        console.log(chalk.yellow("Attempting to reconnect..."));
-        startXeonBotInc();
+        console.log(chalk.yellow("Attempting to reconnect in 5 seconds..."));
+        setTimeout(() => startXeonBotInc(), 5000);
       } else if (isConflict) {
         console.log(
           chalk.red(
-            "Connection conflict detected. Please log out other sessions and restart the bot.",
+            "CRITICAL: Connection conflict detected. Another instance is running or you have a conflicting WhatsApp Web session. Please kill all node processes and restart.",
           ),
         );
       }
@@ -734,6 +741,7 @@ startXeonBotInc().catch((error) => {
   console.error("Fatal error:", error);
   process.exit(1);
 });
+
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
 });
@@ -742,10 +750,3 @@ process.on("unhandledRejection", (err) => {
   console.error("Unhandled Rejection:", err);
 });
 
-let file = require.resolve(__filename);
-fs.watchFile(file, () => {
-  fs.unwatchFile(file);
-  console.log(chalk.redBright(`Update ${__filename}`));
-  delete require.cache[file];
-  require(file);
-});
