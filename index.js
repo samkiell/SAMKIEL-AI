@@ -76,14 +76,29 @@ const { join } = require("path");
 process.on("unhandledRejection", (err) => {
   const message = String(err);
   if (message.includes("conflict") || message.includes("Connection Closed")) {
-    console.log("⚠️ Connection conflict detected — restarting session...");
-    // Optional: add restart logic here (like reconnect or clean session)
+    console.log("⚠️ Connection conflict detected — restarting process...");
+    process.exit(1);
   } else {
     console.error("Unhandled Rejection:", err);
   }
 });
 
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  if (String(err).includes("connection")) {
+    process.exit(1);
+  }
+});
+
 let XeonBotInc;
+
+// Scheduled Optional Restart (12 hours)
+if (settings.featureToggles.AUTO_RESTART !== false) {
+    setTimeout(() => {
+        console.log("Scheduled routine restart triggered...");
+        process.exit(0);
+    }, 12 * 60 * 60 * 1000); 
+}
 
 function normalizeToDigits(id) {
   if (!id) return "";
@@ -687,30 +702,35 @@ ${"SAMKIEL"} (${settings.portfolio || "https://samkiel.dev"})
     }
     if (connection === "close") {
       global.isConnected = false;
-      // Clear Always Online interval on disconnect
+      
+      // Clean up intervals to prevent memory leaks
       if (global.onlineInterval) {
         clearInterval(global.onlineInterval);
         global.onlineInterval = null;
       }
 
       const reason = lastDisconnect?.error?.message || "Unknown";
-      console.log(chalk.red(`Connection closed. Reason: ${reason}`));
+      const statusCode = lastDisconnect?.error?.output?.statusCode;
       const isConflict = reason.includes("conflict");
 
-      if (
-        lastDisconnect &&
-        lastDisconnect.error &&
-        lastDisconnect.error.output?.statusCode !== 401 &&
-        !isConflict
-      ) {
+      console.log(chalk.red(`Connection closed. Reason: ${reason} (Code: ${statusCode})`));
+
+      if (isConflict) {
+        console.log(chalk.red("CRITICAL: Connection conflict detected. Please kill all node processes and restart."));
+        process.exit(1);
+      } else if (statusCode === DisconnectReason.loggedOut) {
+        console.log(chalk.red("Device Logged Out, deleting session and exiting..."));
+        fs.rmSync("./session", { recursive: true, force: true });
+        process.exit(1); 
+      } else if (statusCode === DisconnectReason.restartRequired) {
+        console.log(chalk.yellow("Restart Required, restarting..."));
+        startXeonBotInc();
+      } else if (statusCode === DisconnectReason.connectionClosed) {
+        console.log(chalk.yellow("Connection Closed, reconnecting..."));
+        startXeonBotInc();
+      } else {
         console.log(chalk.yellow("Attempting to reconnect in 5 seconds..."));
         setTimeout(() => startXeonBotInc(), 5000);
-      } else if (isConflict) {
-        console.log(
-          chalk.red(
-            "CRITICAL: Connection conflict detected. Another instance is running or you have a conflicting WhatsApp Web session. Please kill all node processes and restart.",
-          ),
-        );
       }
     }
   });
@@ -742,11 +762,5 @@ startXeonBotInc().catch((error) => {
   process.exit(1);
 });
 
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-});
 
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err);
-});
 

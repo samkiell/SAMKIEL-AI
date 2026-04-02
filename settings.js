@@ -41,6 +41,7 @@ const defaults = {
     COMMAND_MODE: "private",
     VOICE_CHAT: false,
     PACKNAME: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
+    AUTO_RESTART: true,
   },
 
   // --- INTERNAL ---
