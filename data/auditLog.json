@@ -25,5 +25,14 @@
     "details": {
       "timestamp": "2026-03-12T01:24:57.157Z"
     }
+  },
+  {
+    "timestamp": "2026-04-02T22:38:02.111Z",
+    "action": "BOT_RESTART",
+    "executor": "SYSTEM",
+    "context": "startup",
+    "details": {
+      "timestamp": "2026-04-02T22:38:02.111Z"
+    }
   }
 ]

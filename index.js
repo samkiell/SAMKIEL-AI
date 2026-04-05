@@ -74,20 +74,11 @@ const { rmSync, existsSync } = require("fs");
 const { join } = require("path");
 
 process.on("unhandledRejection", (err) => {
-  const message = String(err);
-  if (message.includes("conflict") || message.includes("Connection Closed")) {
-    console.log("⚠️ Connection conflict detected — restarting process...");
-    process.exit(1);
-  } else {
-    console.error("Unhandled Rejection:", err);
-  }
+  console.error("Unhandled Rejection:", err);
 });
 
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
-  if (String(err).includes("connection")) {
-    process.exit(1);
-  }
 });
 
 let XeonBotInc;
@@ -99,6 +90,14 @@ if (settings.featureToggles.AUTO_RESTART !== false) {
         process.exit(0);
     }, 12 * 60 * 60 * 1000); 
 }
+
+setInterval(() => {
+    const used = process.memoryUsage().rss / 1024 / 1024;
+    if (used > 400) {
+        console.log('⚠️ RAM exceeded 400MB, restarting...');
+        process.exit(1);
+    }
+}, 30_000);
 
 function normalizeToDigits(id) {
   if (!id) return "";
@@ -147,8 +146,8 @@ const store = {
       this.chats = chats;
     });
   },
-  loadMessage: async (jid, id) => {
-    return this.messages[jid]?.[id] || null;
+  loadMessage: async function(jid, id) {
+    return store.messages[jid]?.[id] || null;
   },
 };
 
@@ -240,6 +239,7 @@ const question = (text) => {
 };
 
 async function startXeonBotInc() {
+  try {
   let { version, isLatest } = await fetchLatestBaileysVersion();
   const { state, saveCreds } = await useMultiFileAuthState(`./session`);
   const msgRetryCounterCache = new NodeCache();
@@ -264,7 +264,9 @@ async function startXeonBotInc() {
       return msg?.message || "";
     },
     msgRetryCounterCache,
-    defaultQueryTimeoutMs: undefined,
+    defaultQueryTimeoutMs: 60000,
+    connectTimeoutMs: 60000,
+    keepAliveIntervalMs: 10000,
   });
 
   store.bind(XeonBotInc.ev);
@@ -754,6 +756,11 @@ ${"SAMKIEL"} (${settings.portfolio || "https://samkiel.dev"})
   });
 
   return XeonBotInc;
+  } catch (error) {
+    console.error('Error in startXeonBotInc:', error);
+    await delay(5000);
+    startXeonBotInc();
+  }
 }
 
 // Start the bot with error handling
