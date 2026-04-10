@@ -242,32 +242,15 @@ const {
   jidNormalizedUser,
   downloadContentFromMessage,
 } = require("@whiskeysockets/baileys");
-// Safely load owner data
-let ownerData;
-try {
-  if (fs.existsSync("./data/owner.json")) {
-    ownerData = JSON.parse(fs.readFileSync("./data/owner.json"));
-  } else {
-    throw new Error("File not found");
-  }
-} catch (e) {
-  ownerData = {
-    superOwner: [settings.ownerNumber],
-    owners: [],
-  };
-}
-const rawOwners = [
-  ...(Array.isArray(ownerData.superOwner)
-    ? ownerData.superOwner
-    : [ownerData.superOwner]),
-  ...(Array.isArray(ownerData.owners)
-    ? ownerData.owners.map((o) => o.number)
-    : []),
-].filter(Boolean);
-
-const ownerList = rawOwners.map((j) =>
-  jidNormalizedUser(`${j}@s.whatsapp.net`),
-);
+// Get owners list dynamically
+const getOwners = () => {
+    const data = require("./lib/isOwner").loadOwnerData();
+    const raw = [
+        ...(Array.isArray(data.superOwner) ? data.superOwner : [data.superOwner]),
+        ...(Array.isArray(data.owners) ? data.owners.map(o => o.number || o.jid || o) : [])
+    ].filter(Boolean);
+    return raw.map(j => jidNormalizedUser(`${j.split('@')[0]}@s.whatsapp.net`));
+};
 
 async function handleMessages(sock, messageUpdate, printLog) {
   let chatId;

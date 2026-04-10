@@ -478,66 +478,69 @@ async function startXeonBotInc() {
       const botNumber = XeonBotInc.user.id.split(":")[0] + "@s.whatsapp.net";
       global.botUserJid = botNumber;
 
-      // Resolve and persist the real WhatsApp LID for the configured owner number
-      // This fixes cases where messages come from an LID JID and the owner isn't recognized.
+      // Proactively resolve and persist real WhatsApp LIDs for all configured owners.
+      // This ensures that even if messages come from an LID JID, owners are recognized.
       try {
-        const ownerNum = normalizeToDigits(settings.ownerNumber);
-        if (ownerNum) {
-          const lookupJid = `${ownerNum}@s.whatsapp.net`;
-          const wa = await XeonBotInc.onWhatsApp(lookupJid).catch(() => null);
-          const lidDigits = normalizeToDigits(wa?.[0]?.lid);
-          if (lidDigits) {
-            let ownerData = { superOwner: [], owners: [] };
-            if (fs.existsSync(ownerDataPath)) {
-              ownerData = JSON.parse(fs.readFileSync(ownerDataPath, "utf8"));
+        let ownerData = { superOwner: [], owners: [] };
+        if (fs.existsSync(ownerDataPath)) {
+          ownerData = JSON.parse(fs.readFileSync(ownerDataPath, "utf8"));
+        }
+
+        const superOwners = Array.isArray(ownerData.superOwner) 
+          ? ownerData.superOwner 
+          : [ownerData.superOwner].filter(Boolean);
+        
+        const settingsOwner = normalizeToDigits(settings.ownerNumber);
+        if (settingsOwner && !superOwners.includes(settingsOwner)) {
+          superOwners.push(settingsOwner);
+        }
+
+        const ownersList = Array.isArray(ownerData.owners) ? ownerData.owners : [];
+        let updated = false;
+
+        // Resolve LIDs for Super Owners
+        for (const num of superOwners) {
+          const cleanNum = normalizeToDigits(num);
+          if (!cleanNum) continue;
+
+          // Check if already in owners list with LID
+          const existing = ownersList.find(o => normalizeToDigits(o?.number) === cleanNum);
+          if (!existing || !existing.lid) {
+            const wa = await XeonBotInc.onWhatsApp(`${cleanNum}@s.whatsapp.net`).catch(() => null);
+            const lid = normalizeToDigits(wa?.[0]?.lid);
+            if (lid) {
+              if (existing) {
+                existing.lid = lid;
+              } else {
+                ownersList.push({ number: cleanNum, lid: lid });
+              }
+              updated = true;
+              console.log(chalk.green(`[LID Resolution] Resolved ${cleanNum} -> ${lid}`));
             }
-            ownerData.superOwner = Array.isArray(ownerData.superOwner)
-              ? ownerData.superOwner
-              : ownerData.superOwner
-                ? [ownerData.superOwner]
-                : [];
-            ownerData.owners = Array.isArray(ownerData.owners)
-              ? ownerData.owners
-              : [];
-
-            // Normalize and ensure entry
-            ownerData.superOwner = Array.from(
-              new Set(
-                ownerData.superOwner.map(normalizeToDigits).filter(Boolean),
-              ),
-            );
-            if (!ownerData.superOwner.includes(ownerNum)) {
-              ownerData.superOwner.unshift(ownerNum);
-            }
-
-            const normalizedOwners = ownerData.owners
-              .map((o) => {
-                if (typeof o === "string" || typeof o === "number") {
-                  const v = normalizeToDigits(o);
-                  return v ? { number: v, lid: v } : null;
-                }
-                const num = normalizeToDigits(o?.number || o?.jid);
-                if (!num) return null;
-                const lid = normalizeToDigits(o?.lid) || num;
-                return { number: num, lid };
-              })
-              .filter(Boolean);
-            ownerData.owners = normalizedOwners;
-
-            const existing = ownerData.owners.find(
-              (o) => normalizeToDigits(o.number) === ownerNum,
-            );
-            if (existing) {
-              existing.lid = lidDigits;
-            } else {
-              ownerData.owners.push({ number: ownerNum, lid: lidDigits });
-            }
-
-            fs.writeFileSync(ownerDataPath, JSON.stringify(ownerData, null, 2));
           }
         }
+
+        // Resolve LIDs for other owners if missing
+        for (const owner of ownersList) {
+          if (typeof owner === 'object' && !owner.lid) {
+            const cleanNum = normalizeToDigits(owner.number || owner.jid);
+            if (!cleanNum) continue;
+            const wa = await XeonBotInc.onWhatsApp(`${cleanNum}@s.whatsapp.net`).catch(() => null);
+            const lid = normalizeToDigits(wa?.[0]?.lid);
+            if (lid) {
+              owner.lid = lid;
+              updated = true;
+            }
+          }
+        }
+
+        if (updated) {
+          ownerData.owners = ownersList;
+          ownerData.superOwner = Array.from(new Set(superOwners.map(normalizeToDigits)));
+          fs.writeFileSync(ownerDataPath, JSON.stringify(ownerData, null, 2));
+        }
       } catch (e) {
-        console.error("Owner LID sync failed:", e);
+        console.error("Owner LID synchronization failed:", e);
       }
 
       // Allow time for file reads
