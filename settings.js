@@ -22,7 +22,7 @@ const defaults = {
   portfolio: "https://samkiel.dev",
   website: "https://samkielbot.app",
   description: "Whatsapp Bot",
-  version: "2.3.9",
+  version: "2.4.0",
 
   // --- FEATURE TOGGLES ---
   featureToggles: {
