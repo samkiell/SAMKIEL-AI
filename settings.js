@@ -1,53 +1,58 @@
-const fs = require("fs");
-const path = require("path");
-
-const settingsPath = path.join(__dirname, "data/settings.json");
-
-/**
- * DEFAULT SETTINGS
- * These act as a fallback and are used for new deployments.
- */
-const defaults = {
+const settings = {
   // --- IDENTITY ---
-  botName: "SAMKIEL BOT",
+  botName: "incognito`",
   prefix: ".",
-  botNumber: "",
-  ownerNumber: "",
-  ownerName: "",
+  botNumber: "94704557942",
+  ownerNumber: "94704557942",
+  ownerName: "incognito",
 
-  // --- CREDITS ---
+  // --- BRANDING & CREDITS ---
   author: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
   packname: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
   developer: "ѕαмкιєℓ.∂єν",
   portfolio: "https://samkiel.dev",
   website: "https://samkielbot.app",
   description: "Whatsapp Bot",
-  version: "2.4.0",
+  version: "2.7.0",
 
   // --- FEATURE TOGGLES ---
   featureToggles: {
-    AUTO_STATUS_VIEW: "on",
-    STATUS_VIEW_MSG: "off",
-    ENABLE_STATUS_REACTION: true,
+    AUTO_STATUS_VIEW: "on",     // ⚠️ STRING ONLY
+    STATUS_VIEW_MSG: "off",       // ⚠️ STRING ONLY
+
+    ENABLE_STATUS_REACTION: false,
     ANTI_DELETE: true,
     SEND_READ: false,
     ALWAYS_ONLINE: true,
     REJECT_CALL: false,
     PERSONAL_MESSAGE: false,
     DISABLE_START_MESSAGE: false,
+    RANKING: false,
     AUTO_REACTION: false,
+
+    // --- NEW FEATURES ---
+    ANTI_LINK: false,
+    ANTI_BADWORD: false,
+    AUTO_READ: false,
+    CHATBOT: false,
+    AUTO_BIO: false,
+    AUTO_TYPING: false,
+    AUTO_RECORDING: false,
+    FAILSAFE: false,
+    LOCKDOWN: false,
+    // --- END NEW FEATURES ---
+
     STATUS_VIEW_EMOJI: "👀",
     ANTI_DELETE_TYPE: "group",
     COMMAND_MODE: "private",
     VOICE_CHAT: false,
     PACKNAME: "𝕊𝔸𝕄𝕂𝕀𝔼𝕃 𝔹𝕆𝕋",
-    AUTO_RESTART: true,
+    AUTO_RESTART: true
   },
 
   // --- INTERNAL ---
   giphyApiKey: "qnl7ssQChTdPjsKta2Ax2LMaGXz303tq",
-  updateZipUrl:
-    "https://github.com/samkiell/SAMKIEL-AI/archive/refs/heads/main.zip",
+  updateZipUrl: "https://github.com/samkiell/SAMKIEL-AI/archive/refs/heads/main.zip",
 
   // --- AI API KEYS ---
   mistralApiKey: "bT7gsfnbCth6Uhn36jGTepeYxKGwyKlX",
@@ -65,43 +70,5 @@ const defaults = {
     "sk_live_RXvW25ePOldnHJKJ13QilUMCi_025NRtR1vXA_CPy-U",
   ],
 };
-
-/**
- * DEEP MERGE HELPER
- */
-function merge(target, source) {
-  if (!source) return target;
-  for (const key of Object.keys(source)) {
-    if (source[key] instanceof Object && key in target) {
-      Object.assign(source[key], merge(target[key], source[key]));
-    }
-  }
-  return { ...target, ...source };
-}
-
-/**
- * LOAD PERSISTENT SETTINGS
- * This ensures user-specific config is not lost during updates.
- */
-let settings = defaults;
-try {
-  if (fs.existsSync(settingsPath)) {
-    const userSettings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-    settings = merge(defaults, userSettings);
-  } else {
-    // If no persistent settings exist, create them from defaults
-    // This happens on first run or after manual deletion
-    if (!fs.existsSync(path.dirname(settingsPath))) {
-      fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
-    }
-    fs.writeFileSync(settingsPath, JSON.stringify(defaults, null, 2));
-  }
-} catch (e) {
-  console.error(
-    "[Settings] Critical: Failed to load persistent settings. Using defaults.",
-    e,
-  );
-  settings = defaults;
-}
 
 module.exports = settings;
